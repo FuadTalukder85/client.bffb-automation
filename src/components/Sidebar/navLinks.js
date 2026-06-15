@@ -1,0 +1,15 @@
+export const navLinks = [
+  { name: "Management Reports", path: "/reports" },
+  { name: "Project Overview", path: "/projects" },
+  { name: "Master Project Schedule", path: "/project-overview/master-project-schedule" },
+  { name: "Application Lab", path: "/lab" },
+  { name: "Sensory Testing", path: "/sensory-testing" },
+  { name: "Shelf-Life Testing", path: "/shelf-life" },
+  { name: "Cleaning", path: "/cleaning" },
+  { name: "Maintenance", path: "/maintenance" },
+  { name: "Master Application Recipes List", path: "/recipes" },
+  { name: "Sample Dispatch", path: "/dispatch" },
+  { name: "Team Management", path: "/team-management" },
+  { name: "Task Assignments", path: "/tasks" },
+  { name: "Invites and Access", path: "/employee-invitations" },
+];

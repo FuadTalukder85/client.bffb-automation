@@ -1,0 +1,188 @@
+import React, { useRef, useState, useEffect } from 'react';
+import { User, Edit2, Trash2, Check, X as CloseX, Loader2, MessageSquareReply } from 'lucide-react';
+import { format } from 'date-fns';
+import MentionInput from '../shared/MentionInput';
+import { useProjectMemberStatusSingle } from '@/hooks/useProjectMemberStatus';
+import { UserContextMenu } from '@/components/ui/UserContextMenu';
+import { ParentCommentPreview } from '@/components/comments/ParentCommentPreview';
+
+const CommentItem = ({
+    comment,
+    currentUser,
+    allUsers,
+    editingCommentId,
+    editInput,
+    setEditInput,
+    isDeletingId,
+    onStartEdit,
+    onCancelEdit,
+    onUpdate,
+    onDelete,
+    renderCommentContent,
+    getUserDisplayName,
+    editInputRef,
+    projectId,
+    memberStatusMap,
+    onInsertMention,
+    onReply
+}) => {
+    const isOwner = String(comment.createdBy?._id || comment.createdBy?.id || comment.createdBy) === String(currentUser?._id || currentUser?.id);
+    const isEditing = editingCommentId === comment._id;
+
+    const [isExpanded, setIsExpanded] = useState(false);
+    const commentRef = useRef(null);
+
+    useEffect(() => {
+        if (commentRef.current) {
+            commentRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, [isExpanded]);
+
+    const commentUserId = typeof comment.createdBy === 'object' ? String(comment.createdBy._id || comment.createdBy.id) : String(comment.createdBy);
+
+    const isProjectMember = useProjectMemberStatusSingle(projectId, commentUserId, memberStatusMap);
+
+    return (
+        <div id={`comment-${comment._id}`} ref={commentRef} className="flex gap-3 group/comment">
+            <div className="shrink-0">
+                <UserContextMenu userId={commentUserId} projectId={projectId} allUsers={allUsers} isMember={isProjectMember} onInsertMention={onInsertMention}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all ${
+                        isProjectMember ? 'bg-muted' : 'bg-red-50'
+                    }`}>
+                        <User className={`w-5 h-5 ${isProjectMember ? '' : 'text-red-600'}`} />
+                    </div>
+                </UserContextMenu>
+            </div>
+
+            <div className="flex-1 min-w-0">
+                {comment.parentComment && (
+                    <ParentCommentPreview
+                        parentComment={comment.parentComment}
+                        onNavigate={(id) => {
+                            const parentEl = document.getElementById(`comment-${id}`);
+                            if (parentEl) {
+                                parentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                parentEl.classList.add('bg-primary/10');
+                                setTimeout(() => {
+                                    parentEl.classList.remove('bg-primary/10');
+                                }, 2000);
+                            }
+                        }}
+                    />
+                )}
+
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-baseline gap-2">
+                        <UserContextMenu userId={commentUserId} projectId={projectId} allUsers={allUsers} isMember={isProjectMember} onInsertMention={onInsertMention}>
+                            <span className={`font-semibold text-sm cursor-pointer hover:text-primary transition-colors ${
+                                isProjectMember ? '' : 'text-red-600/70 hover:text-red-700'
+                            }`}>
+                                {getUserDisplayName(comment.createdBy)}
+                            </span>
+                        </UserContextMenu>
+                        <span className="text-xs text-muted-foreground">
+                            {format(new Date(comment.createdAt), 'h:mm a')}
+                            {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
+                                <span className="ml-1 text-[10px] italic">(edited)</span>
+                            )}
+                        </span>
+                        <button
+                            onClick={() => onReply?.(comment)}
+                            className="text-xs text-primary hover:text-primary/80 hover:bg-primary/5 px-2 py-0.5 rounded transition-colors"
+                            title="Reply to this comment"
+                        >
+                            <MessageSquareReply className="w-3 h-3 inline mr-1" />
+                            Reply
+                        </button>
+                    </div>
+
+                    {/* Actions for owner */}
+                    {isOwner && (
+                        <div className={`flex items-center gap-1 transition-opacity ${isEditing ? 'opacity-100' : 'opacity-0 group-hover/comment:opacity-100'}`}>
+                            {isEditing ? (
+                                <>
+                                    <button
+                                        onClick={() => onUpdate(comment._id)}
+                                        className="p-1 text-green-500 hover:bg-green-500/10 rounded transition-colors"
+                                        title="Save changes"
+                                    >
+                                        <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={onCancelEdit}
+                                        className="p-1 text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                                        title="Cancel edit"
+                                    >
+                                        <CloseX className="w-3.5 h-3.5" />
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => onStartEdit(comment)}
+                                        className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                                        title="Edit comment"
+                                    >
+                                        <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                        onClick={() => onDelete(comment._id)}
+                                        className="p-1 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                                        title="Delete comment"
+                                    >
+                                        {isDeletingId === comment._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {isEditing ? (
+                    <div className="mt-1">
+                        <MentionInput
+                            ref={editInputRef}
+                            value={editInput}
+                            onChange={(e) => setEditInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    onUpdate(comment._id);
+                                } else if (e.key === 'Escape') {
+                                    onCancelEdit();
+                                }
+                            }}
+                            className="w-full p-2 text-sm bg-background border border-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[60px] resize-none"
+                            autoFocus
+                            users={allUsers}
+                            projectId={projectId}
+                            onSubmit={() => onUpdate(comment._id)}
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">Press Enter to save, Esc to cancel</p>
+                    </div>
+                ) : (
+                    <div>
+                        <div className="text-sm text-foreground whitespace-pre-wrap wrap-break-word">
+                            {(() => {
+                                const content = comment.content;
+                                const isLong = content.length > 300;
+                                const displayContent = isExpanded || !isLong ? content : content.substring(0, 300) + "...";
+                                return renderCommentContent(displayContent);
+                            })()}
+                        </div>
+                        {comment.content.length > 300 && (
+                            <button
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                className="text-xs text-primary hover:text-primary/80 mt-1 transition-colors"
+                            >
+                                {isExpanded ? 'See less' : 'See more'}
+                            </button>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default CommentItem;

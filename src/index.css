@@ -1,0 +1,474 @@
+/* src/index.css */
+@font-face {
+  font-family: 'Urbanist';
+  src: url('./assets/fonts/Urbanist-VariableFont_wght.ttf');
+}
+
+@import "tailwindcss";
+@import "./components/ui/CustomTable/CustomTable.css";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* --- Custom Breakpoints --- */
+  --breakpoint-mm: 375px;
+  --breakpoint-lm: 380px;
+  /* --breakpoint-md: 760px; */
+  --breakpoint-lg: 1010px;
+  --breakpoint-xl: 1270px;
+  --breakpoint-2xl: 1530px;
+  --breakpoint-3xl: 1910px;
+
+  /* Light mode colors */
+  --color-background: #ffffff;
+  --color-foreground: #07020d;
+  --color-primary: #552e8e;
+  --color-logo: #552e8e;
+  --color-primary-shade-2: #eeebf4;
+  --color-table-stroke: #eeebf4;
+  --color-nav-highlight: #552e8e;
+  --color-lighter-text: #A0A0A1;
+  --color-base-color: #0D111A;
+
+  /* Gradient */
+  --color-gradient-top: #FEFEFF;
+  --color-gradient-middle: #FEFEFF;
+  --color-gradient-bottom: #E1DCFB;
+
+  /* Status text */
+  --color-status-1-text: #0039ff;
+  --color-status-2-text: #096812;
+  --color-status-3-text: #cc0056;
+  --color-status-4-text: #cc4314;
+  --color-status-5-text: #006797;
+  --color-status-6-text: #b20000;
+  --color-status-7-text: #896700;
+
+  /* Status bg */
+  --color-status-1-bg: #6688ff;
+  --color-status-2-bg: #29cc39;
+  --color-status-3-bg: #ff66a6;
+  --color-status-4-bg: #ff8d66;
+  --color-status-5-bg: #66cfff;
+  --color-status-6-bg: #ff6666;
+  --color-status-7-bg: #ffd559;
+
+  /* Misc */
+  --color-desktop-filter-active-bg: #EEEBF4;
+  --color-desktop-filter-bg: #FFFFFF;
+  --color-invite-status-bg: #EEEBF4;
+  --color-invite-status-text: #552E8E;
+  --color-border: #EEEBF4;
+
+  --font-urbanist: Urbanist, "sans-serif";
+}
+
+@layer base {
+  :root {
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body {
+    font-family: var(--font-urbanist);
+  }
+
+  /* DARK MODE */
+  .dark {
+    --color-background: #07020d;
+    --color-foreground: #ffffff;
+    --color-primary: #552e8e;
+    --color-logo: #ffffff;
+    --color-primary-shade-2: #2c213d;
+    --color-table-stroke: #2d213d;
+    --color-nav-highlight: #935ce3;
+    --color-lighter-text: #A0A0A1;
+    --color-base-color: #FFFFFF;
+
+    --color-gradient-top: #080808;
+    --color-gradient-middle: #080808;
+    --color-gradient-bottom: #35274A;
+
+    --color-status-1-text: #0039ff;
+    --color-status-2-text: #096812;
+    --color-status-3-text: #cc0056;
+    --color-status-4-text: #cc4314;
+    --color-status-5-text: #006797;
+    --color-status-6-text: #b20000;
+    --color-status-7-text: #896700;
+
+    --color-status-1-bg: #6688ff;
+    --color-status-2-bg: #29cc39;
+    --color-status-3-bg: #ff66a6;
+    --color-status-4-bg: #ff8d66;
+    --color-status-5-bg: #66cfff;
+    --color-status-6-bg: #ff6666;
+    --color-status-7-bg: #ffd559;
+
+    --color-desktop-filter-active-bg: #07020D;
+    --color-desktop-filter-bg: #2D213D;
+    --color-invite-status-bg: #120E19;
+    --color-invite-status-text: #935CE3;
+    --color-border: #2D213D;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar */
+  @-moz-document url-prefix() {
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-nav-highlight) transparent;
+    }
+
+    /* .custom-scrollbar:hover {
+      scrollbar-color: var(--color-primary) transparent;
+    } */
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-nav-highlight);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary);
+  }
+
+  /* Base typography */
+  .text-heading {
+    font-size: 20px;
+    line-height: 30px;
+    font-weight: 700;
+  }
+
+  /* .text-sub-heading {
+    font-size: 1rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+  } */
+
+  .text-body {
+    font-size: 0.875rem;
+    line-height: 1rem;
+  }
+
+  .text-sub-text {
+    font-size: 0.75rem;
+    line-height: 0.875rem;
+  }
+
+
+  /* text sizing will controlled from text-sub-heading */
+  /* .table-header-cell {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  } */
+
+  /* text sizing will controlled from table-body-cell */
+  .table-body-cell {
+    font-size: 0.8rem;
+    line-height: 1rem;
+  }
+
+  /* Action Button - Base styling */
+  .action-button-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* ≥ 768px */
+  @media (min-width: 760px) {
+    .text-heading {
+      font-size: 1.45rem;
+      line-height: 1.75rem;
+    }
+
+      /* .text-sub-heading {
+    font-size: 0.7rem;
+    line-height: 0.8rem;
+    font-weight: 600;
+  } */
+
+  .text-body {
+    font-size: 0.6rem;
+    line-height: 0.7rem;
+  }
+
+  .text-sub-text {
+    font-size: 0.55rem;
+    line-height: 0.6rem;
+  }
+  }
+
+  /* ≥ 1010px */
+  @media (min-width: 1010px) {
+    .text-heading {
+      font-size: 0.8rem;
+      line-height: 1rem;
+    }
+    .action-button-icon {
+      width: .7rem;
+      height: .7rem;
+    }
+  .desktop-page-btn{
+      height: 0.7rem;
+      width: 0.7rem;
+      margin: .3rem 0.4rem;
+    }
+    .desktop-page-btn-wrapper {
+      min-height: 1.35rem;
+      padding: 0 0.2rem;
+    }
+   .action-button {
+      width: 1.5rem;
+      height: 1.1rem;
+    }
+      .text-sub-heading {
+    font-size: 0.5rem;
+    line-height: 0.8rem;
+    font-weight: 600;
+  }
+  .text-sub-text {
+    font-size: 0.4rem;
+    line-height: 0.5rem;
+  }
+   .custom-scrollbar::-webkit-scrollbar {
+    height: 3px;
+    width: 3px;
+  }
+  }
+
+  /* ≥ 1010px */
+  @media (min-width: 1010px) {
+    .text-heading {
+      font-size: 1.2rem;
+      line-height: 1rem;
+    }
+    /* .text-sub-heading {
+      font-size: 0.5rem;
+      line-height: 1.25rem;
+    } */
+    .text-body {
+      font-size: 0.5rem;
+      line-height: 0.7rem;
+    }
+  }
+  /* ≥ 1270px */
+  @media (min-width: 1270px) {
+    .text-heading {
+      font-size: 1.3rem;
+      line-height: 1.5rem;
+    }
+    .text-body {
+      font-size: 0.6rem;
+      line-height: 0.7rem;
+    }
+     .text-sub-heading {
+      font-size: 0.7rem;
+      line-height: 1.25rem;
+    }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 4.5px;
+    width: 4.5px;
+  }
+  .text-sub-text {
+    font-size: 0.5rem;
+    line-height: 0.6rem;
+  }
+
+  }
+  /* ≥ 1536px */
+  @media (min-width: 1530px) {
+    .text-heading {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+
+    .text-sub-heading {
+      font-size: 0.8rem;
+      line-height: 1.25rem;
+    }
+
+    .text-body {
+      font-size: 0.7rem;
+      line-height: 0.8rem;
+    }
+
+    .text-sub-text {
+      font-size: 0.6rem;
+      line-height: 0.7rem;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
+  }
+  }
+
+  /* ≥ 1910px */
+  @media (min-width: 1910px) {
+    .text-heading {
+      font-size: 2rem;
+      line-height: 2.5rem;
+    }
+
+ .text-sub-heading {
+    font-size: 1rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+  }
+
+  .text-body {
+    font-size: 0.875rem;
+    line-height: 1rem;
+  }
+
+  .text-sub-text {
+    font-size: 0.75rem;
+    line-height: 0.875rem;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  }
+
+  .page-section-spacing {
+    @apply md:pb-0!;
+  }
+
+  /* Action Button - Responsive sizing across desktop breakpoints */
+  .action-button {
+    /* width: 1.25rem;
+    height: 1.375rem; */
+    color: var(--color-nav-highlight);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  @media (min-width: 1270px) {
+    .action-button {
+      width: 2rem;
+      height: 1.4rem;
+    }
+    
+    
+    .desktop-page-btn-wrapper{
+      height: 1.4rem
+    }
+
+    .desktop-page-btn{
+      height: 0.7rem;
+      width: 0.7rem;
+      margin: .3rem 0.5rem;
+    }
+
+    .action-button-icon {
+      width: .9rem;
+      height: .9rem;
+    }
+  }
+
+  @media (min-width: 1530px) {
+    .action-button {
+      width: 2.2rem;
+      height: 1.6rem;
+    }
+    .desktop-page-btn-wrapper{
+      height: 1.6em;
+    }
+    .desktop-page-btn{
+      height: 1rem;
+      width: 1rem;
+      margin: 0.5em 0.6rem;
+    }
+    .action-button-icon {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  @media (min-width: 1910px) {
+    .action-button {
+      width: 2.75rem;
+      height: 2rem;
+    }
+    .desktop-page-btn-wrapper{
+        height: 2rem;
+      }
+    .desktop-page-btn{
+      height: 1.25rem;
+      width: 1.25rem;
+      margin: 0.8em 1rem;
+    }
+    .action-button-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  /* Field Highlight Animation - For Search Navigation */
+  .field-highlight-active {
+    animation: field-pulse 2s ease-in-out;
+    border-radius: 0.5rem;
+  }
+
+  @keyframes field-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(85, 46, 142, 0.4);
+      background-color: rgba(85, 46, 142, 0.1);
+      border-radius: 0.5rem;
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(85, 46, 142, 0);
+      background-color: rgba(85, 46, 142, 0.15);
+      border-radius: 0.5rem;
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(85, 46, 142, 0);
+      background-color: transparent;
+      border-radius: 0.5rem;
+    }
+  }
+
+  /* Dark mode support for field highlight */
+  :where(.dark, .dark *) .field-highlight-active {
+    animation: field-pulse-dark 2s ease-in-out;
+    border-radius: 0.5rem;
+  }
+
+  @keyframes field-pulse-dark {
+    0% {
+      box-shadow: 0 0 0 0 rgba(133, 97, 198, 0.4);
+      background-color: rgba(133, 97, 198, 0.15);
+      border-radius: 0.5rem;
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(133, 97, 198, 0);
+      background-color: rgba(133, 97, 198, 0.2);
+      border-radius: 0.5rem;
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(133, 97, 198, 0);
+      background-color: transparent;
+      border-radius: 0.5rem;
+    }
+  }
+}

@@ -1,0 +1,71 @@
+import React from "react";
+import { BackButton } from "@/components/ui/BackButton";
+import { Breadcrumb } from "@/components/ui/Breadcrumb";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { ActionButtonsGroup } from "@/components/ui/ActionButtonsGroup";
+import { ChevronRight } from "lucide-react";
+
+export const DetailsHeader = ({
+    projectTitle,
+    handleBack,
+    handleToggleSidebar,
+    actionButtons,
+    searchBar,
+}) => {
+    const breadcrumbItems = [
+        { label: "Sensory List", onClick: handleBack },
+        { label: projectTitle || "Project Details" },
+    ];
+
+    return (
+        <>
+            {/* MOBILE HEADER: Stacked Layout + Action Buttons */}
+            <div className="flex items-center justify-between py-4 ms-0 md:hidden">
+                <div className="flex items-start gap-3">
+                    <BackButton onClick={handleBack} className="mt-1" />
+                    <div className="flex flex-col">
+                        <span
+                            className="text-lg font-medium cursor-pointer text-base-color hover:text-primary"
+                            onClick={handleBack}
+                        >
+                            Sensory List
+                        </span>
+                        <div className="flex items-center text-xl font-bold text-nav-highlight -ms-1">
+                            <ChevronRight size={20} />
+                            <span className="truncate max-w-[130px]">
+                                {projectTitle || "Project Details"}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <ActionButtonsGroup actions={actionButtons} />
+                </div>
+            </div>
+
+            {/* DESKTOP HEADER: Original Layout */}
+            <div className="items-center justify-between hidden ms-0 lg:ms-5 md:flex">
+                <div className="flex items-center gap-3 py-4 md:p-0 md:m-0">
+                    <BackButton onClick={handleBack} />
+                    <Breadcrumb items={breadcrumbItems} />
+                </div>
+
+                {searchBar && <div className="hidden md:block min-w-sm">{searchBar}</div>}
+
+                <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+                    {/* Desktop Action Buttons - Empty for Sensory */}
+                    <div className="justify-end hidden w-full gap-2  md:flex ">
+                    </div>
+
+                    <div className="">
+
+                        <ThemeToggle />
+                    </div>
+                </div>
+            </div>
+
+
+        </>
+    );
+};

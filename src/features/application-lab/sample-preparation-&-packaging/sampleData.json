@@ -1,0 +1,366 @@
+{
+  "samplePreparationData": [
+    {
+      "_id": "sp001",
+      "masterProject": {
+        "code": "AC-BA-CB-00000",
+        "title": "Caramel Chocolate Muffin",
+        "raisedDate": "2026-01-20T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 21
+      },
+      "productDevelopment": {
+        "status": "Approved",
+        "statusDays": 18
+      },
+      "applicationLab": {
+        "developmentStatus": "Approved",
+        "statusDays": 18
+      },
+      "sensoryLab": {
+        "status": "Rework",
+        "statusDays": 12
+      },
+      "businessDevelopment": {
+        "status": "Rework",
+        "statusDays": 10
+      },
+      "hodStatus": {
+        "status": "Approved",
+        "statusDays": 5
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-23T08:30:00Z",
+        "applicationLabStatus": "2026-01-23T08:30:00Z",
+        "sensoryLabStatus": "2026-01-29T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-31T14:20:00Z",
+        "masterProjectStatus": "2026-01-20T10:00:00Z",
+        "hodStatus": "2026-02-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp002",
+      "masterProject": {
+        "code": "AC-BA-CB-00000",
+        "title": "Caramel Chocolate Muffin",
+        "raisedDate": "2026-01-20T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 21
+      },
+      "productDevelopment": {
+        "status": "Approved",
+        "statusDays": 18
+      },
+      "applicationLab": {
+        "developmentStatus": "Approved",
+        "statusDays": 18
+      },
+      "sensoryLab": {
+        "status": "Rework",
+        "statusDays": 12
+      },
+      "businessDevelopment": {
+        "status": "Rework",
+        "statusDays": 10
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 4
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-23T08:30:00Z",
+        "applicationLabStatus": "2026-01-23T08:30:00Z",
+        "sensoryLabStatus": "2026-01-29T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-31T14:20:00Z",
+        "masterProjectStatus": "2026-01-20T10:00:00Z",
+        "hodStatus": "2026-02-06T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp003",
+      "masterProject": {
+        "code": "AC-BA-CB-00000",
+        "title": "Caramel Chocolate Muffin",
+        "raisedDate": "2026-01-25T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 16
+      },
+      "productDevelopment": {
+        "status": "Approved",
+        "statusDays": 13
+      },
+      "applicationLab": {
+        "developmentStatus": "Approved",
+        "statusDays": 13
+      },
+      "sensoryLab": {
+        "status": "In Progress",
+        "statusDays": 8
+      },
+      "businessDevelopment": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "hodStatus": {
+        "status": "Approved",
+        "statusDays": 3
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-28T08:30:00Z",
+        "applicationLabStatus": "2026-01-28T08:30:00Z",
+        "sensoryLabStatus": "2026-02-02T14:20:00Z",
+        "businessDevelopmentStatus": "2026-02-05T14:20:00Z",
+        "masterProjectStatus": "2026-01-25T10:00:00Z",
+        "hodStatus": "2026-02-07T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp004",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2025-12-14T00:00:00Z",
+        "status": "Completed",
+        "statusDays": 58
+      },
+      "productDevelopment": {
+        "status": "Approved",
+        "statusDays": 45
+      },
+      "applicationLab": {
+        "developmentStatus": "Approved",
+        "statusDays": 45
+      },
+      "sensoryLab": {
+        "status": "Approved",
+        "statusDays": 40
+      },
+      "businessDevelopment": {
+        "status": "Approved",
+        "statusDays": 35
+      },
+      "hodStatus": {
+        "status": "Approved",
+        "statusDays": 30
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-12-27T08:30:00Z",
+        "applicationLabStatus": "2025-12-27T08:30:00Z",
+        "sensoryLabStatus": "2026-01-01T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-06T14:20:00Z",
+        "masterProjectStatus": "2026-01-13T10:00:00Z",
+        "hodStatus": "2026-01-11T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp005",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2026-02-01T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 9
+      },
+      "productDevelopment": {
+        "status": "In Progress",
+        "statusDays": 7
+      },
+      "applicationLab": {
+        "developmentStatus": "Not Started",
+        "statusDays": 5
+      },
+      "sensoryLab": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "businessDevelopment": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 2
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-02-03T08:30:00Z",
+        "applicationLabStatus": "2026-02-05T08:30:00Z",
+        "sensoryLabStatus": "2026-02-05T14:20:00Z",
+        "businessDevelopmentStatus": "2026-02-05T14:20:00Z",
+        "masterProjectStatus": "2026-02-01T10:00:00Z",
+        "hodStatus": "2026-02-08T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp006",
+      "masterProject": {
+        "code": "DC-BE-FZ-00002",
+        "title": "Frozen Juice Bar Series",
+        "raisedDate": "2026-01-15T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 26
+      },
+      "productDevelopment": {
+        "status": "Approved",
+        "statusDays": 22
+      },
+      "applicationLab": {
+        "developmentStatus": "In Progress",
+        "statusDays": 18
+      },
+      "sensoryLab": {
+        "status": "In Progress",
+        "statusDays": 14
+      },
+      "businessDevelopment": {
+        "status": "Not Started",
+        "statusDays": 10
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 6
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-19T08:30:00Z",
+        "applicationLabStatus": "2026-01-23T08:30:00Z",
+        "sensoryLabStatus": "2026-01-27T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-31T14:20:00Z",
+        "masterProjectStatus": "2026-01-15T10:00:00Z",
+        "hodStatus": "2026-02-04T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp007",
+      "masterProject": {
+        "code": "ED-CN-CH-00003",
+        "title": "Premium Chocolate Bonbon",
+        "raisedDate": "2025-12-20T00:00:00Z",
+        "status": "Paused",
+        "statusDays": 52
+      },
+      "productDevelopment": {
+        "status": "Rework",
+        "statusDays": 48
+      },
+      "applicationLab": {
+        "developmentStatus": "Paused",
+        "statusDays": 45
+      },
+      "sensoryLab": {
+        "status": "Paused",
+        "statusDays": 42
+      },
+      "businessDevelopment": {
+        "status": "Paused",
+        "statusDays": 40
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 38
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-12-24T08:30:00Z",
+        "applicationLabStatus": "2025-12-27T08:30:00Z",
+        "sensoryLabStatus": "2025-12-30T14:20:00Z",
+        "masterProjectStatus": "2025-12-20T10:00:00Z",
+        "businessDevelopmentStatus": "2026-01-01T14:20:00Z",
+        "hodStatus": "2026-01-03T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp008",
+      "masterProject": {
+        "code": "FC-BA-MF-00004",
+        "title": "Blueberry Streusel Muffin",
+        "raisedDate": "2026-01-28T00:00:00Z",
+        "status": "In Progress",
+        "statusDays": 13
+      },
+      "productDevelopment": {
+        "status": "In Progress",
+        "statusDays": 10
+      },
+      "applicationLab": {
+        "developmentStatus": "In Progress",
+        "statusDays": 8
+      },
+      "sensoryLab": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "businessDevelopment": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 3
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-31T08:30:00Z",
+        "applicationLabStatus": "2026-02-02T08:30:00Z",
+        "sensoryLabStatus": "2026-02-05T14:20:00Z",
+        "businessDevelopmentStatus": "2026-02-05T14:20:00Z",
+        "masterProjectStatus": "2026-01-28T10:00:00Z",
+        "hodStatus": "2026-02-07T10:00:00Z"
+      }
+    },
+    {
+      "_id": "sp009",
+      "masterProject": {
+        "code": "GC-BE-SM-00005",
+        "title": "Strawberry Smoothie Mix",
+        "raisedDate": "2026-02-05T00:00:00Z",
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "productDevelopment": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "applicationLab": {
+        "developmentStatus": "Not Started",
+        "statusDays": 5
+      },
+      "sensoryLab": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "businessDevelopment": {
+        "status": "Not Started",
+        "statusDays": 5
+      },
+      "hodStatus": {
+        "status": "Not Approved",
+        "statusDays": 5
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-02-05T08:30:00Z",
+        "applicationLabStatus": "2026-02-05T08:30:00Z",
+        "sensoryLabStatus": "2026-02-05T14:20:00Z",
+        "businessDevelopmentStatus": "2026-02-05T14:20:00Z",
+        "masterProjectStatus": "2026-02-05T10:00:00Z",
+        "hodStatus": "2026-02-05T10:00:00Z"
+      }
+    }
+  ],
+  "metadata": {
+    "description": "Sample Preparation & Packaging page data with status tracking for all stages",
+    "statusValues": [
+      "Not Started",
+      "In Progress",
+      "Completed",
+      "Rework",
+      "Approved",
+      "Paused",
+      "Cancelled"
+    ],
+    "notes": [
+      "HOD Status can be 'Approved' or 'Not Approved'",
+      "All statuses include day count since status change",
+      "Running period includes projects raised within last 30 days (Jan 11 - Feb 10, 2026)",
+      "Previous period includes projects raised before Jan 11, 2026",
+      "Projects sp001-sp003, sp005-sp006, sp008-sp009 are 'Running' (recent)",
+      "Projects sp004, sp007 are 'Previous' (older)"
+    ]
+  }
+}

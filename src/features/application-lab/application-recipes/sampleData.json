@@ -1,0 +1,487 @@
+{
+  "sampleApplicationRecipesData": [
+    {
+      "_id": "project001",
+      "masterProject": {
+        "code": "AC-BA-CB-00000",
+        "title": "Caramel Chocolate Muffin",
+        "raisedDate": "2025-12-16T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": null,
+        "recipeCode": null,
+        "recipeName": null,
+        "category": null,
+        "subcategory": null,
+        "subSubcategory": null,
+        "tags": [],
+        "developmentStatus": "Approved"
+      },
+      "productDevelopment": {
+        "status": "Approved"
+      },
+      "sensoryLab": {
+        "status": "Rework"
+      },
+      "businessDevelopment": {
+        "status": "Rework"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-10T08:30:00Z",
+        "applicationLabStatus": "2026-01-10T08:30:00Z",
+        "sensoryLabStatus": "2026-01-22T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-22T14:20:00Z",
+        "masterProjectStatus": "2026-01-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "project002",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2025-12-14T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-12-15T00:00:00Z",
+        "recipeCode": "CKB 17042401",
+        "recipeName": "Marble Cake 1",
+        "category": {
+          "_id": "cat001",
+          "name": "Bakery"
+        },
+        "subcategory": {
+          "_id": "subcat001",
+          "name": "Cake"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat001",
+          "name": "Cake Bar"
+        },
+        "tags": [],
+        "developmentStatus": "Approved"
+      },
+      "productDevelopment": {
+        "status": "Approved"
+      },
+      "sensoryLab": {
+        "status": "Rework"
+      },
+      "businessDevelopment": {
+        "status": "Rework"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-10T08:30:00Z",
+        "applicationLabStatus": "2026-01-10T08:30:00Z",
+        "sensoryLabStatus": "2026-01-22T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-22T14:20:00Z",
+        "masterProjectStatus": "2026-01-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "project003",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2025-12-14T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-12-15T00:00:00Z",
+        "recipeCode": "CKB 17042401",
+        "recipeName": "Marble Cake 1",
+        "category": {
+          "_id": "cat002",
+          "name": "Beverage"
+        },
+        "subcategory": {
+          "_id": "subcat001",
+          "name": "Cake"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat001",
+          "name": "Cake Bar"
+        },
+        "tags": [],
+        "developmentStatus": "Approved"
+      },
+      "productDevelopment": {
+        "status": "Approved"
+      },
+      "sensoryLab": {
+        "status": "Rework"
+      },
+      "businessDevelopment": {
+        "status": "Rework"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-10T08:30:00Z",
+        "applicationLabStatus": "2026-01-10T08:30:00Z",
+        "sensoryLabStatus": "2026-01-22T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-22T14:20:00Z",
+        "masterProjectStatus": "2026-01-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "project004",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2025-12-14T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-12-15T00:00:00Z",
+        "recipeCode": "CKB 17042401",
+        "recipeName": "Marble Cake 1",
+        "category": {
+          "_id": "cat003",
+          "name": "Beverage PSD"
+        },
+        "subcategory": {
+          "_id": "subcat001",
+          "name": "Cake"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat001",
+          "name": "Cake Bar"
+        },
+        "tags": [],
+        "developmentStatus": "Approved"
+      },
+      "productDevelopment": {
+        "status": "Approved"
+      },
+      "sensoryLab": {
+        "status": "Rework"
+      },
+      "businessDevelopment": {
+        "status": "Rework"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-10T08:30:00Z",
+        "applicationLabStatus": "2026-01-10T08:30:00Z",
+        "sensoryLabStatus": "2026-01-22T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-22T14:20:00Z",
+        "masterProjectStatus": "2026-01-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "project005",
+      "masterProject": {
+        "code": "BC-BA-CB-00001",
+        "title": "Cake Promo V1 2025",
+        "raisedDate": "2025-12-14T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-12-15T00:00:00Z",
+        "recipeCode": "CKB 17042401",
+        "recipeName": "Marble Cake 1",
+        "category": {
+          "_id": "cat004",
+          "name": "Confectionery"
+        },
+        "subcategory": {
+          "_id": "subcat001",
+          "name": "Cake"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat001",
+          "name": "Cake Bar"
+        },
+        "tags": [],
+        "developmentStatus": "Not Started"
+      },
+      "productDevelopment": {
+        "status": "Approved"
+      },
+      "sensoryLab": {
+        "status": "Rework"
+      },
+      "businessDevelopment": {
+        "status": "Rework"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-10T08:30:00Z",
+        "applicationLabStatus": "2026-01-10T08:30:00Z",
+        "sensoryLabStatus": "2026-01-22T14:20:00Z",
+        "businessDevelopmentStatus": "2026-01-22T14:20:00Z",
+        "masterProjectStatus": "2026-01-05T10:00:00Z"
+      }
+    },
+    {
+      "_id": "project006",
+      "masterProject": {
+        "code": "DC-BA-CB-00002",
+        "title": "Premium Espresso Blend",
+        "raisedDate": "2025-11-20T00:00:00Z",
+        "status": "Completed"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-11-25T00:00:00Z",
+        "recipeCode": "BEV 18053101",
+        "recipeName": "Dark Roast Espresso",
+        "category": {
+          "_id": "cat002",
+          "name": "Beverage"
+        },
+        "subcategory": {
+          "_id": "subcat002",
+          "name": "Coffee"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat002",
+          "name": "Espresso"
+        },
+        "tags": [
+          { "_id": "tag001", "name": "Premium" },
+          { "_id": "tag002", "name": "Organic" }
+        ],
+        "developmentStatus": "Completed"
+      },
+      "productDevelopment": {
+        "status": "Completed"
+      },
+      "sensoryLab": {
+        "status": "Completed"
+      },
+      "businessDevelopment": {
+        "status": "Completed"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-12-05T09:15:00Z",
+        "applicationLabStatus": "2025-12-05T09:15:00Z",
+        "sensoryLabStatus": "2025-12-10T11:30:00Z",
+        "businessDevelopmentStatus": "2025-12-15T14:45:00Z",
+        "masterProjectStatus": "2025-12-20T16:00:00Z"
+      }
+    },
+    {
+      "_id": "project007",
+      "masterProject": {
+        "code": "EC-BA-CB-00003",
+        "title": "Sugar-Free Chocolate Bar",
+        "raisedDate": "2026-01-05T00:00:00Z",
+        "status": "Not Started"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": null,
+        "recipeCode": null,
+        "recipeName": null,
+        "category": null,
+        "subcategory": null,
+        "subSubcategory": null,
+        "tags": [],
+        "developmentStatus": "Not Started"
+      },
+      "productDevelopment": {
+        "status": "Not Started"
+      },
+      "sensoryLab": {
+        "status": "Not Started"
+      },
+      "businessDevelopment": {
+        "status": "Not Started"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2026-01-05T08:00:00Z",
+        "applicationLabStatus": "2026-01-05T08:00:00Z",
+        "sensoryLabStatus": "2026-01-05T08:00:00Z",
+        "businessDevelopmentStatus": "2026-01-05T08:00:00Z",
+        "masterProjectStatus": "2026-01-05T08:00:00Z"
+      }
+    },
+    {
+      "_id": "project008",
+      "masterProject": {
+        "code": "FC-BA-CB-00004",
+        "title": "Fruit Smoothie Mix",
+        "raisedDate": "2025-10-15T00:00:00Z",
+        "status": "In Progress"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-10-20T00:00:00Z",
+        "recipeCode": "BEV 19021502",
+        "recipeName": "Tropical Smoothie Base",
+        "category": {
+          "_id": "cat003",
+          "name": "Beverage PSD"
+        },
+        "subcategory": {
+          "_id": "subcat003",
+          "name": "Smoothie"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat003",
+          "name": "Fruit Base"
+        },
+        "tags": [
+          { "_id": "tag003", "name": "Natural" },
+          { "_id": "tag004", "name": "Vegan" },
+          { "_id": "tag005", "name": "No Added Sugar" }
+        ],
+        "developmentStatus": "In Progress"
+      },
+      "productDevelopment": {
+        "status": "In Progress"
+      },
+      "sensoryLab": {
+        "status": "In Progress"
+      },
+      "businessDevelopment": {
+        "status": "Paused"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-11-01T10:20:00Z",
+        "applicationLabStatus": "2025-11-01T10:20:00Z",
+        "sensoryLabStatus": "2025-11-15T13:45:00Z",
+        "businessDevelopmentStatus": "2026-01-10T09:00:00Z",
+        "masterProjectStatus": "2025-10-25T11:30:00Z"
+      }
+    },
+    {
+      "_id": "project009",
+      "masterProject": {
+        "code": "GC-BA-CB-00005",
+        "title": "Gummy Bear Deluxe Edition",
+        "raisedDate": "2025-09-18T00:00:00Z",
+        "status": "Cancelled"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-09-22T00:00:00Z",
+        "recipeCode": "CNF 20041801",
+        "recipeName": "Multi-Flavor Gummy Mix",
+        "category": {
+          "_id": "cat004",
+          "name": "Confectionery"
+        },
+        "subcategory": {
+          "_id": "subcat004",
+          "name": "Gummies"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat004",
+          "name": "Bear Shaped"
+        },
+        "tags": [
+          { "_id": "tag006", "name": "Fruit Flavored" }
+        ],
+        "developmentStatus": "Cancelled"
+      },
+      "productDevelopment": {
+        "status": "Cancelled"
+      },
+      "sensoryLab": {
+        "status": "Cancelled"
+      },
+      "businessDevelopment": {
+        "status": "Cancelled"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-10-10T14:30:00Z",
+        "applicationLabStatus": "2025-10-10T14:30:00Z",
+        "sensoryLabStatus": "2025-10-10T14:30:00Z",
+        "businessDevelopmentStatus": "2025-10-10T14:30:00Z",
+        "masterProjectStatus": "2025-10-10T14:30:00Z"
+      }
+    },
+    {
+      "_id": "project010",
+      "masterProject": {
+        "code": "HC-BA-CB-00006",
+        "title": "Artisan Sourdough Bread",
+        "raisedDate": "2025-08-12T00:00:00Z",
+        "status": "Adopted"
+      },
+      "applicationLab": {
+        "recipeCreatedAt": "2025-08-18T00:00:00Z",
+        "recipeCode": "BKR 21031203",
+        "recipeName": "Classic Sourdough Formula",
+        "category": {
+          "_id": "cat001",
+          "name": "Bakery"
+        },
+        "subcategory": {
+          "_id": "subcat005",
+          "name": "Bread"
+        },
+        "subSubcategory": {
+          "_id": "subsubcat005",
+          "name": "Sourdough"
+        },
+        "tags": [
+          { "_id": "tag007", "name": "Artisan" },
+          { "_id": "tag008", "name": "Traditional" },
+          { "_id": "tag009", "name": "Long Fermentation" }
+        ],
+        "developmentStatus": "Adopted"
+      },
+      "productDevelopment": {
+        "status": "Adopted"
+      },
+      "sensoryLab": {
+        "status": "Adopted"
+      },
+      "businessDevelopment": {
+        "status": "Adopted"
+      },
+      "statusChangedAt": {
+        "productDevelopmentStatus": "2025-09-15T12:00:00Z",
+        "applicationLabStatus": "2025-09-15T12:00:00Z",
+        "sensoryLabStatus": "2025-09-20T10:30:00Z",
+        "businessDevelopmentStatus": "2025-09-25T15:45:00Z",
+        "masterProjectStatus": "2025-09-30T09:00:00Z"
+      }
+    }
+  ],
+  "metadata": {
+    "description": "Sample JSON data structure for Application Recipes Page matching the provided UI image",
+    "fields": {
+      "masterProject.code": "Project code identifier (e.g., AC-BA-CB-00000)",
+      "masterProject.title": "Project name/title",
+      "masterProject.raisedDate": "Date when project was raised",
+      "masterProject.status": "Overall project status",
+      "applicationLab.recipeCreatedAt": "Latest recipe creation date",
+      "applicationLab.recipeCode": "Recipe code (e.g., CKB 17042401)",
+      "applicationLab.recipeName": "Name of the recipe",
+      "applicationLab.category": "Application category (Bakery, Beverage, Beverage PSD, Confectionery)",
+      "applicationLab.subcategory": "Application subcategory (Cake, etc.)",
+      "applicationLab.subSubcategory": "Application sub-subcategory (Cake Bar, etc.)",
+      "applicationLab.tags": "Array of application tags",
+      "applicationLab.developmentStatus": "Application development status",
+      "productDevelopment.status": "Product development status",
+      "sensoryLab.status": "Sensory lab status",
+      "businessDevelopment.status": "Business development status",
+      "statusChangedAt": "Timestamps for when each status was last changed"
+    },
+    "categoryValues": [
+      "Bakery",
+      "Beverage",
+      "Beverage PSD",
+      "Confectionery"
+    ],
+    "statusValues": [
+      "Not Started",
+      "In Progress",
+      "Completed",
+      "Rework",
+      "Approved",
+      "Paused",
+      "Cancelled",
+      "Adopted"
+    ],
+    "notes": [
+      "Total of 10 sample projects with diverse statuses",
+      "Projects 001, 007: No recipe information (status: Approved, Not Started)",
+      "Projects 002-006, 008-010: Complete recipe information with various statuses",
+      "Status distribution: Not Started (1), In Progress (3), Completed (1), Approved (4), Cancelled (1), Adopted (1)",
+      "Categories: Bakery, Beverage, Beverage PSD, Confectionery",
+      "Subcategories: Cake, Coffee, Smoothie, Gummies, Bread",
+      "Some projects include tags (Premium, Organic, Vegan, etc.)",
+      "Projects without recipe information will show 'Create Recipe' button",
+      "Date range: From August 2025 to January 2026"
+    ]
+  }
+}
