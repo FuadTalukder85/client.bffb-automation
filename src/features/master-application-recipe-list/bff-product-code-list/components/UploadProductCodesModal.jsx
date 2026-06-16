@@ -97,6 +97,8 @@ export function UploadProductCodesModal({
         productcode: "productCode",
         "product code": "productCode",
         code: "productCode",
+        commercializedproductcode: "commercializedProductCode",
+        "commercialized product code": "commercializedProductCode",
         name: "name",
         productname: "name",
         "product name": "name",
@@ -108,7 +110,7 @@ export function UploadProductCodesModal({
         "is active": "isActive",
         status: "isActive",
     };
-    const REQUIRED = ["productCode", "name", "segment", "type", "cost"];
+    const REQUIRED = ["name", "segment", "type", "cost"];
 
     const readHeaders = async (file) => {
         try {
