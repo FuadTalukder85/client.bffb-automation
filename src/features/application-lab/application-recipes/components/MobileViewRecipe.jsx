@@ -143,7 +143,7 @@ export default function MobileViewRecipe({
       {/* STICKY TOP NAVIGATION (Header, Search, and Tabs) */}
       <div className="sticky -top-5 z-50 bg-white/95 dark:bg-background/95 backdrop-blur-sm -mx-5 px-5 pt-5 shadow-sm border-b border-border/10">
         <div className="space-y-4 px-1 pb-4">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex items-start gap-3 min-w-0 overflow-hidden">
               <div className="pt-1.5 shrink-0">
                 <BackButton onClick={handleBack} />
@@ -250,7 +250,7 @@ export default function MobileViewRecipe({
           )}
 
           {/* VERSION CONTROL FOOTER (Inside the Card at the very bottom) */}
-          <div className="px-2 py-8 mt-12 border-t border-border/50">
+          <div className="py-8 mt-12 border-t border-border/50">
             <div className="flex flex-col items-center gap-6">
               <div className="flex justify-center w-full">
                 <Pagination
@@ -266,27 +266,21 @@ export default function MobileViewRecipe({
                   onItemsPerPageChange={() => {}}
                 />
               </div>
-              <div className="flex items-center justify-between w-full gap-4">
-                 <span className="text-xs font-bold text-nav-highlight whitespace-nowrap">Version {currentVersion +1}</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={handleCreateVersion}
-                      disabled={isEditMode}
-                      className="flex items-center gap-1 px-2 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-all font-bold text-xs shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <GoPlus className="w-4 h-4" />
-                      {isTypeChangeEligible ? "Create" : "Create new version"}
-                    </button>
+              <div className="flex flex-col w-full gap-2">
+                <div className="flex items-center justify-between w-full gap-2">
+                  <span className="text-xs font-bold text-nav-highlight whitespace-nowrap">Version {currentVersion + 1}</span>
+                  
+                  {isTypeChangeEligible ? (
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={handleCreateVersion}
+                        disabled={isEditMode}
+                        className="flex items-center gap-1 px-2 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-all font-bold text-xs shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <GoPlus className="w-4 h-4" />
+                        Create
+                      </button>
 
-                    <button
-                      onClick={handlePrepareSample}
-                      disabled={isEditMode || isFinalized}
-                      className="px-2 py-2 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Prepare Sample
-                    </button>
-
-                    {isTypeChangeEligible ? (
                       <button
                         onClick={onChangeRecipeType}
                         disabled={isEditMode || isFinalized}
@@ -294,8 +288,40 @@ export default function MobileViewRecipe({
                       >
                         Change Recipe Type
                       </button>
-                    ) : null}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <button 
+                        onClick={handleCreateVersion}
+                        disabled={isEditMode}
+                        className="flex items-center gap-1 px-2 py-2 rounded-full bg-primary text-white hover:bg-primary/90 transition-all font-bold text-xs shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <GoPlus className="w-4 h-4" />
+                        Create new
+                      </button>
+
+                      <button
+                        onClick={handlePrepareSample}
+                        disabled={isEditMode || isFinalized}
+                        className="px-2 py-2 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Prepare Sample
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {isTypeChangeEligible && (
+                  <div className="flex justify-end w-full">
+                    <button
+                      onClick={handlePrepareSample}
+                      disabled={isEditMode || isFinalized}
+                      className="px-2 py-2 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Prepare Sample
+                    </button>
                   </div>
+                )}
               </div>
             </div>
           </div>

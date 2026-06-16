@@ -17,7 +17,7 @@ import { ArchiveFinalRecipeModal } from "./components/ArchiveFinalRecipeModal";
 import { RestoreFinalRecipeModal } from "./components/RestoreFinalRecipeModal";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
-import { Upload, Download, CirclePlus, Loader, Check } from "lucide-react";
+import { Upload, Download, CirclePlus, Loader, Check, PlusCircleIcon } from "lucide-react";
 import { ActionButtonsGroup } from "@/components/ui/ActionButtonsGroup";
 import { UploadCSVModal } from "./components/UploadCSVModal";
 import { UploadSuccessModal } from "./components/UploadSuccessModal";
@@ -311,13 +311,26 @@ export default function FinalRecipes() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Add Button (Mobile Only) */}
+          {selectedRecipeType !== "all" && (
+            <div className="bg-primary flex desktop-page-btn-wrapper w-fit rounded-full! items-center shadow-sm md:hidden">
+              <Button
+                size="icon"
+                onClick={handleAdd}
+                title="Add Recipe"
+                className="w-10 h-8 transition-colors bg-transparent border-none shadow-none cursor-pointer rounded-e-full"
+              >
+                <PlusCircleIcon className="w-5 desktop-page-btn text-background" />
+              </Button>
+            </div>
+          )}
+
           <div className="items-center hidden gap-2 md:flex">
             <SearchInput
               placeholder="Search final recipes..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
-            {actionButtons.length > 0 && <ActionButtonsGroup actions={actionButtons} />}
             <ThemeToggle />
           </div>
         </div>
@@ -332,46 +345,52 @@ export default function FinalRecipes() {
         className="flex-none"
       />
 
-      <div className="flex-none hidden md:block ms-5 my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4">
-        <div className="">
-          <div className="flex justify-between gap-4">
-            <div className="">
-            <div className="flex items-center gap-2 border-b border-border">
-              {recipeTypeOptions.map((tab) => {
-              const isSelected = selectedRecipeType === tab.value;
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => handleRecipeTypeChange(tab.value)}
-                  className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${
-                    isSelected
-                      ? ""
-                      : "border-transparent text-lighter-text hover:text-foreground"
-                  }`}
-                  style={{
-                    color: isSelected ? tab.textColor || "currentColor" : undefined,
-                    borderBottomColor: isSelected
-                      ? tab.textColor || "currentColor"
-                      : "transparent",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-              })}
+      <div className="hidden md:flex justify-between items-center ms-5 my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4 gap-4">
+        {/* Left Side: Category tabs */}
+        <div className="flex items-center gap-2 border-b border-border overflow-x-auto whitespace-nowrap max-w-full scrollbar-none">
+          {recipeTypeOptions.map((tab) => {
+            const isSelected = selectedRecipeType === tab.value;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => handleRecipeTypeChange(tab.value)}
+                className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${
+                  isSelected
+                    ? ""
+                    : "border-transparent text-lighter-text hover:text-foreground"
+                }`}
+                style={{
+                  color: isSelected ? tab.textColor || "currentColor" : undefined,
+                  borderBottomColor: isSelected
+                    ? tab.textColor || "currentColor"
+                    : "transparent",
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Right Side: Active/Archived Filter & Add Button */}
+        <div className="flex items-center gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4">
+           {selectedRecipeType !== "all" && (
+            <div className="bg-primary flex desktop-page-btn-wrapper w-fit rounded-full! items-center shadow-sm">
+              <Button
+                size="icon"
+                onClick={handleAdd}
+                title="Add Recipe"
+                className="transition-colors bg-transparent border-none shadow-none cursor-pointer rounded-e-full"
+              >
+                <PlusCircleIcon className="w-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5 desktop-page-btn text-background" />
+              </Button>
             </div>
-            </div>
-            {/* <DesktopFilterPills
-              value={selectedRecipeType}
-              options={recipeTypeOptions}
-              onChange={handleRecipeTypeChange}
-            /> */}
-            <DesktopFilterPills
-              value={selectedState}
-              options={stateOptions}
-              onChange={handleStateChange}
-            />
-          </div>
+          )}
+          <DesktopFilterPills
+            value={selectedState}
+            options={stateOptions}
+            onChange={handleStateChange}
+          />
         </div>
       </div>
 

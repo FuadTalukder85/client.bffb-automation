@@ -308,14 +308,6 @@ export default function DesktopViewRecipe({
                   Create New Version
                 </button>
 
-                <button
-                  onClick={handlePrepareSample}
-                  disabled={isEditMode || isFinalized}
-                  className="px-3 lg:px-3 xl:px-4 2xl:px-5 3xl:px-6 py-1 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Prepare Sample
-                </button>
-
                 {isTypeChangeEligible ? (
                   <button
                     onClick={onChangeRecipeType}
@@ -325,6 +317,14 @@ export default function DesktopViewRecipe({
                     Change Recipe Type
                   </button>
                 ) : null}
+
+                <button
+                  onClick={handlePrepareSample}
+                  disabled={isEditMode || isFinalized}
+                  className="px-3 lg:px-3 xl:px-4 2xl:px-5 3xl:px-6 py-1 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Prepare Sample
+                </button>
               </div>
               
               <div className="flex items-center gap-3">

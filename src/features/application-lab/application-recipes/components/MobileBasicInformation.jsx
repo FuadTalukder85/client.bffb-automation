@@ -13,12 +13,38 @@ export default function MobileBasicInformation({
   const labelClass = "block text-[11px] font-bold text-base-color px-0.5 uppercase tracking-tight";
   const inputContainerClass = cn(
     "h-10 rounded-lg transition-all border",
-    "bg-primary-shade-2/20 border-nav-highlight/20 focus-within:border-nav-highlight/50 focus-within:ring-0"
+    isEditMode
+      ? "bg-white dark:bg-gray-800 border-primary shadow-sm"
+      : "bg-primary-shade-2/20 border-nav-highlight/20 focus-within:border-nav-highlight/50 focus-within:ring-0"
   );
   const inputClass = "text-[12px] text-foreground font-medium bg-transparent";
 
   const pickFirst = (...values) =>
     values.find((value) => value !== undefined && value !== null && value !== "");
+
+  const isIndependent = recipe?.isIndependentRecipe;
+
+  const renderField = (label, fieldName, projectValue, placeholder = "N/A", rightIcon = null) => {
+    const isIndField = isIndependent && isEditMode;
+    const value = isIndependent
+      ? (recipe?.[fieldName] || "")
+      : (projectValue || placeholder);
+
+    return (
+      <div className={inputWrapperClass}>
+        <label className={labelClass}>{label}</label>
+        <Input
+          value={value}
+          readOnly={!isIndField}
+          placeholder={isIndField ? `Enter ${label.toLowerCase()}` : undefined}
+          rightIcon={rightIcon}
+          className={cn(inputContainerClass, !isIndField && "bg-gray-100 opacity-70 dark:bg-primary/10")}
+          inputClassName={inputClass}
+          onChange={(e) => handleRecipeChange(fieldName, e.target.value)}
+        />
+      </div>
+    );
+  };
 
   const recipeProject = recipe?.project || {};
   const mergedProject = {
@@ -73,98 +99,34 @@ export default function MobileBasicInformation({
         <Input
           value={formatDate(recipe.createdAt)}
           readOnly={true}
-          className={inputContainerClass}
+          className={cn(inputContainerClass, "bg-gray-100 opacity-70 dark:bg-primary/10")}
           inputClassName={inputClass}
         />
       </div>
 
       {/* Raised By */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Raised By</label>
-        <Input
-          value={mergedProject?.raisedBy || mergedMasterProject?.raisedBy || "Business Development"}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Raised By", "independentRecipeRaisedBy", mergedProject?.raisedBy || mergedMasterProject?.raisedBy || "Business Development")}
 
       {/* Purpose */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Purpose</label>
-        <Input
-          value={pickFirst(mergedProject?.purpose, mergedMasterProject?.purpose, "N/A")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Purpose", "independentRecipePurpose", pickFirst(mergedProject?.purpose, mergedMasterProject?.purpose, "N/A"))}
 
       {/* Purpose Name */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Purpose Name</label>
-        <Input
-          value={fallbackProjectName}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Purpose Name", "independentRecipePurposeName", fallbackProjectName)}
 
       {/* Objective */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Objective</label>
-        <Input
-          value={pickFirst(mergedProject?.objective, mergedMasterProject?.objective, "N/A")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Objective", "independentRecipeObjective", pickFirst(mergedProject?.objective, mergedMasterProject?.objective, "N/A"))}
 
       {/* Objective Details */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Objective Details</label>
-        <Input
-          value={pickFirst(mergedProject?.objectiveDetails, recipe?.project?.objectiveDetails, "")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Objective Details", "independentRecipeObjectiveDetails", recipe?.project?.objectiveDetails || "")}
 
       {/* Project Code */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Project Code</label>
-        <Input
-          value={fallbackProjectCode}
-          readOnly={true}
-          className={cn(inputContainerClass, "opacity-70")}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Project Code", "independentRecipeProjectCode", fallbackProjectCode)}
 
       {/* Project Name */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Project Name</label>
-        <Input
-          value={fallbackProjectName}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Project Name", "independentRecipeProjectName", fallbackProjectName)}
 
       {/* Raised Date */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Raised Date</label>
-        <Input
-          value={formatDate(mergedProject?.raisedDate || mergedMasterProject?.raisedDate)}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Raised Date", "independentRecipeRaisedDate", formatDate(mergedProject?.raisedDate || mergedMasterProject?.raisedDate))}
 
       {/* Recipe Code */}
       <div className={inputWrapperClass}>
@@ -172,7 +134,7 @@ export default function MobileBasicInformation({
         <Input
           value={recipe.recipeCode || "N/A"}
           readOnly={true}
-          className={cn(inputContainerClass, "opacity-70")}
+          className={cn(inputContainerClass, "bg-gray-100 opacity-70 dark:bg-primary/10")}
           inputClassName={inputClass}
         />
       </div>
@@ -190,65 +152,25 @@ export default function MobileBasicInformation({
       </div>
 
       {/* Application Category */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Application Category</label>
-        <Input
-          value={typeof recipe?.project?.category === 'object' ? recipe?.project?.category?.name : recipe?.project?.category || "N/A"}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Application Category", "independentRecipeApplicationCategory", typeof recipe?.project?.category === 'object' ? recipe?.project?.category?.name : recipe?.project?.category || "N/A")}
 
       {/* Application Subcategory */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Application Subcategory</label>
-        <Input
-          value={typeof recipe?.project?.subCategory === 'object' ? recipe?.project?.subCategory?.name : recipe?.project?.subCategory || "N/A"}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Application Subcategory", "independentRecipeApplicationSubcategory", typeof recipe?.project?.subCategory === 'object' ? recipe?.project?.subCategory?.name : recipe?.project?.subCategory || "N/A")}
 
       {/* Application Sub-subcategory */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Application Sub-subcategory</label>
-        <Input
-          value={typeof recipe?.project?.subSubCategory === 'object' ? recipe?.project?.subSubCategory?.name : recipe?.project?.subSubCategory || "N/A"}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Application Sub-subcategory", "independentRecipeApplicationSubSubcategory", typeof recipe?.project?.subSubCategory === 'object' ? recipe?.project?.subSubCategory?.name : recipe?.project?.subSubCategory || "N/A")}
 
       {/* Application Tags */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Application Tags</label>
-        <Input
-          value={recipe?.project?.tags?.map(tag => typeof tag === 'object' ? tag.name : tag).join(', ') || "N/A"}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Application Tags", "independentRecipeTags", recipe?.project?.tags?.map(tag => typeof tag === 'object' ? tag.name : tag).join(', ') || "N/A")}
 
       {/* Target Cost */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Target Cost</label>
-        <Input
-          value={pickFirst(recipe?.project?.targetCost, mergedProject?.targetCost, "N/A")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Target Cost", "independentRecipeTargetCost", recipe?.project?.targetCost || "N/A")}
 
       {/* Potentiality */}
       <div className={inputWrapperClass}>
         <label className={labelClass}>Potentiality</label>
         <Input
-          value={recipe.potentiality || ""}
+          value={recipe?.potentiality || ""}
           readOnly={!isEditMode}
           rightIcon={<span className="text-[10px] text-nav-highlight font-bold pr-2">%</span>}
           className={inputContainerClass}
@@ -258,26 +180,10 @@ export default function MobileBasicInformation({
       </div>
 
       {/* Benchmark */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Benchmark</label>
-        <Input
-          value={pickFirst(recipe?.project?.benchmark, mergedProject?.benchmark, "N/A")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Benchmark", "independentRecipeBenchmark", recipe?.project?.benchmark || "N/A")}
 
       {/* Link */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Link</label>
-        <Input
-          value={pickFirst(recipe?.project?.link, mergedProject?.link, "N/A")}
-          readOnly={true}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-        />
-      </div>
+      {renderField("Link", "independentRecipeLink", recipe?.project?.link || "N/A")}
 
       {showServingSize && (
         <div className={inputWrapperClass}>

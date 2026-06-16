@@ -90,6 +90,29 @@ const normalizeProjectForView = (project = {}, fallbackRecipe = {}) => {
   };
 };
 
+const flatMapIndependentDetails = (recipeObj) => {
+  if (!recipeObj) return recipeObj;
+  const details = recipeObj.independentDetails || {};
+  return {
+    ...recipeObj,
+    independentRecipePurpose: recipeObj.independentRecipePurpose ?? details.purpose ?? "",
+    independentRecipePurposeName: recipeObj.independentRecipePurposeName ?? details.projectName ?? "",
+    independentRecipeObjective: recipeObj.independentRecipeObjective ?? details.objective ?? "",
+    independentRecipeObjectiveDetails: recipeObj.independentRecipeObjectiveDetails ?? details.objectiveDetails ?? "",
+    independentRecipeRaisedBy: recipeObj.independentRecipeRaisedBy ?? details.raisedBy ?? "",
+    independentRecipeRaisedDate: recipeObj.independentRecipeRaisedDate ?? details.raisedDate ?? "",
+    independentRecipeProjectCode: recipeObj.independentRecipeProjectCode ?? details.projectCode ?? "",
+    independentRecipeProjectName: recipeObj.independentRecipeProjectName ?? details.projectName ?? "",
+    independentRecipeApplicationCategory: recipeObj.independentRecipeApplicationCategory ?? details.applicationCategory ?? "",
+    independentRecipeApplicationSubcategory: recipeObj.independentRecipeApplicationSubcategory ?? details.applicationSubcategory ?? "",
+    independentRecipeApplicationSubSubcategory: recipeObj.independentRecipeApplicationSubSubcategory ?? details.applicationSubSubcategory ?? "",
+    independentRecipeTags: Array.isArray(details.tags) ? details.tags.join(", ") : (recipeObj.independentRecipeTags ?? details.tags ?? ""),
+    independentRecipeTargetCost: recipeObj.independentRecipeTargetCost ?? details.targetCost ?? "",
+    independentRecipeBenchmark: recipeObj.independentRecipeBenchmark ?? details.benchmark ?? "",
+    independentRecipeLink: recipeObj.independentRecipeLink ?? details.link ?? "",
+  };
+};
+
 export default function ViewRecipePage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -229,7 +252,7 @@ export default function ViewRecipePage() {
   // Update local state when API data loads
   useEffect(() => {
     if (fetchedRecipe) {
-      setEditableRecipe(fetchedRecipe);
+      setEditableRecipe(flatMapIndependentDetails(fetchedRecipe));
     }
   }, [fetchedRecipe]);
 
@@ -263,7 +286,7 @@ export default function ViewRecipePage() {
   // Derive recipe object for display (combine API recipe with project's latestRecipe)
   const recipe = useMemo(() => {
     // Priority: editableRecipe if it has data, else fallback to project's latest
-    const base = editableRecipe?._id ? editableRecipe : (editableProject?.latestRecipe || {});
+    const base = flatMapIndependentDetails(editableRecipe?._id ? editableRecipe : (editableProject?.latestRecipe || {}));
     const recipeProject = base?.project || {};
     const mergedProject = {
       ...recipeProject,
@@ -479,21 +502,6 @@ export default function ViewRecipePage() {
         outputYield: parseNum(editableRecipe.outputYield),
         outputServingSize: parseNum(editableRecipe.outputServingSize),
         servingSizeText: editableRecipe.servingSizeText ?? "",
-        independentRecipePurpose: editableRecipe.independentRecipePurpose,
-        independentRecipePurposeName: editableRecipe.independentRecipePurposeName,
-        independentRecipeObjective: editableRecipe.independentRecipeObjective,
-        independentRecipeObjectiveDetails: editableRecipe.independentRecipeObjectiveDetails,
-        independentRecipeRaisedBy: editableRecipe.independentRecipeRaisedBy,
-        independentRecipeRaisedDate: editableRecipe.independentRecipeRaisedDate,
-        independentRecipeProjectCode: editableRecipe.independentRecipeProjectCode,
-        independentRecipeProjectName: editableRecipe.independentRecipeProjectName,
-        independentRecipeApplicationCategory: editableRecipe.independentRecipeApplicationCategory,
-        independentRecipeApplicationSubcategory: editableRecipe.independentRecipeApplicationSubcategory,
-        independentRecipeApplicationSubSubcategory: editableRecipe.independentRecipeApplicationSubSubcategory,
-        independentRecipeTags: editableRecipe.independentRecipeTags,
-        independentRecipeTargetCost: editableRecipe.independentRecipeTargetCost,
-        independentRecipeBenchmark: editableRecipe.independentRecipeBenchmark,
-        independentRecipeLink: editableRecipe.independentRecipeLink,
       };
 
       // Only add non-undefined basic fields
@@ -502,6 +510,29 @@ export default function ViewRecipePage() {
           updateData[key] = value;
         }
       });
+
+      if (editableRecipe.isIndependentRecipe) {
+        updateData.isIndependentRecipe = true;
+        const tagsVal = editableRecipe.independentRecipeTags;
+        updateData.independentDetails = {
+          purpose: editableRecipe.independentRecipePurpose || null,
+          projectName: editableRecipe.independentRecipeProjectName || null,
+          objective: editableRecipe.independentRecipeObjective || null,
+          objectiveDetails: editableRecipe.independentRecipeObjectiveDetails || null,
+          raisedBy: editableRecipe.independentRecipeRaisedBy || null,
+          raisedDate: editableRecipe.independentRecipeRaisedDate || null,
+          projectCode: editableRecipe.independentRecipeProjectCode || null,
+          applicationCategory: editableRecipe.independentRecipeApplicationCategory || null,
+          applicationSubcategory: editableRecipe.independentRecipeApplicationSubcategory || null,
+          applicationSubSubcategory: editableRecipe.independentRecipeApplicationSubSubcategory || null,
+          tags: typeof tagsVal === "string"
+            ? tagsVal.split(",").map(t => t.trim()).filter(Boolean)
+            : (Array.isArray(tagsVal) ? tagsVal : []),
+          targetCost: editableRecipe.independentRecipeTargetCost || null,
+          benchmark: editableRecipe.independentRecipeBenchmark || null,
+          link: editableRecipe.independentRecipeLink || null,
+        };
+      }
 
       // Include SOP & Analytics fields from the sopData state
       const sopFields = convertSOPDataToBackendFields(sopData, activeRecipeFormat);
@@ -527,7 +558,7 @@ export default function ViewRecipePage() {
 
       if (updatedRecipe?._id) {
         setActiveRecipeId(updatedRecipe._id);
-        setEditableRecipe(updatedRecipe);
+        setEditableRecipe(flatMapIndependentDetails(updatedRecipe));
       }
 
       setIsEditMode(false);
@@ -545,7 +576,7 @@ export default function ViewRecipePage() {
   const handleCancel = () => {
     // Reset recipe to API data
     if (fetchedRecipe) {
-      setEditableRecipe(fetchedRecipe);
+      setEditableRecipe(flatMapIndependentDetails(fetchedRecipe));
     }
     setEditableProject(normalizeProjectForView(mergedSourceProject, fetchedRecipe));
     setIsEditMode(false);
@@ -656,7 +687,7 @@ export default function ViewRecipePage() {
 
     if (finalizedRecipe?._id) {
       setActiveRecipeId(finalizedRecipe._id);
-      setEditableRecipe(finalizedRecipe);
+      setEditableRecipe(flatMapIndependentDetails(finalizedRecipe));
       setIsEditMode(false);
     }
   };
@@ -696,21 +727,6 @@ export default function ViewRecipePage() {
         potentiality: parseNum(editableRecipe.potentiality),
         outputYield: parseNum(editableRecipe.outputYield),
         outputServingSize: parseNum(editableRecipe.outputServingSize),
-        independentRecipePurpose: editableRecipe.independentRecipePurpose,
-        independentRecipePurposeName: editableRecipe.independentRecipePurposeName,
-        independentRecipeObjective: editableRecipe.independentRecipeObjective,
-        independentRecipeObjectiveDetails: editableRecipe.independentRecipeObjectiveDetails,
-        independentRecipeRaisedBy: editableRecipe.independentRecipeRaisedBy,
-        independentRecipeRaisedDate: editableRecipe.independentRecipeRaisedDate,
-        independentRecipeProjectCode: editableRecipe.independentRecipeProjectCode,
-        independentRecipeProjectName: editableRecipe.independentRecipeProjectName,
-        independentRecipeApplicationCategory: editableRecipe.independentRecipeApplicationCategory,
-        independentRecipeApplicationSubcategory: editableRecipe.independentRecipeApplicationSubcategory,
-        independentRecipeApplicationSubSubcategory: editableRecipe.independentRecipeApplicationSubSubcategory,
-        independentRecipeTags: editableRecipe.independentRecipeTags,
-        independentRecipeTargetCost: editableRecipe.independentRecipeTargetCost,
-        independentRecipeBenchmark: editableRecipe.independentRecipeBenchmark,
-        independentRecipeLink: editableRecipe.independentRecipeLink,
       };
 
       // Only add non-undefined basic fields
@@ -719,6 +735,29 @@ export default function ViewRecipePage() {
           versionData[key] = value;
         }
       });
+
+      if (editableRecipe.isIndependentRecipe) {
+        versionData.isIndependentRecipe = true;
+        const tagsVal = editableRecipe.independentRecipeTags;
+        versionData.independentDetails = {
+          purpose: editableRecipe.independentRecipePurpose || null,
+          projectName: editableRecipe.independentRecipeProjectName || null,
+          objective: editableRecipe.independentRecipeObjective || null,
+          objectiveDetails: editableRecipe.independentRecipeObjectiveDetails || null,
+          raisedBy: editableRecipe.independentRecipeRaisedBy || null,
+          raisedDate: editableRecipe.independentRecipeRaisedDate || null,
+          projectCode: editableRecipe.independentRecipeProjectCode || null,
+          applicationCategory: editableRecipe.independentRecipeApplicationCategory || null,
+          applicationSubcategory: editableRecipe.independentRecipeApplicationSubcategory || null,
+          applicationSubSubcategory: editableRecipe.independentRecipeApplicationSubSubcategory || null,
+          tags: typeof tagsVal === "string"
+            ? tagsVal.split(",").map(t => t.trim()).filter(Boolean)
+            : (Array.isArray(tagsVal) ? tagsVal : []),
+          targetCost: editableRecipe.independentRecipeTargetCost || null,
+          benchmark: editableRecipe.independentRecipeBenchmark || null,
+          link: editableRecipe.independentRecipeLink || null,
+        };
+      }
 
       // Include SOP & Analytics fields from the sopData state
       const sopFields = convertSOPDataToBackendFields(sopData, activeRecipeFormat);
@@ -748,7 +787,7 @@ export default function ViewRecipePage() {
 
       if (createdVersion?._id) {
         setActiveRecipeId(createdVersion._id);
-        setEditableRecipe(createdVersion);
+        setEditableRecipe(flatMapIndependentDetails(createdVersion));
       }
       setIsCreateVersionModalOpen(false);
     } catch (err) {
@@ -785,7 +824,7 @@ export default function ViewRecipePage() {
 
       if (updatedRecipe?._id) {
         setActiveRecipeId(updatedRecipe._id);
-        setEditableRecipe(updatedRecipe);
+        setEditableRecipe(flatMapIndependentDetails(updatedRecipe));
         setSopData(
           buildSOPDataFromRecipe(updatedRecipe, String(updatedRecipe.recipeType || "").toLowerCase())
         );

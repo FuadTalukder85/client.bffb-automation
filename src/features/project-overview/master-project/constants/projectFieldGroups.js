@@ -101,7 +101,8 @@ export const projectFieldGroups = [
     [
         { id: "applicationTag", label: "Application Tag", type: "multiselectwithsearch", asyncType: "tags", path: "applicationLab.tags", canEdit: true, placeholder: "Search and select tags..." },
         // { id: "application", label: "Application", type: "text", path: "applicationLab.productAppliedTo", canEdit: true },
-        { id: "segment", label: "Segment", type: "select", options: segmentOptions, path: "common.segment", canEdit: true },
+        { id: "segment", label: "Segment", type: "multiselectwithsearch", options: segmentOptions, path: "common.segment", canEdit: true },
+
     ],
 
     // 13. Application Suggestions (FW TA X)

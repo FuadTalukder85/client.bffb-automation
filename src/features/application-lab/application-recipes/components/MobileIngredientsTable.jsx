@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Pencil, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AddBFFProductModal from "./AddBFFProductModal";
@@ -7,11 +7,14 @@ import EditIngredientModal from "./EditIngredientModal";
 import { buildIngredientsDisplayData, isConfectionaryRecipe } from "../data/ingredientsCalculations";
 
 export default function MobileIngredientsTable({ data, isEditMode = false, onIngredientsChange }) {
-  const { ingredients, totals, batchSummary } = useMemo(() => buildIngredientsDisplayData(data), [data]);
   const [isBFFModalOpen, setIsBFFModalOpen] = useState(false);
   const [isStandardIngredientModalOpen, setIsStandardIngredientModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState(null);
+  const [editedBatchSummary, setEditedBatchSummary] = useState({
+    yield: data?.outputYield ?? 0,
+    servingSize: data?.outputServingSize ?? 0,
+  });
 
   const HIDDEN_TYPE_SOLID_LIQUID_RECIPES = ["beverage", "beverage psd"];
   const recipeTypeLower = data?.recipeType?.toLowerCase() || "";
@@ -21,6 +24,41 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
   const isBakery = recipeTypeLower === "bakery";
   const doughCostLabel = !isBakery ? "Cost/Kg without loss" : "Dough Cost per kg";
   const showTypeColumn = !isConfectionary && !isHiddenTypeAndSolidLiquid;
+
+  useEffect(() => {
+    setEditedBatchSummary({
+      yield: data?.outputYield ?? 0,
+      servingSize: data?.outputServingSize ?? 0,
+    });
+  }, [data?.outputYield, data?.outputServingSize]);
+
+  const computedData = useMemo(
+    () =>
+      buildIngredientsDisplayData(data, {
+        outputYield: editedBatchSummary.yield,
+        outputServingSize: editedBatchSummary.servingSize,
+      }),
+    [data, editedBatchSummary.yield, editedBatchSummary.servingSize]
+  );
+
+  const { ingredients, totals, batchSummary } = computedData;
+
+  const handleBatchSummaryChange = (field, value) => {
+    setEditedBatchSummary(prev => {
+      const nextSummary = {
+        ...prev,
+        [field]: value,
+      };
+
+      onIngredientsChange?.({
+        ingredients: Array.isArray(data?.ingredients) ? data.ingredients : [],
+        outputYield: nextSummary.yield,
+        outputServingSize: nextSummary.servingSize,
+      });
+
+      return nextSummary;
+    });
+  };
 
   // Group ingredients into segments for rowSpan calculation
   const segments = useMemo(() => {
@@ -231,9 +269,20 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
         {/* Output Section */}
         <SummaryTable 
           title="Output" 
+          isEditMode={isEditMode}
           rows={[
-            { label: "Yield", value: batchSummary.output.yield, unit: "%" },
-            { label: "Serving Size", value: batchSummary.output.servingSize, unit: "g" },
+            { 
+              label: "Yield", 
+              value: editedBatchSummary.yield, 
+              unit: "%",
+              onChange: (value) => handleBatchSummaryChange("yield", value)
+            },
+            { 
+              label: "Serving Size", 
+              value: editedBatchSummary.servingSize, 
+              unit: "g",
+              onChange: (value) => handleBatchSummaryChange("servingSize", value)
+            },
             { label: "Output Pieces", value: batchSummary.output.outputPieces, unit: "pcs" },
             { label: "Output", value: batchSummary.output.output, unit: "g" },
           ]} 
@@ -264,7 +313,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
   );
 }
 
-function SummaryTable({ title, rows }) {
+function SummaryTable({ title, rows, isEditMode = false }) {
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-xs font-bold text-lighter-text px-0.5 uppercase tracking-wider">
@@ -281,13 +330,22 @@ function SummaryTable({ title, rows }) {
                   idx < rows.length - 1 && "border-b"
                 )}
               >
-                <td className="w-[45%] px-4 py-3 text-[13px] text-lighter-text font-medium bg-white dark:bg-background leading-none">
+                <td className="w-[45%] px-4 py-3 text-[13px] text-lighter-text font-medium bg-white dark:bg-background leading-none align-middle">
                   {row.label}
                 </td>
-                <td className="w-[55%] px-4 py-3 text-[13px] text-base-color font-bold border-l border-border bg-white dark:bg-background leading-none">
+                <td className="w-[55%] px-4 py-2 text-[13px] text-base-color font-bold border-l border-border bg-white dark:bg-background leading-none align-middle">
                   <div className="flex items-center justify-between gap-2">
-                    <span>{row.value}</span>
-                    <span className="text-[11px] text-lighter-text font-bold">
+                    {isEditMode && row.onChange ? (
+                      <input
+                        type="text"
+                        value={row.value}
+                        onChange={(e) => row.onChange(e.target.value)}
+                        className="w-full px-2 py-1 bg-transparent border border-primary/30 rounded focus:outline-none focus:border-primary text-[13px] font-bold text-base-color"
+                      />
+                    ) : (
+                      <span>{row.value}</span>
+                    )}
+                    <span className="text-[11px] text-lighter-text font-bold shrink-0">
                       {row.unit}
                     </span>
                   </div>
