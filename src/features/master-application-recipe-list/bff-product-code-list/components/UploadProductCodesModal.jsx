@@ -97,6 +97,10 @@ export function UploadProductCodesModal({
         productcode: "productCode",
         "product code": "productCode",
         code: "productCode",
+        "experimental product code": "productCode",
+        "experimental code": "productCode",
+        experimentalproductcode: "productCode",
+        experimentalcode: "productCode",
         commercializedproductcode: "commercializedProductCode",
         "commercialized product code": "commercializedProductCode",
         name: "name",
@@ -111,6 +115,15 @@ export function UploadProductCodesModal({
         status: "isActive",
     };
     const REQUIRED = ["name", "segment", "type", "cost"];
+
+    const getDisplayHeader = (header) => {
+        const path = extractPathFromHeader(header);
+        const mapped = path || HEADER_MAP[normalizeKey(header)];
+        if (mapped === "productCode") {
+            return "Experimental Product Code";
+        }
+        return formatHeaderLabel(header);
+    };
 
     const readHeaders = async (file) => {
         try {
@@ -447,7 +460,7 @@ export function UploadProductCodesModal({
                                                             key={`${header}-${index}`}
                                                             className="bg-background border-b border-r border-border px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-left font-semibold whitespace-nowrap z-20"
                                                         >
-                                                            {formatHeaderLabel(header) || `Column ${index + 1}`}
+                                                            {getDisplayHeader(header) || `Column ${index + 1}`}
                                                         </th>
                                                     ))}
                                                 </tr>
