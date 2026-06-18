@@ -53,6 +53,9 @@ export default function MaintenanceItemsListPage() {
     isRestoreModalOpen,
     setIsRestoreModalOpen,
     selectedItem,
+    setSelectedItem,
+    selectedRowIds,
+    setSelectedRowIds,
     itemModalMode,
     handleExport,
   } = useMaintenanceItemsLogic();
@@ -192,6 +195,13 @@ export default function MaintenanceItemsListPage() {
           ) : (
             <DesktopMaintenanceItemsTable
               items={maintenanceItems}
+              selectedRowIds={selectedRowIds}
+              onSelectionChange={setSelectedRowIds}
+              onBulkArchiveClick={() => {
+                const selectedObjects = maintenanceItems.filter(r => selectedRowIds.includes(r._id || r.id));
+                setSelectedItem(selectedObjects);
+                setIsArchiveModalOpen(true);
+              }}
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               totalPages={pagination?.totalPages || 1}
@@ -202,6 +212,7 @@ export default function MaintenanceItemsListPage() {
               onRestore={handleRestoreItem}
               sorting={sorting}
               onSortingChange={setSorting}
+              isArchived={selectedState === "archived"}
               emptyState={
                 hasError ? (
                   <div className="py-10 text-center text-red-500">{errorMessage}</div>

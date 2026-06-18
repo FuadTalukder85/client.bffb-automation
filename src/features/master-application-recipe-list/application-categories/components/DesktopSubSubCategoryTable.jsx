@@ -24,6 +24,10 @@ export default function DesktopSubSubCategoryTable({
     noDataDescription,
     errorMessage,
     hasError,
+    isArchived = false,
+    selectedRowIds = [],
+    onSelectionChange,
+    onBulkArchiveClick,
 }) {
     const serialOffset = (currentPage - 1) * itemsPerPage;
 
@@ -122,6 +126,11 @@ export default function DesktopSubSubCategoryTable({
             <PaginatedTable
                 data={subSubCategories}
                 columns={columns}
+                enableSelection={!isArchived}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={onSelectionChange}
+                canSelectRow={(item) => item.isActive ?? true}
+                onBulkArchiveClick={onBulkArchiveClick}
                 className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
                 rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
                 enableSorting={true}

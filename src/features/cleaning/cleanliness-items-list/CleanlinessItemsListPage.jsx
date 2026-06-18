@@ -52,6 +52,9 @@ export default function CleanlinessItemsListPage() {
     isRestoreModalOpen,
     setIsRestoreModalOpen,
     selectedItem,
+    setSelectedItem,
+    selectedRowIds,
+    setSelectedRowIds,
     itemModalMode,
     confirmAddItem,
     confirmUpdateItem,
@@ -193,6 +196,13 @@ export default function CleanlinessItemsListPage() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopCleanlinessItemsTable
                 items={cleanlinessItems}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = cleanlinessItems.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedItem(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}

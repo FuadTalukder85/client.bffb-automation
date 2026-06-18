@@ -1,7 +1,7 @@
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTeams } from "@/hooks/useTeams";
 import {
@@ -54,6 +54,11 @@ function TeamFormation() {
     useState(false);
   const [teamFormData, setTeamFormData] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedFilter]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -123,7 +128,19 @@ function TeamFormation() {
 
   const handleConfirmArchive = async (team) => {
     try {
-      await archiveTeam(team._id || team.id);
+      if (Array.isArray(team)) {
+        const results = await Promise.allSettled(
+          team.map((r) => archiveTeam(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} team(s) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} team(s)`);
+        setSelectedRowIds([]);
+      } else {
+        await archiveTeam(team._id || team.id);
+        toast.success("Team archived successfully");
+      }
       // Cache is automatically invalidated by the mutation hook
     } catch (error) {
       console.error("Failed to archive team:", error);
@@ -314,8 +331,16 @@ function TeamFormation() {
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
-          <DesktopTeamFormationTable 
-            {...listProps} 
+          <DesktopTeamFormationTable
+            {...listProps}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={() => {
+              const selectedObjects = teams.filter(r => selectedRowIds.includes(r._id || r.id));
+              setSelectedTeam(selectedObjects);
+              setIsArchiveTeamModalOpen(true);
+            }}
+            isArchived={selectedFilter === "archived"}
             emptyState={
               hasError ? (
                 <div className="py-10 text-center text-red-500">

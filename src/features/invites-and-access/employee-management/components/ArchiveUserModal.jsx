@@ -19,17 +19,23 @@ export function ArchiveUserModal({ open, onOpenChange, user, onSuccess, classNam
   const { mutateAsync: archiveUser, isPending: isLoading } = useArchiveUser();
 
   const handleConfirm = async () => {
-    if (!user?._id && !user?.id) return;
-    
-    const userId = user._id || user.id;
+    if (!user) return;
     setError(null);
 
     try {
-      await archiveUser(userId);
-      onSuccess?.();
+      if (Array.isArray(user)) {
+        await Promise.allSettled(
+          user.map((u) => archiveUser(u._id || u.id))
+        );
+      } else {
+        const userId = user._id || user.id;
+        if (!userId) return;
+        await archiveUser(userId);
+      }
+      onSuccess?.(user);
       onOpenChange(false);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Failed to archive user. Please try again.";
+      const errorMessage = err.response?.data?.message || "Failed to archive user(s). Please try again.";
       setError(errorMessage);
     }
   };
@@ -41,7 +47,8 @@ export function ArchiveUserModal({ open, onOpenChange, user, onSuccess, classNam
     }
   };
 
-  const userName = user?.name || user?.email || "this user";
+  const isBulk = Array.isArray(user);
+  const userName = isBulk ? `${user.length} user(s)` : (user?.name || user?.email || "this user");
 
   return (
     <Modal open={open} onOpenChange={handleClose}>
@@ -53,7 +60,7 @@ export function ArchiveUserModal({ open, onOpenChange, user, onSuccess, classNam
       >
         <ModalHeader className="flex flex-col items-center justify-center pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6! space-y-4 text-center">
           <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-            Archive User
+            {isBulk ? "Archive Users" : "Archive User"}
           </ModalTitle>
 
           <motion.div
@@ -65,10 +72,21 @@ export function ArchiveUserModal({ open, onOpenChange, user, onSuccess, classNam
             <FaUserMinus className="w-16 md:w-10 lg:w-13! xl:w-17! 2xl:w-19! 3xl:w-24! h-16 md:h-10 lg:h-13! xl:h-17! 2xl:h-19! 3xl:h-24! text-nav-highlight" />
           </motion.div>
 
-          <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
-            Do you want to archive <span className="font-medium text-base-color">{userName}</span>? 
-            If you change your mind you can always restore them later. Proceed?
-          </ModalDescription>
+          <div className="flex flex-col items-center gap-2">
+            <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-nav-highlight">
+              {isBulk
+                ? "Are you sure you want to archive these users?"
+                : <>Do you want to archive <span className="font-bold text-base-color">"{userName}"</span>?</>}
+            </ModalDescription>
+            {isBulk && (
+              <p className="px-4 text-center font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
+                {`${user.length} user(s) selected`}
+              </p>
+            )}
+            <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-lighter-text">
+              If you change your mind you can always restore them later. Proceed?
+            </p>
+          </div>
         </ModalHeader>
 
         {error && (

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import PageHeader from "@/components/common/page-header";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -40,6 +41,11 @@ export default function RawMaterialsPricePage() {
   const [sorting, setSorting] = useState([]);
 
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedState]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -193,7 +199,18 @@ export default function RawMaterialsPricePage() {
   };
 
   const handleArchiveConfirm = async (item) => {
-    await archiveMutation.mutateAsync(item.id);
+    if (Array.isArray(item)) {
+      const results = await Promise.allSettled(
+        item.map((r) => archiveMutation.mutateAsync(r._id || r.id))
+      );
+      const succeeded = results.filter((res) => res.status === "fulfilled").length;
+      const failed = results.filter((res) => res.status === "rejected");
+      if (succeeded > 0) toast.success(`${succeeded} raw material(s) archived successfully`);
+      if (failed.length > 0) toast.error(`Failed to archive ${failed.length} raw material(s)`);
+      setSelectedRowIds([]);
+    } else {
+      await archiveMutation.mutateAsync(item.id);
+    }
     setIsArchiveModalOpen(false);
     setSelectedItem(null);
   };
@@ -400,6 +417,13 @@ export default function RawMaterialsPricePage() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopRawMaterialsTable
                 data={rawMaterials}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = rawMaterials.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedItem(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination.totalPages}

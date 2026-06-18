@@ -75,6 +75,11 @@ export default function ApplicationCategories() {
   const [exportPage, setExportPage] = useState(1);
   const [exportLimit, setExportLimit] = useState(20);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedState]);
 
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
@@ -189,23 +194,27 @@ export default function ApplicationCategories() {
 
   const handleArchiveConfirm = async (category) => {
     try {
-      console.log(
-        "DEBUG - Parent: handleArchiveConfirm called for category:",
-        category._id
-      );
-      const response = await categoryService.archiveCategory(category._id);
-      console.log("DEBUG - Parent: Archive successful, calling refetch()");
+      if (Array.isArray(category)) {
+        const results = await Promise.allSettled(
+          category.map((r) => categoryService.archiveCategory(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} category(ies) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} category(ies)`);
+        setSelectedRowIds([]);
+      } else {
+        const response = await categoryService.archiveCategory(category._id || category.id);
+        toast.success(
+          getResponseMessage(response, "Application category archived successfully")
+        );
+      }
       await queryClient.invalidateQueries();
       setIsArchiveModalOpen(false);
       setSelectedCategory(null);
       refetch();
-      toast.success(
-        getResponseMessage(response, "Application category archived successfully")
-      );
     } catch (err) {
       console.error("DEBUG - Parent: Failed to archive category:", err);
-      console.error("DEBUG - Parent: Error response:", err.response);
-      console.error("DEBUG - Parent: Error response data:", err.response?.data);
       toast.error(
         getApiErrorMessage(err, "Failed to archive category")
       );
@@ -488,6 +497,14 @@ export default function ApplicationCategories() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopCategoryTable
                 categories={categories}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = categories.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedCategory(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}

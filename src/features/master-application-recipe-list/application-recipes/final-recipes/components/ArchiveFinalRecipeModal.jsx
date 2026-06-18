@@ -33,6 +33,8 @@ export function ArchiveFinalRecipeModal({
         }
     };
 
+    const isBulk = Array.isArray(recipe);
+
     return (
         <Modal open={open} onOpenChange={handleClose}>
             <ModalContent
@@ -43,7 +45,7 @@ export function ArchiveFinalRecipeModal({
             >
                 <ModalHeader className="pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6!">
                     <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-                        Archive Recipe
+                        {isBulk ? "Archive Recipes" : "Archive Recipe"}
                     </ModalTitle>
                 </ModalHeader>
 
@@ -61,9 +63,22 @@ export function ArchiveFinalRecipeModal({
                     </motion.div>
 
                     {/* Description */}
-                    <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
-                        Are you sure that you want to archive this recipe?
-                    </p>
+                    <div className="flex flex-col items-center gap-2">
+                        <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color font-medium">
+                            {isBulk
+                                ? "Are you sure you want to archive these recipes?"
+                                : "Are you sure that you want to archive this recipe?"
+                            }
+                        </p>
+                        {recipe && (
+                            <p className="px-4 text-center font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
+                                {isBulk
+                                    ? `${recipe.length} recipe(s) selected`
+                                    : `${recipe.name || recipe.title || ""}`
+                                }
+                            </p>
+                        )}
+                    </div>
                 </div>
 
                 <ModalFooter className="flex flex-row justify-center mt-6 md:mt-4 lg:mt-4.5! xl:mt-5.5! 2xl:mt-6.5! 3xl:mt-8! gap-3 md:gap-3 lg:gap-3! xl:gap-4! 2xl:gap-5! 3xl:gap-6!">

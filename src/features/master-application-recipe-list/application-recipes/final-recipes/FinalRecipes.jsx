@@ -63,6 +63,12 @@ export default function FinalRecipes() {
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedRecipeType, selectedState]);
+
   const [sorting, setSorting] = useState([]);
   const [isCreateRecipeModalOpen, setIsCreateRecipeModalOpen] = useState(false);
 
@@ -199,13 +205,24 @@ export default function FinalRecipes() {
 
   const handleArchiveConfirm = async (recipe) => {
     try {
-      const response = await recipeAPI.archiveRecipe(recipe._id);
+      if (Array.isArray(recipe)) {
+        const results = await Promise.allSettled(
+          recipe.map((r) => recipeAPI.archiveRecipe(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} recipe(s) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} recipe(s)`);
+        setSelectedRowIds([]);
+      } else {
+        const response = await recipeAPI.archiveRecipe(recipe._id || recipe.id);
+        toast.success(
+          getResponseMessage(response, "Final recipe archived successfully")
+        );
+      }
       setIsArchiveModalOpen(false);
       setSelectedRecipe(null);
       refetch();
-      toast.success(
-        getResponseMessage(response, "Final recipe archived successfully")
-      );
     } catch (error) {
       console.error("Failed to archive recipe:", error);
       toast.error(getErrorMessage(error, "Failed to archive final recipe"));
@@ -437,6 +454,14 @@ export default function FinalRecipes() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopFinalRecipeTable
                 recipes={recipes || []}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = recipes.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedRecipe(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 refetch={refetch}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}

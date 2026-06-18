@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import {
     useMaintenanceItems,
     useCreateMaintenanceItem,
@@ -25,6 +26,11 @@ export const useMaintenanceItemsLogic = () => {
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+    useEffect(() => {
+        setSelectedRowIds([]);
+    }, [currentPage, searchTerm, selectedState]);
 
     const { permissions = [] } = useUserPermissions();
     const canExport = hasPermission(permissions, PERMISSIONS.MAINTENANCE.EXPORT);
@@ -105,9 +111,21 @@ export const useMaintenanceItemsLogic = () => {
         }
     };
 
-    const handleArchiveConfirm = async () => {
+    const handleArchiveConfirm = async (item) => {
         try {
-            await archiveMutation.mutateAsync(selectedItem._id);
+            const itemToArchive = item || selectedItem;
+            if (Array.isArray(itemToArchive)) {
+                const results = await Promise.allSettled(
+                    itemToArchive.map((r) => archiveMutation.mutateAsync(r._id || r.id))
+                );
+                const succeeded = results.filter((res) => res.status === "fulfilled").length;
+                const failed = results.filter((res) => res.status === "rejected");
+                if (succeeded > 0) toast.success(`${succeeded} maintenance item(s) archived successfully`);
+                if (failed.length > 0) toast.error(`Failed to archive ${failed.length} maintenance item(s)`);
+                setSelectedRowIds([]);
+            } else {
+                await archiveMutation.mutateAsync(itemToArchive._id || itemToArchive.id);
+            }
             setIsArchiveModalOpen(false);
         } catch (err) {
             console.error("Failed to archive maintenance item:", err);
@@ -176,6 +194,9 @@ export const useMaintenanceItemsLogic = () => {
         isRestoreModalOpen,
         setIsRestoreModalOpen,
         selectedItem,
+        setSelectedItem,
+        selectedRowIds,
+        setSelectedRowIds,
         itemModalMode,
         canExport,
         canManage,
