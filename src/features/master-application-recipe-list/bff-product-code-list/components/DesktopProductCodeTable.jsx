@@ -21,6 +21,9 @@ const typeDisplayMap = {
 
 export default function DesktopProductCodeTable({
     productCodes,
+    selectedProductIds = [],
+    onSelectChange,
+    canArchive = false,
     currentPage = 1,
     itemsPerPage = 10,
     totalPages = 1,
@@ -56,11 +59,56 @@ export default function DesktopProductCodeTable({
             header: "SL",
             headerClassName: "text-start",
             className: " ",
-            cell: ({ row }) => (
-                <div className="flex items-center justify-center  size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
-                    <span className="text-nav-highlight">{serialOffset + row.index + 1}</span>
-                </div>
-            ),
+            cell: ({ row }) => {
+                const productCode = row.original;
+                const isArchivable = productCode.isActive && (canArchiveRecord ? canArchiveRecord(productCode) : true);
+                const isSelected = selectedProductIds.includes(productCode._id);
+                const isSelectionMode = selectedProductIds.length > 0;
+                const serialNum = serialOffset + row.index + 1;
+
+                if (!canArchive || !isArchivable) {
+                    return (
+                        <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
+                            <span className="text-nav-highlight">{serialNum}</span>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className="flex items-center justify-center pr-2">
+                        {isSelectionMode || isSelected ? (
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {
+                                    onSelectChange(prev =>
+                                        isSelected
+                                            ? prev.filter(id => id !== productCode._id)
+                                            : [...prev, productCode._id]
+                                    );
+                                }}
+                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                            />
+                        ) : (
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelectChange(prev => [...prev, productCode._id]);
+                                }}
+                                className="group flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full cursor-pointer hover:bg-primary/20 transition-all"
+                            >
+                                <span className="text-nav-highlight group-hover:hidden">{serialNum}</span>
+                                <input
+                                    type="checkbox"
+                                    checked={false}
+                                    readOnly
+                                    className="hidden group-hover:block w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            },
             size: getResponsiveSize({ lg: 32, xl: 43, '2xl': 48, '3xl': 60 }),
             enableSorting: false,
             enableHiding: false,
