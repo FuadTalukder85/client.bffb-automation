@@ -10,16 +10,15 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { Archive, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { getApiErrorMessage } from "@/utils/apiError";
 
-export function ArchivePackagingTypeModal({
+export default function ArchiveIngredientModal({
     open,
     onOpenChange,
-    item,
+    ingredientName,
     onConfirm,
     className,
+    isLoading = false,
 }) {
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const handleClose = (isOpen) => {
@@ -30,21 +29,14 @@ export function ArchivePackagingTypeModal({
     };
 
     const handleConfirm = async () => {
-        if (!item) return;
-
-        setIsLoading(true);
         setError(null);
         try {
-            await onConfirm(item);
+            await onConfirm();
             handleClose(false);
         } catch (err) {
-            setError(getApiErrorMessage(err, "An error occurred while archiving the item"));
-        } finally {
-            setIsLoading(false);
+            setError(err.message || "An error occurred while archiving the ingredient");
         }
     };
-
-    const isBulk = Array.isArray(item);
 
     return (
         <Modal open={open} onOpenChange={handleClose}>
@@ -55,12 +47,12 @@ export function ArchivePackagingTypeModal({
                 )}
             >
                 <ModalHeader className="pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6!">
-                    <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-                        {isBulk ? "Archive Packaging Types" : "Archive Packaging Type"}
+                    <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center text-base-color">
+                        Archive Ingredient
                     </ModalTitle>
                 </ModalHeader>
 
-                <div className="flex flex-col items-center space-y-4 md:space-y-6">
+                <div className="flex flex-col items-center space-y-4 lg:space-y-3 xl:space-y-3.5 2xl:space-y-4.5 3xl:space-y-6">
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
@@ -74,34 +66,33 @@ export function ArchivePackagingTypeModal({
                         <Archive className="w-8 md:w-5 lg:w-5.5! xl:w-7! 2xl:w-8! 3xl:w-10! h-8 md:h-5 lg:h-5.5! xl:h-7! 2xl:h-8! 3xl:h-10!" />
                     </motion.div>
 
-                    <div className="flex flex-col items-center gap-2">
-                        <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! font-medium text-base-color">
-                            {isBulk
-                                ? "Are you sure you want to archive these packaging types?"
-                                : "Are you sure you want to archive this packaging type?"
-                            }
+                    <div className="flex flex-col items-center gap-3 text-center">
+                        <p className="px-4 text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! font-semibold text-base-color">
+                            Are you sure you want to archive this ingredient?
                         </p>
-                        {item && (
-                            <p className="px-4 text-center font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
-                                {isBulk
-                                    ? `${item.length} packaging type(s) selected`
-                                    : `${item.name || ""}`
-                                }
+                        {ingredientName && (
+                            <p className="px-4 font-bold text-primary text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! mt-1">
+                                {ingredientName}
                             </p>
                         )}
-                        <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-lighter-text">
-                            Make sure to only perform this function with proper authorization
-                        </p>
+                        <div className="flex flex-col gap-2">
+                            <p className="px-6 text-xs md:text-[7px] lg:text-[7.5px]! xl:text-[10px]! 2xl:text-[11.5px]! 3xl:text-sm! text-lighter-text leading-relaxed">
+                                This action will immediately archive/remove the ingredient from the recipe database.
+                            </p>
+                            <p className="px-6 text-[10px] md:text-[6px] lg:text-[6.5px]! xl:text-[8.5px]! 2xl:text-[9.5px]! 3xl:text-xs! italic text-lighter-text/60">
+                                Make sure to only perform this function with proper authorization.
+                            </p>
+                        </div>
                     </div>
 
                     {error && (
-                        <div className="w-full p-3 text-sm lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-red-600 border border-red-200 rounded-lg bg-red-50">
+                        <div className="w-full p-3 text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-red-600 border border-red-200 rounded-lg bg-red-50">
                             {error}
                         </div>
                     )}
                 </div>
 
-                <ModalFooter className="flex flex-row justify-center mt-6 md:mt-4 lg:mt-4.5! xl:mt-5.5! 2xl:mt-6.5! 3xl:mt-8! gap-3 md:gap-3 lg:gap-3! xl:gap-4! 2xl:gap-5! 3xl:gap-6!">
+                <ModalFooter className="flex flex-row justify-center mt-6 md:mt-4 lg:mt-4.5! xl:mt-5.5! 2xl:mt-6.5! 3xl:mt-8! gap-3 md:gap-3 lg:gap-3! xl:gap-4! 2xl:gap-5! 3xl:gap-6! w-full">
                     <Button
                         intent="outline"
                         onClick={() => handleClose(false)}
@@ -130,3 +121,4 @@ export function ArchivePackagingTypeModal({
         </Modal>
     );
 }
+

@@ -664,6 +664,11 @@ export default function BFFProductCodeList() {
                 selectedProductIds={selectedProductIds}
                 onSelectChange={setSelectedProductIds}
                 canArchive={canArchive}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = productCodes.filter(pc => selectedProductIds.includes(pc._id));
+                  setSelectedProductCode(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}
@@ -774,7 +779,7 @@ export default function BFFProductCodeList() {
       />
 
       {selectedProductIds.length > 0 && (
-        <div className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col md:flex-row items-center gap-2.5 md:gap-4 px-5 md:px-6 py-3 md:py-3 rounded-2xl md:rounded-full bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl animate-in slide-in-from-bottom duration-300 w-[90%] max-w-[340px] md:w-auto md:max-w-none">
+        <div className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col md:flex-row items-center gap-2.5 md:gap-4 px-5 md:px-6 py-3 md:py-3 rounded-2xl md:rounded-full bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl animate-in slide-in-from-bottom duration-300 w-[90%] max-w-[340px] md:w-auto md:max-w-none md:hidden">
           <span className="text-xs md:text-sm font-semibold text-foreground text-center">
             {selectedProductIds.length} item(s) selected
           </span>

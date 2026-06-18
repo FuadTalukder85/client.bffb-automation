@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
@@ -26,6 +26,7 @@ const EmployeeManagement = () => {
   const [selectedFilter, setSelectedFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const {
@@ -107,6 +108,11 @@ const EmployeeManagement = () => {
     return 1;
   }, [pagination, searchResults, currentPage]);
 
+  // Reset selection on filter, search or page changes
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [selectedFilter, debouncedSearchTerm, currentPage]);
+
   // Update Role Modal State
   const [isUpdateRoleModalOpen, setIsUpdateRoleModalOpen] = useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
@@ -131,8 +137,18 @@ const EmployeeManagement = () => {
     setIsArchiveModalOpen(true);
   };
 
+  const handleBulkArchive = (ids) => {
+    if (!canDeleteUser) return;
+    const usersToArchive = searchResults.filter((user) => ids.includes(user._id || user.id));
+    if (usersToArchive.length > 0) {
+      setSelectedUserForArchive(usersToArchive);
+      setIsArchiveModalOpen(true);
+    }
+  };
+
   const handleArchiveSuccess = () => {
     setSelectedUserForArchive(null);
+    setSelectedRowIds([]);
     refetch();
   };
 
@@ -277,6 +293,10 @@ const EmployeeManagement = () => {
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
           <DesktopManageUserTable
             {...listProps}
+            isArchived={selectedFilter === "archived"}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={handleBulkArchive}
             onEdit={handleEditUser}
             onDelete={handleDeleteUser}
             onReactivate={handleReactivateUser}

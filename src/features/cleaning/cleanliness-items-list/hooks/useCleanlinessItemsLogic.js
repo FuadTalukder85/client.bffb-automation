@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import {
     useCleanlinessItems,
     useCreateCleanlinessItem,
@@ -25,6 +26,11 @@ export const useCleanlinessItemsLogic = () => {
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+    useEffect(() => {
+        setSelectedRowIds([]);
+    }, [currentPage, searchTerm, selectedState]);
 
     const [columnVisibility, setColumnVisibility] = useState({});
     const [columnPinning, setColumnPinning] = useState({});
@@ -111,7 +117,18 @@ export const useCleanlinessItemsLogic = () => {
 
     const handleArchiveConfirm = async (item) => {
         try {
-            await archiveMutation.mutateAsync(item._id);
+            if (Array.isArray(item)) {
+                const results = await Promise.allSettled(
+                    item.map((r) => archiveMutation.mutateAsync(r._id || r.id))
+                );
+                const succeeded = results.filter((res) => res.status === "fulfilled").length;
+                const failed = results.filter((res) => res.status === "rejected");
+                if (succeeded > 0) toast.success(`${succeeded} cleanliness item(s) archived successfully`);
+                if (failed.length > 0) toast.error(`Failed to archive ${failed.length} cleanliness item(s)`);
+                setSelectedRowIds([]);
+            } else {
+                await archiveMutation.mutateAsync(item._id || item.id);
+            }
             setIsArchiveModalOpen(false);
         } catch (err) {
             console.error("Failed to archive item:", err);
@@ -196,6 +213,9 @@ export const useCleanlinessItemsLogic = () => {
         isRestoreModalOpen,
         setIsRestoreModalOpen,
         selectedItem,
+        setSelectedItem,
+        selectedRowIds,
+        setSelectedRowIds,
         columnVisibility,
         setColumnVisibility,
         columnPinning,

@@ -57,6 +57,9 @@ export default function MasterProjects() {
         isUploadSuccessModalOpen,
         setIsUploadSuccessModalOpen,
         selectedProject,
+        setSelectedProject,
+        selectedProjectIds,
+        setSelectedProjectIds,
         columnVisibility,
         setColumnVisibility,
         columnPinning,
@@ -308,6 +311,13 @@ export default function MasterProjects() {
                         <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0 ">
                             <DesktopProjectTable
                                 projects={projects}
+                                selectedProjectIds={selectedProjectIds}
+                                onSelectChange={setSelectedProjectIds}
+                                onBulkArchiveClick={() => {
+                                    const selectedObjects = projects.filter(p => selectedProjectIds.includes(p._id));
+                                    setSelectedProject(selectedObjects);
+                                    setIsArchiveModalOpen(true);
+                                }}
                                 currentPage={currentPage}
                                 itemsPerPage={itemsPerPage}
                                 totalPages={pagination?.totalPages || 1}

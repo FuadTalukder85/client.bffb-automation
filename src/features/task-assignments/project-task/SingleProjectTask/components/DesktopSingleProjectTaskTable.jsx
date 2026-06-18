@@ -30,6 +30,9 @@ export const DesktopSingleProjectTaskTable = ({
   noDataMessage,
   noDataDescription,
   emptyState,
+  isArchived = false,
+  selectedRowIds = [],
+  onSelectionChange,
 }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -349,6 +352,15 @@ export const DesktopSingleProjectTaskTable = ({
         <PaginatedTable
           data={tasks}
           columns={columns}
+          enableSelection={!isArchived}
+          selectedRowIds={selectedRowIds}
+          onSelectionChange={onSelectionChange}
+          canSelectRow={(item) => item.isActive !== false}
+          onBulkArchiveClick={() => {
+            const selectedObjects = tasks.filter((r) => selectedRowIds.includes(r._id || r.id));
+            setSelectedTask(selectedObjects);
+            setIsArchiveModalOpen(true);
+          }}
           className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
           rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
           enableSorting={true}

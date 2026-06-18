@@ -98,6 +98,11 @@ export default function ApplicationSubSubcategories() {
   const [exportPage, setExportPage] = useState(1);
   const [exportLimit, setExportLimit] = useState(20);
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedState]);
 
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
@@ -205,19 +210,30 @@ export default function ApplicationSubSubcategories() {
 
   const handleArchiveConfirm = async (subSubCategory) => {
     try {
-      const response = await categoryService.archiveSubSubCategory(
-        subSubCategory._id
-      );
+      if (Array.isArray(subSubCategory)) {
+        const results = await Promise.allSettled(
+          subSubCategory.map((r) => categoryService.archiveSubSubCategory(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} sub-sub-category(ies) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} sub-sub-category(ies)`);
+        setSelectedRowIds([]);
+      } else {
+        const response = await categoryService.archiveSubSubCategory(
+          subSubCategory._id
+        );
+        toast.success(
+          getResponseMessage(
+            response,
+            "Sub-sub-category archived successfully"
+          )
+        );
+      }
       await queryClient.invalidateQueries();
       setIsArchiveModalOpen(false);
       setSelectedSubSubCategory(null);
       refetch();
-      toast.success(
-        getResponseMessage(
-          response,
-          "Sub-sub-category archived successfully"
-        )
-      );
     } catch (err) {
       console.error("Failed to archive sub-sub-category:", err);
       toast.error(
@@ -524,6 +540,14 @@ export default function ApplicationSubSubcategories() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopSubSubCategoryTable
                 subSubCategories={subSubCategories}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = subSubCategories.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedSubSubCategory(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}

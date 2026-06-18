@@ -116,3 +116,21 @@ export function useChangeRecipeType() {
     },
   });
 }
+
+/**
+ * Hook for deleting a recipe ingredient
+ */
+export function useDeleteRecipeIngredient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ recipeId, ingredientId }) =>
+      api.delete(`/recipes/${recipeId}/ingredients/${ingredientId}`).then((res) => res.data),
+    onSuccess: (response, { recipeId }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recipes.detail(recipeId) });
+      toast.success(getSuccessMessage(response, "Ingredient archived successfully"));
+    },
+  });
+}
+

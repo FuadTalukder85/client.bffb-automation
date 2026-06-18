@@ -67,6 +67,11 @@ const SingleProjectTask = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, filterProgress, selectedState]);
 
   // Fetch project details using TanStack Query
   const { data: project } = useProject(projectId);
@@ -163,11 +168,23 @@ const SingleProjectTask = () => {
 
   const handleArchiveTask = async (task) => {
     try {
-      const taskId = task._id || task.id;
-      await deleteTask(taskId);
-      // Cache is automatically invalidated
+      if (Array.isArray(task)) {
+        const results = await Promise.allSettled(
+          task.map((r) => deleteTask(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} task(s) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} task(s)`);
+        setSelectedRowIds([]);
+      } else {
+        const taskId = task._id || task.id;
+        await deleteTask(taskId);
+        toast.success("Task archived successfully");
+      }
     } catch (err) {
       console.error("Failed to archive task:", err);
+      toast.error("Failed to archive task");
     }
   };
 
@@ -346,6 +363,9 @@ const SingleProjectTask = () => {
           <DesktopSingleProjectTaskTable
             tasks={tasks}
             isLoading={isLoading}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            isArchived={selectedState === "archived"}
             onArchive={handleArchiveTask}
             onRestore={handleRestoreTask}
             onUpdateStatus={handleUpdateTaskStatus}
