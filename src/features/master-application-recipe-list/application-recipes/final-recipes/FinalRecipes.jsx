@@ -24,6 +24,7 @@ import { UploadSuccessModal } from "./components/UploadSuccessModal";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import CreateRecipeModal from "@/features/application-lab/application-recipes/components/CreateRecipeModal";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const recipeTypeOptions = [
   { label: "All", value: "all" },
@@ -436,6 +437,8 @@ export default function FinalRecipes() {
                   itemsPerPage={itemsPerPage}
                   onRefresh={refetch}
                   isLoading={isLoading}
+                  selectedRowIds={selectedRowIds}
+                  onSelectChange={setSelectedRowIds}
                 />
               ) : hasError ? (
                 <div className="py-10 text-center text-red-500">
@@ -549,6 +552,15 @@ export default function FinalRecipes() {
             ? selectedRecipeType 
             : null
         }
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = recipes.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedRecipe(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

@@ -5,6 +5,7 @@ import { ButtonGroup } from "@/components/ui/ButtonGroup";
 import { InfoTable } from "@/features/invites-and-access/components/InfoTable";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import { AiFillThunderbolt } from "react-icons/ai";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 export default function MobileCleanlinessItemCard({
   item,
@@ -13,8 +14,20 @@ export default function MobileCleanlinessItemCard({
   onArchive,
   onRestore,
   isArchived = false,
+  selectedRowIds = [],
+  onSelectChange,
+  canArchive = false,
   className,
 }) {
+  const canSelect = canArchive && item.isActive;
+
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: item._id || item.id,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect,
+  });
+
   const renderActionButtons = () => {
     const itemIsArchived = !item.isActive;
     
@@ -60,53 +73,75 @@ export default function MobileCleanlinessItemCard({
   };
 
   return (
-    <ExpandableCard
-      className={cn("md:hidden p-3 my-4 rounded-xl bg-background", className)}
+    <div
+      {...pressHandlers}
+      className={cn(
+        "relative w-full md:hidden my-4 select-none cursor-pointer rounded-xl transition-all duration-200",
+        isSelected ? "scale-[0.99] shadow-lg" : ""
+      )}
     >
-      <ExpandableCard.Content initialHeight={100}>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
-            <span className="text-sm font-semibold">{serialNumber}</span>
+      {isSelected && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none border border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
+      )}
+      <ExpandableCard
+        className={cn("p-3 rounded-xl bg-background w-full", className)}
+      >
+        <ExpandableCard.Content initialHeight={100}>
+          <div className="flex items-center gap-3 mb-3">
+            {isSelectionMode ? (
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  readOnly
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+                <span className="text-sm font-semibold">{serialNumber}</span>
+              </div>
+            )}
+
+            <div className="flex flex-1">
+               <h3 className="text-sm font-semibold text-nav-highlight line-clamp-1">
+                  {item.name}
+                </h3>
+            </div>
           </div>
 
-          <div className="flex flex-1">
-             <h3 className="text-sm font-semibold text-nav-highlight line-clamp-1">
+          <InfoTable>
+            <InfoTable.Row label="Cleanliness Item Name">
+              <div className="font-semibold text-right text-nav-highlight">
                 {item.name}
-              </h3>
-          </div>
-        </div>
+              </div>
+            </InfoTable.Row>
+            <InfoTable.Row label="Status">
+              <div className="flex justify-end">
+                <span className={cn(
+                  "px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider",
+                  !item.isActive 
+                    ? "bg-red-50 text-red-600 border border-red-100" 
+                    : "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                )}>
+                  {!item.isActive ? "Archived" : "Active"}
+                </span>
+              </div>
+            </InfoTable.Row>
+          </InfoTable>
+        </ExpandableCard.Content>
 
-        <InfoTable>
-          <InfoTable.Row label="Cleanliness Item Name">
-            <div className="font-semibold text-right text-nav-highlight">
-              {item.name}
-            </div>
-          </InfoTable.Row>
-          <InfoTable.Row label="Status">
-            <div className="flex justify-end">
-              <span className={cn(
-                "px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider",
-                !item.isActive 
-                  ? "bg-red-50 text-red-600 border border-red-100" 
-                  : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-              )}>
-                {!item.isActive ? "Archived" : "Active"}
-              </span>
-            </div>
-          </InfoTable.Row>
-        </InfoTable>
-      </ExpandableCard.Content>
-
-      <ExpandableCard.Footer className="pt-2">
-        <ExpandableCard.FooterLeft>
-          {renderActionButtons()}
-        </ExpandableCard.FooterLeft>
-        <ExpandableCard.FooterRight>
-          <ExpandableCard.ToggleButton />
-        </ExpandableCard.FooterRight>
-      </ExpandableCard.Footer>
-    </ExpandableCard>
+        {!isSelectionMode && (
+          <ExpandableCard.Footer className="pt-2">
+            <ExpandableCard.FooterLeft>
+              {renderActionButtons()}
+            </ExpandableCard.FooterLeft>
+            <ExpandableCard.FooterRight>
+              <ExpandableCard.ToggleButton />
+            </ExpandableCard.FooterRight>
+          </ExpandableCard.Footer>
+        )}
+      </ExpandableCard>
+    </div>
   );
 }
-
-

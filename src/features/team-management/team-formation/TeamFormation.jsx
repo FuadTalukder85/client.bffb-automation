@@ -27,6 +27,7 @@ import { ConfirmCreateTeamModal } from "./components/ConfirmCreateTeamModal";
 import { useNavigate } from "react-router";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const getErrorMessage = (error, fallback) => {
   const message =
@@ -255,6 +256,8 @@ function TeamFormation() {
     onItemsPerPageChange: handleItemsPerPageChange,
     noDataMessage,
     noDataDescription,
+    selectedRowIds,
+    onSelectChange: setSelectedRowIds,
   };
 
   return (
@@ -419,6 +422,15 @@ function TeamFormation() {
         onOpenChange={setIsRestoreTeamModalOpen}
         team={selectedTeam}
         onConfirm={handleConfirmRestore}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = teams.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedTeam(selectedObjects);
+          setIsArchiveTeamModalOpen(true);
+        }}
       />
     </section>
   );

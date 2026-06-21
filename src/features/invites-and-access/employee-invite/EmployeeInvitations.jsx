@@ -16,6 +16,7 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import { useDeleteInvitation, useResendInvitation } from "@/hooks/mutations";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 
 const getErrorMessage = (error, fallback) => {
@@ -249,7 +250,11 @@ function EmployeeInvitations() {
 
       <div className="flex-1 w-full flex flex-col min-h-0">
         {/* Mobile UI */}
-        <MobileInvitationList {...listProps} />
+        <MobileInvitationList
+          {...listProps}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
+        />
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
@@ -303,6 +308,15 @@ function EmployeeInvitations() {
         open={isResendSuccessModalOpen}
         onOpenChange={setIsResendSuccessModalOpen}
         email={selectedInvite?.email}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = searchResults.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedInvite(selectedObjects);
+          setIsRevokeModalOpen(true);
+        }}
       />
     </section>
   );

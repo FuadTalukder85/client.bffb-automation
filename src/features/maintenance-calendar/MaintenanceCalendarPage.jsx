@@ -38,6 +38,7 @@ import MaintenanceCalendarMobileView from "./components/MaintenanceCalendarMobil
 import MaintenanceCalendarMobileSkeleton from "./components/MaintenanceCalendarMobileSkeleton";
 import { Pagination } from "@/components/ui/Pagination";
 import { FilterInput } from "@/components/ui/FilterInput/FilterInput";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const MONTHS_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -563,6 +564,9 @@ export default function MaintenanceCalendarPage() {
               onRestore={handleRestoreClick}
               noDataMessage={noDataMessage}
               noDataDescription={noDataDescription}
+              selectedRowIds={selectedRowIds}
+              onSelectChange={setSelectedRowIds}
+              canDelete={selectedScheduleState === "true"}
             />
           )
         ) : (
@@ -640,6 +644,15 @@ export default function MaintenanceCalendarPage() {
         item={selectedItemToRestore}
         onConfirm={handleRestoreConfirm}
         isLoading={restoreScheduleMutation.isPending}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = filteredRows.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedItemToDelete(selectedObjects);
+          setIsDeleteModalOpen(true);
+        }}
       />
     </section>
   );

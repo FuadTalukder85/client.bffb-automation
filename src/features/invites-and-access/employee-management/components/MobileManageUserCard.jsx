@@ -6,6 +6,8 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { MdLockOpen, MdLockReset } from "react-icons/md";
 import { Button } from "../../../../components/ui/Button";
 import { format } from "date-fns";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
+import { cn } from "@/lib/utils";
 
 /**
  * MobileManageUserCard - Employee card for mobile view
@@ -32,7 +34,18 @@ const MobileManageUserCard = ({
   canUpdatePassword = false,
   canDeleteUser = false,
   canUnblockUser = false,
+  selectedRowIds = [],
+  onSelectChange,
 }) => {
+  const isArchived = user.isActive === false;
+
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: user._id || user.id,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect: canDeleteUser && !isArchived,
+  });
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -42,7 +55,6 @@ const MobileManageUserCard = ({
     }
   };
 
-  const isArchived = user.isActive === false;
   const isLocked = Boolean(
     user?.accountLockedUntil && new Date(user.accountLockedUntil) > new Date()
   );
@@ -166,85 +178,109 @@ const MobileManageUserCard = ({
   };
 
   return (
-    <ExpandableCard className="mb-4 rounded-xl bg-background p-3 shadow-sm border border-border/50">
-      <ExpandableCard.Content initialHeight={initialHeight}>
-        <InfoTable>
-          <InfoTable.Row 
-            label={
-              <div className="min-w-11 min-h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <p className="text-nav-highlight text-sm font-semibold">{serial}</p>
-              </div>
-            }
-          >
-            <div className="font-semibold text-nav-highlight">{user.name || "N/A"}</div>
-            <div className="text-[10px] text-lighter-text">
-              {user.email || "N/A"}
-            </div>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Department">
-            <span className="font-semibold text-base-color">
-              {user.department || "N/A"}
-            </span>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Role">
-            <span className="font-semibold text-base-color">
-              {user.role || "N/A"}
-            </span>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Join Date">
-            <span className="font-semibold text-base-color">
-              {formatDate(user.joinDate || user.createdAt)}
-            </span>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Leave Date">
-            <span className="font-semibold text-base-color">
-              {user.leaveDate || "N/A"}
-            </span>
-          </InfoTable.Row>
-        </InfoTable>
-      </ExpandableCard.Content>
-
-      {/* Footer */}
-      <ExpandableCard.Footer className="pt-2">
-        <ExpandableCard.FooterLeft className="flex">
-          {isArchived ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onReactivate?.(user)}
-              className="px-2 py-1 2xl:px-3 2xl:py-1.5 3xl:px-3 3xl:py-2 flex items-center justify-center font-semibold rounded-md text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
+    <div
+      {...pressHandlers}
+      className={cn(
+        "relative w-full mb-4 select-none cursor-pointer rounded-xl transition-all duration-200",
+        isSelected ? "scale-[0.99] shadow-lg" : ""
+      )}
+    >
+      {isSelected && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none border border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
+      )}
+      <ExpandableCard className="rounded-xl bg-background p-3 shadow-sm border border-border/50 w-full">
+        <ExpandableCard.Content initialHeight={initialHeight}>
+          <InfoTable>
+            <InfoTable.Row 
+              label={
+                isSelectionMode ? (
+                  <div className="flex items-center justify-center w-11 h-8 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      readOnly
+                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    />
+                  </div>
+                ) : (
+                  <div className="min-w-11 min-h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <p className="text-nav-highlight text-sm font-semibold">{serial}</p>
+                  </div>
+                )
+              }
             >
-              <AiFillThunderbolt className="action-button-icon" />
-            </Button>
-          ) : (
-            <div className={`${actionsWrapperWidth} flex items-center gap-0`}>
-              {actionButtons.map((action, index) => (
+              <div className="font-semibold text-nav-highlight">{user.name || "N/A"}</div>
+              <div className="text-[10px] text-lighter-text">
+                {user.email || "N/A"}
+              </div>
+            </InfoTable.Row>
+
+            <InfoTable.Row label="Department">
+              <span className="font-semibold text-base-color">
+                {user.department || "N/A"}
+              </span>
+            </InfoTable.Row>
+
+            <InfoTable.Row label="Role">
+              <span className="font-semibold text-base-color">
+                {user.role || "N/A"}
+              </span>
+            </InfoTable.Row>
+
+            <InfoTable.Row label="Join Date">
+              <span className="font-semibold text-base-color">
+                {formatDate(user.joinDate || user.createdAt)}
+              </span>
+            </InfoTable.Row>
+
+            <InfoTable.Row label="Leave Date">
+              <span className="font-semibold text-base-color">
+                {user.leaveDate || "N/A"}
+              </span>
+            </InfoTable.Row>
+          </InfoTable>
+        </ExpandableCard.Content>
+
+        {/* Footer */}
+        {!isSelectionMode && (
+          <ExpandableCard.Footer className="pt-2">
+            <ExpandableCard.FooterLeft className="flex">
+              {isArchived ? (
                 <Button
-                  key={action.key}
                   variant="ghost"
                   size="icon"
-                  onClick={action.onClick}
-                  title={action.title}
-                  aria-label={action.title}
-                  className={getActionButtonClass(index, action)}
+                  onClick={() => onReactivate?.(user)}
+                  className="px-2 py-1 2xl:px-3 2xl:py-1.5 3xl:px-3 3xl:py-2 flex items-center justify-center font-semibold rounded-md text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
                 >
-                  {action.icon}
+                  <AiFillThunderbolt className="action-button-icon" />
                 </Button>
-              ))}
-            </div>
-          )}
-        </ExpandableCard.FooterLeft>
+              ) : (
+                <div className={`${actionsWrapperWidth} flex items-center gap-0`}>
+                  {actionButtons.map((action, index) => (
+                    <Button
+                      key={action.key}
+                      variant="ghost"
+                      size="icon"
+                      onClick={action.onClick}
+                      title={action.title}
+                      aria-label={action.title}
+                      className={getActionButtonClass(index, action)}
+                    >
+                      {action.icon}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </ExpandableCard.FooterLeft>
 
-        {/* Right side - Toggle button with default styles */}
-        <ExpandableCard.FooterRight>
-          <ExpandableCard.ToggleButton />
-        </ExpandableCard.FooterRight>
-      </ExpandableCard.Footer>
-    </ExpandableCard>
+            {/* Right side - Toggle button with default styles */}
+            <ExpandableCard.FooterRight>
+              <ExpandableCard.ToggleButton />
+            </ExpandableCard.FooterRight>
+          </ExpandableCard.Footer>
+        )}
+      </ExpandableCard>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye } from "lucide-react";
+import { Eye, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ButtonGroup } from "@/components/ui/ButtonGroup";
@@ -10,6 +10,7 @@ import { formatDate } from "@/utils/dateFormatter";
 import GlobalStatusBadge from "@/components/ui/StatusBadge";
 import { AiFillThunderbolt } from "react-icons/ai";
 import { ProjectTaskStatsButton } from "../../components/ProjectTaskStatsButton";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 export default function MobileProjectCard({
   project,
@@ -17,6 +18,9 @@ export default function MobileProjectCard({
   onArchive,
   onRestore,
   onViewDetails,
+  selectedProjectIds = [],
+  onSelectChange,
+  canArchive = false,
   className,
 }) {
   // Check which sections are accessible
@@ -29,6 +33,15 @@ export default function MobileProjectCard({
   const isActive = hasMasterProject
     ? project.masterProject?.isActive ?? true
     : true;
+
+  const canSelect = canArchive && isActive && hasMasterProject;
+
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: project._id,
+    selectedIds: selectedProjectIds,
+    onSelectChange,
+    canSelect,
+  });
 
   // Map the project data
   const adaptedProject = {
@@ -150,14 +163,36 @@ export default function MobileProjectCard({
   };
 
   return (
-    <ExpandableCard
-      className={cn("md:hidden p-3 my-4 rounded-xl bg-background", className)}
+    <div
+      {...pressHandlers}
+      className={cn(
+        "relative w-full md:hidden my-4 select-none cursor-pointer rounded-xl transition-all duration-200",
+        isSelected ? "scale-[0.99] shadow-lg" : ""
+      )}
     >
-      <ExpandableCard.Content initialHeight={140}>
+      {/* Overlay to focus on selected card */}
+      {isSelected && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none border border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
+      )}
+      <ExpandableCard
+        className={cn("p-3 rounded-xl bg-background w-full", className)}
+      >
+        <ExpandableCard.Content initialHeight={140}>
         <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
-            <span className="text-sm font-semibold">{serialNumber}</span>
-          </div>
+          {isSelectionMode ? (
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                readOnly
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+              <span className="text-sm font-semibold">{serialNumber}</span>
+            </div>
+          )}
 
           <div className="flex flex-1">
             {hasMasterProject ? (
@@ -243,15 +278,18 @@ export default function MobileProjectCard({
         </InfoTable>
       </ExpandableCard.Content>
 
-      <ExpandableCard.Footer className="pt-2">
-        <ExpandableCard.FooterLeft>
-          {renderActionButtons()}
-        </ExpandableCard.FooterLeft>
-        <ExpandableCard.FooterRight>
-          <ExpandableCard.ToggleButton />
-        </ExpandableCard.FooterRight>
-      </ExpandableCard.Footer>
-    </ExpandableCard>
+      {!isSelectionMode && (
+        <ExpandableCard.Footer className="pt-2">
+          <ExpandableCard.FooterLeft>
+            {renderActionButtons()}
+          </ExpandableCard.FooterLeft>
+          <ExpandableCard.FooterRight>
+            <ExpandableCard.ToggleButton />
+          </ExpandableCard.FooterRight>
+        </ExpandableCard.Footer>
+      )}
+      </ExpandableCard>
+    </div>
   );
 }
 

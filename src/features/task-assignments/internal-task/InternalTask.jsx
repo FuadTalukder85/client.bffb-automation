@@ -21,6 +21,7 @@ import { TaskUpdatedModal } from "./components/TaskUpdatedModal";
 import { RestoreInternalTaskModal } from "./components/RestoreInternalTaskModal";
 import { formatDate, getDurationInDays } from "@/utils/dateFormatter";
 import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const statusOptions = createFilterOptions(
   buildStatusOptions([
@@ -343,6 +344,8 @@ const InternalTask = () => {
           noDataDescription={noDataDescription}
           errorMessage={errorMessage}
           hasError={hasError}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
         />
 
         {/* Desktop UI */}
@@ -435,6 +438,15 @@ const InternalTask = () => {
         onOpenChange={setIsRestoreModalOpen}
         task={selectedTask}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = normalizedTasks.filter(r => selectedRowIds.includes(r.id || r._id));
+          setSelectedTask(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

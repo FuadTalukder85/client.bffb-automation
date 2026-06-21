@@ -20,6 +20,7 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { NoData } from "@/components/ui/NoData";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 export default function MaintenanceItemsListPage() {
   const isMobile = useIsMobile();
@@ -58,6 +59,7 @@ export default function MaintenanceItemsListPage() {
     setSelectedRowIds,
     itemModalMode,
     handleExport,
+    canManage,
   } = useMaintenanceItemsLogic();
 
   // getErrorMessage was removed in favor of getApiErrorMessage
@@ -183,6 +185,10 @@ export default function MaintenanceItemsListPage() {
                     onEdit={handleEditItem}
                     onArchive={handleArchiveItem}
                     onRestore={handleRestoreItem}
+                    isArchived={selectedState === "archived"}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
+                    canArchive={canManage}
                   />
                 ))
               ) : (
@@ -245,6 +251,15 @@ export default function MaintenanceItemsListPage() {
         onOpenChange={setIsRestoreModalOpen}
         item={selectedItem}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = maintenanceItems.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedItem(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

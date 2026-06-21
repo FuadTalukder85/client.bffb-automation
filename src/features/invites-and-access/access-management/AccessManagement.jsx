@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import MobileAccessRoleList from "./components/MobileAccessRoleList";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import { DesktopAccessManagementTable } from "./components/DesktopAccessManagementTable";
 import { RestoreRoleModal } from "./components/RestoreRoleModal";
 import { RemoveRoleModal } from "./components/RemoveRoleModal";
@@ -269,7 +270,11 @@ const AccessManagement = () => {
 
       <div className="flex-1 w-full flex flex-col min-h-0">
         {/* Mobile UI */}
-        <MobileAccessRoleList {...listProps} />
+        <MobileAccessRoleList
+          {...listProps}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
+        />
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
@@ -306,6 +311,18 @@ const AccessManagement = () => {
         onOpenChange={setIsRemoveModalOpen}
         onConfirm={handleConfirmRemove}
         role={selectedRoleForRemove}
+      />
+
+      <MobileBulkActionBar
+        selectedIds={selectedRowIds}
+        onClearSelection={() => setSelectedRowIds([])}
+        actions={[
+          {
+            label: "Archive",
+            onClick: () => handleBulkArchive(selectedRowIds),
+            className: "bg-red-600 hover:bg-red-700 text-white",
+          },
+        ]}
       />
     </section>
   );

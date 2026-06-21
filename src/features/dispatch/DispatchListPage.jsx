@@ -32,6 +32,7 @@ import { STATUS_COLOR_PALETTE } from "@/constants/statusColors";
 import { NoData } from "@/components/ui/NoData";
 import { toast } from "sonner";
 import { hasPermission } from "@/lib/utils";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 // storage keys for table state
 const STORAGE_KEYS = {
@@ -365,6 +366,8 @@ export default function DispatchListPage() {
                     onArchive={handleArchive}
                     onRestore={handleRestore}
                     permissions={permissions}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : (
@@ -556,7 +559,15 @@ export default function DispatchListPage() {
           }
         }}
       />
-
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = (data?.data || []).filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedRecord(selectedObjects);
+          setArchiveModalOpen(true);
+        }}
+      />
     </section>
   );
 }
