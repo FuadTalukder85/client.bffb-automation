@@ -402,7 +402,7 @@ export default function RawMaterialsPricePage() {
                     onEdit={handleEditClick}
                     onArchive={handleArchiveClick}
                     onRestore={handleRestoreClick}
-                    isArchived={selectedState === "archived"}
+                    isArchived={selectedState === "archived" || item.isActive === false}
                     selectedRowIds={selectedRowIds}
                     onSelectChange={setSelectedRowIds}
                     canArchive={hasPermission(permissions, "raw-material:delete")}

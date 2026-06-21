@@ -171,7 +171,7 @@ export default function DispatchListPage() {
     searchTerm: debouncedSearchTerm,
     sampleDeliveryStatus: selectedStatus === "all" ? undefined : selectedStatus,
     dispatchType: selectedType === "all" ? undefined : selectedType,
-    isActive: selectedState === "all" ? undefined : selectedState,
+    isActive: selectedState,
     page: currentPage,
     limit: itemsPerPage,
     enabled: !permsLoading && hasPermission(permissions, PERMISSIONS.DISPATCH.READ),

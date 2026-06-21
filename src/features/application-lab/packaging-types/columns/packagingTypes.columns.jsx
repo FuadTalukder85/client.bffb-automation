@@ -39,7 +39,7 @@ export const getPackagingTypesColumns = ({ serialOffset = 0, onEdit, onArchive, 
         onEdit={onEdit}
         onArchive={onArchive}
         onRestore={onRestore}
-        isArchived={isArchived}
+        isArchived={isArchived || row.original.isActive === false}
       />
     ),
     size: getResponsiveSize({ lg: 64, xl: 85, '2xl': 96, '3xl': 120 }),

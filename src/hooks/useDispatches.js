@@ -25,7 +25,7 @@ export function useDispatches(filters = {}) {
   if (dispatchType && dispatchType !== "all") params.dispatchType = dispatchType;
   if (recipeId) params.recipeId = recipeId;
   if (sampleDeliveryStatus && sampleDeliveryStatus !== "all") params.sampleDeliveryStatus = sampleDeliveryStatus;
-  if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
+  if (isActive !== undefined) params.isActive = String(isActive);
 
   return useQuery({
     queryKey: queryKeys.dispatch.list(params),

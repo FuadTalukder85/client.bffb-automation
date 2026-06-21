@@ -256,7 +256,7 @@ export default function PackagingTypesPage() {
                     onEdit={handleEditClick}
                     onArchive={handleArchiveClick}
                     onRestore={handleRestoreClick}
-                    isArchived={selectedState === "archived"}
+                    isArchived={selectedState === "archived" || item.isActive === false}
                     selectedRowIds={selectedRowIds}
                     onSelectChange={setSelectedRowIds}
                     canArchive={canDelete}

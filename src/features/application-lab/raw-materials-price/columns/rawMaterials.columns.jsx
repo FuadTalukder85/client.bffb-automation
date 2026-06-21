@@ -58,7 +58,7 @@ export const getRawMaterialsColumns = ({ serialOffset = 0, onEdit, onArchive, on
         onArchive={onArchive}
         onRestore={onRestore}
         onView={onView}
-        isArchived={isArchived}
+        isArchived={isArchived || row.original.isActive === false}
       />
     ),
     size: getResponsiveSize({ lg: 64, xl: 85, '2xl': 96, '3xl': 120 }),
