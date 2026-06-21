@@ -3,7 +3,19 @@ import MobileInternalTaskCard from "./MobileInternalTaskCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { NoData } from "@/components/ui/NoData";
 
-export function MobileInternalTaskList({ tasks, currentPage, itemsPerPage, onRestore, isLoading, noDataMessage, noDataDescription, errorMessage, hasError }) {
+export function MobileInternalTaskList({
+  tasks,
+  currentPage,
+  itemsPerPage,
+  onRestore,
+  isLoading,
+  noDataMessage,
+  noDataDescription,
+  errorMessage,
+  hasError,
+  selectedRowIds = [],
+  onSelectChange,
+}) {
   // Show skeletons while loading to avoid flashing "No tasks found"
   if (isLoading) {
     return (
@@ -60,6 +72,8 @@ export function MobileInternalTaskList({ tasks, currentPage, itemsPerPage, onRes
           task={task}
           serialNumber={startIndex + index + 1}
           onRestore={onRestore}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={onSelectChange}
         />
       ))}
     </div>

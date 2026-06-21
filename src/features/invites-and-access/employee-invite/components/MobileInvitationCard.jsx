@@ -4,6 +4,8 @@ import ClockIcon from "@/assets/access/employee-invitation/clock.svg?react";
 import ProfileTickIcon from "@/assets/access/employee-invitation/profile-tick.svg?react";
 import { Button } from "@/components/ui/Button";
 import { Send } from "lucide-react";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
+
 export function EmployeeInvitationCard({
   name,
   department,
@@ -12,15 +14,27 @@ export function EmployeeInvitationCard({
   date,
   onRevoke,
   onResend,
+  inviteId,
+  selectedRowIds = [],
+  onSelectChange,
   className,
   serial,
 }) {
   const isPending = status === "pending";
 
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: inviteId,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect: isPending,
+  });
+
   return (
     <div
+      {...pressHandlers}
       className={cn(
-        "flex md:hidden w-full flex-col rounded-xl bg-background border border-table-stroke transition-colors dark:drop-shadow-table-stroke dark:drop-shadow-xs",
+        "flex md:hidden w-full flex-col rounded-xl bg-background border transition-all duration-200 select-none cursor-pointer",
+        isSelected ? "scale-[0.99] border-primary bg-primary/[0.06] shadow-lg" : "border-table-stroke",
         className
       )}
     >
@@ -28,13 +42,25 @@ export function EmployeeInvitationCard({
       <div
         className={cn(
           "flex items-center justify-between p-4",
-          isPending ? "pb-2" : "pb-4"
+          isPending && !isSelectionMode ? "pb-2" : "pb-4"
         )}
       >
         <div className="flex flex-col gap-1">
-          <h3 className="text-sm font-semibold">
-            {serial}. {name}
-          </h3>
+          <div className="flex items-center gap-3">
+            {isSelectionMode ? (
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  readOnly
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                />
+              </div>
+            ) : null}
+            <h3 className="text-sm font-semibold">
+              {serial}. {name}
+            </h3>
+          </div>
           <div>
             <p className="text-xs text-lighter-text">
               {department} | {email}
@@ -46,19 +72,21 @@ export function EmployeeInvitationCard({
             )}
           </div>
         </div>
-        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 shrink-0">
-          {isPending ? (
-            <ClockIcon className="w-5 h-5 text-nav-highlight" />
-          ) : (
-            <ProfileTickIcon className="w-5 h-5 text-nav-highlight" />
-          )}
-        </div>
+        {!isSelectionMode && (
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 shrink-0">
+            {isPending ? (
+              <ClockIcon className="w-5 h-5 text-nav-highlight" />
+            ) : (
+              <ProfileTickIcon className="w-5 h-5 text-nav-highlight" />
+            )}
+          </div>
+        )}
       </div>
-      {isPending ? (
+      {isPending && !isSelectionMode ? (
         <div className="h-[0.1px] bg-table-stroke mx-4 mb-2"></div>
       ) : null}
       {/* Conditional Footer for Pending Invitations */}
-      {isPending && (
+      {isPending && !isSelectionMode && (
         <div className="flex items-center gap-5 px-4 pt-2 pb-4 ">
           <Button
             variant="ghost"
@@ -83,5 +111,3 @@ export function EmployeeInvitationCard({
     </div>
   );
 }
-
-

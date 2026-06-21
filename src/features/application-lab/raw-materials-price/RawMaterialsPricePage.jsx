@@ -20,6 +20,7 @@ import { EditRawMaterialModal } from "./components/Modals/EditRawMaterialModal";
 import { UploadRawMaterialsModal } from "./components/Modals/UploadRawMaterialsModal";
 import { ExportModal } from "@/components/ui/ExportModal";
 import { cn, getFilenameFromResponse } from "@/lib/utils";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import { useRawMaterials } from "@/hooks/useRawMaterials";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -402,6 +403,9 @@ export default function RawMaterialsPricePage() {
                     onArchive={handleArchiveClick}
                     onRestore={handleRestoreClick}
                     isArchived={selectedState === "archived"}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
+                    canArchive={hasPermission(permissions, "raw-material:delete")}
                   />
                 ))
               ) : (
@@ -522,6 +526,15 @@ export default function RawMaterialsPricePage() {
         isLoading={isImporting}
         uploadResult={uploadResult}
         uploadError={uploadError}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = rawMaterials.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedItem(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

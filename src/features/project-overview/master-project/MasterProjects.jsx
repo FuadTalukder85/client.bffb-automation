@@ -19,6 +19,7 @@ import { RestoreProjectModal } from "./components/Modals/RestoreProjectModal";
 import { UploadCSVModal } from "./components/Modals/UploadCSVModal";
 import { UploadSuccessModal } from "./components/Modals/UploadSuccessModal";
 import { ExportProjectsModal } from "./components/Modals/ExportProjectsModal";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import { useMasterProjectsLogic } from "./hooks/useMasterProjectsLogic";
 import { stateOptions, masterProjectStatusFilterOptions as statusOptions } from "./constants/projectOptions";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -296,6 +297,9 @@ export default function MasterProjects() {
                                         onArchive={handleArchiveProject}
                                         onRestore={handleRestoreProject}
                                         onViewDetails={handleViewProjectDetails}
+                                        selectedProjectIds={selectedProjectIds}
+                                        onSelectChange={setSelectedProjectIds}
+                                        canArchive={hasPermission(permissions, PERMISSIONS.PROJECT.DELETE)}
                                     />
                                 ))
                             ) : (
@@ -441,6 +445,16 @@ export default function MasterProjects() {
                 totalItems={pagination?.total || 0}
                 onConfirm={handleExportConfirm}
                 isLoading={isExportingProjects}
+            />
+
+            <MobileBulkActionBar
+                selectedCount={selectedProjectIds.length}
+                onCancel={() => setSelectedProjectIds([])}
+                onAction={() => {
+                    const selectedObjects = projects.filter(p => selectedProjectIds.includes(p._id));
+                    setSelectedProject(selectedObjects);
+                    setIsArchiveModalOpen(true);
+                }}
             />
         </section>
     );

@@ -21,6 +21,7 @@ import { ArchiveCleanlinessItemModal } from "./components/Modals/ArchiveCleanlin
 import { RestoreCleanlinessItemModal } from "./components/Modals/RestoreCleanlinessItemModal";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 export default function CleanlinessItemsListPage() {
   const isMobile = useIsMobile();
@@ -181,6 +182,9 @@ export default function CleanlinessItemsListPage() {
                     onEdit={handleEditItem}
                     onArchive={handleArchiveItem}
                     onRestore={handleRestoreItem}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
+                    canArchive={true}
                   />
                 ))
               ) : (
@@ -266,6 +270,15 @@ export default function CleanlinessItemsListPage() {
         onOpenChange={setIsRestoreModalOpen}
         item={selectedItem}
         onConfirm={confirmRestoreItem}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = cleanlinessItems.filter(p => selectedRowIds.includes(p._id || p.id));
+          setSelectedItem(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

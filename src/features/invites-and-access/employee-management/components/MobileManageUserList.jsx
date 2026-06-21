@@ -19,6 +19,8 @@ const MobileManageUserList = ({
   canUpdatePassword = false,
   canDeleteUser = false,
   canUnblockUser = false,
+  selectedRowIds = [],
+  onSelectChange,
 }) => {
   const formattedFilter =
     selectedFilter && selectedFilter !== "all"
@@ -67,6 +69,8 @@ const MobileManageUserList = ({
           canUpdatePassword={canUpdatePassword}
           canDeleteUser={canDeleteUser}
           canUnblockUser={canUnblockUser}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={onSelectChange}
         />
       ))}
     </div>

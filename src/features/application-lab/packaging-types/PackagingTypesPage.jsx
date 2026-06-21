@@ -19,6 +19,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { NoData } from "@/components/ui/NoData";
 import { cn, hasPermission } from "@/lib/utils";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import {
   useCreatePackagingType,
   useUpdatePackagingType,
@@ -256,6 +257,9 @@ export default function PackagingTypesPage() {
                     onArchive={handleArchiveClick}
                     onRestore={handleRestoreClick}
                     isArchived={selectedState === "archived"}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
+                    canArchive={canDelete}
                   />
                 ))
               ) : (
@@ -350,6 +354,15 @@ export default function PackagingTypesPage() {
         onOpenChange={setIsRestoreModalOpen}
         item={selectedItem}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = packagingTypes.filter(p => selectedRowIds.includes(p._id || p.id));
+          setSelectedItem(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

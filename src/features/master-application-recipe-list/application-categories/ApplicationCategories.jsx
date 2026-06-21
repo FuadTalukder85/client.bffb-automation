@@ -30,6 +30,7 @@ import {
 import { UploadCategoriesModal } from "./components/Modals/UploadCategoriesModal";
 import { ExportModal } from "@/components/ui/ExportModal";
 import { useQueryClient } from "@tanstack/react-query";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -478,6 +479,8 @@ export default function ApplicationCategories() {
                     onArchive={handleArchiveCategory}
                     onRestore={handleRestoreCategory}
                     onViewChildren={handleViewChildren}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : hasError ? (
@@ -595,6 +598,15 @@ export default function ApplicationCategories() {
         onOpenChange={setIsRestoreModalOpen}
         category={selectedCategory}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = categories.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedCategory(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

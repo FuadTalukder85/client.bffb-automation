@@ -31,6 +31,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { DesktopBreadcrumb } from "@/components/ui/DesktopBreadcrumb";
 import { useQueryClient } from "@tanstack/react-query";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -486,6 +487,8 @@ export default function ApplicationTags() {
                     onEdit={handleEditTag}
                     onArchive={handleArchiveTag}
                     onRestore={handleRestoreTag}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : (
@@ -596,6 +599,15 @@ export default function ApplicationTags() {
         onOpenChange={setIsRestoreModalOpen}
         tag={selectedTag}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = tags.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedTag(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

@@ -12,6 +12,8 @@ export function MobileInvitationList({
   searchTerm,
   onRevoke,
   onResend,
+  selectedRowIds = [],
+  onSelectChange,
 }) {
   const formattedFilter =
     selectedFilter && selectedFilter !== "all"
@@ -69,6 +71,9 @@ export function MobileInvitationList({
             date={invitation.createdAt}
             onRevoke={handleRevoke}
             onResend={handleResend}
+            inviteId={invitation._id}
+            selectedRowIds={selectedRowIds}
+            onSelectChange={onSelectChange}
           />
         );
       })}

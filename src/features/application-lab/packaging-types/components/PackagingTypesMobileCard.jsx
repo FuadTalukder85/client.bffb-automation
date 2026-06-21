@@ -4,6 +4,7 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { Button } from "@/components/ui/Button";
 import { ButtonGroup } from "@/components/ui/ButtonGroup";
 import { cn } from "@/lib/utils";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 const PackagingTypesMobileCard = ({
   serial,
@@ -12,7 +13,19 @@ const PackagingTypesMobileCard = ({
   onArchive,
   onRestore,
   isArchived = false,
+  selectedRowIds = [],
+  onSelectChange,
+  canArchive = false,
 }) => {
+  const canSelect = canArchive && !isArchived;
+
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: data._id || data.id,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect,
+  });
+
   const renderActions = () => {
     if (isArchived) {
       return (
@@ -54,12 +67,34 @@ const PackagingTypesMobileCard = ({
   };
 
   return (
-    <div className="flex items-center border border-table-stroke transition-colors dark:drop-shadow-table-stroke dark:drop-shadow-xs justify-between px-3 py-2 mb-3 rounded-xl bg-background shadow-[-3px_17px_80px_-1px_rgba(0,_0,_0,_0.1)]">
+    <div
+      {...pressHandlers}
+      className={cn(
+        "flex items-center border transition-all duration-200 justify-between px-3 py-2 mb-3 rounded-xl bg-background relative select-none cursor-pointer",
+        isSelected
+          ? "border-primary bg-primary/[0.04] shadow-lg scale-[0.99]"
+          : "border-table-stroke hover:border-primary/50"
+      )}
+    >
+      {isSelected && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none border border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
+      )}
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* ID Box */}
-        <div className="flex items-center justify-center rounded-lg min-w-11 min-h-8 bg-primary-shade-2 shrink-0">
-          <p className="text-sm font-semibold text-nav-highlight">{serial}</p>
-        </div>
+        {/* Checkbox / ID Box */}
+        {isSelectionMode ? (
+          <div className="flex items-center justify-center rounded-lg min-w-11 min-h-8 bg-primary-shade-2 shrink-0">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              readOnly
+              className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+            />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center rounded-lg min-w-11 min-h-8 bg-primary-shade-2 shrink-0">
+            <p className="text-sm font-semibold text-nav-highlight">{serial}</p>
+          </div>
+        )}
         {/* Packaging Type Title */}
         <div className="text-sm font-semibold text-base-color truncate flex-1">
           {data.name || data.title || "—"}
@@ -67,9 +102,11 @@ const PackagingTypesMobileCard = ({
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 ml-4">
-        {renderActions()}
-      </div>
+      {!isSelectionMode && (
+        <div className="flex items-center gap-2 ml-4">
+          {renderActions()}
+        </div>
+      )}
     </div>
   );
 };

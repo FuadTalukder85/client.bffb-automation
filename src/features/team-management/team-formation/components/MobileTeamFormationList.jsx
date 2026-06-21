@@ -16,6 +16,8 @@ export function MobileTeamFormationList({
   itemsPerPage = 20,
   errorMessage,
   hasError,
+  selectedRowIds = [],
+  onSelectChange,
 }) {
   const serialOffset = (currentPage - 1) * itemsPerPage;
   const formattedFilter =
@@ -79,6 +81,9 @@ export function MobileTeamFormationList({
             onEdit={handleEdit}
             onArchive={handleArchive}
             onRestore={handleRestore}
+            teamId={team._id || team.id}
+            selectedRowIds={selectedRowIds}
+            onSelectChange={onSelectChange}
           />
         );
       })}

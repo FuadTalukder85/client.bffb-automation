@@ -10,6 +10,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import MobileManageUserList from "./components/MobileManageUserList";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import DesktopManageUserTable from "./components/DesktopManageUserTable";
 import { UpdateRoleModal } from "./components/UpdateRoleModal";
 import { ArchiveUserModal } from "./components/ArchiveUserModal";
@@ -287,6 +288,8 @@ const EmployeeManagement = () => {
           canUpdatePassword={canUpdatePassword}
           canDeleteUser={canDeleteUser}
           canUnblockUser={canUnblockUser}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
         />
 
         {/* Desktop UI */}
@@ -365,6 +368,18 @@ const EmployeeManagement = () => {
         user={selectedUserForUnblock}
         onSuccess={handleUnblockSuccess}
         className="sm:rounded-2xl"
+      />
+
+      <MobileBulkActionBar
+        selectedIds={selectedRowIds}
+        onClearSelection={() => setSelectedRowIds([])}
+        actions={[
+          {
+            label: "Archive",
+            onClick: () => handleBulkArchive(selectedRowIds),
+            className: "bg-red-600 hover:bg-red-700 text-white",
+          },
+        ]}
       />
     </section>
   );

@@ -507,7 +507,7 @@ export default function BFFProductCodeList() {
       {/* Page Header & Search & Theme Toggle (Desktop Only) */}
       <div className="flex items-center justify-between flex-none ms-0 lg:ms-5">
         <PageHeader
-          title="BFF Product Code Lis"
+          title="BFF Product Code List"
           className="py-4 pb-6 text-heading md:p-0 md:m-0"
         />
 

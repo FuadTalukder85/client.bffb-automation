@@ -32,6 +32,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { DesktopBreadcrumb } from "@/components/ui/DesktopBreadcrumb";
 import { useQueryClient } from "@tanstack/react-query";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -507,6 +508,8 @@ export default function ApplicationSubcategories() {
                     onRestore={handleRestoreSubCategory}
                     onViewChildren={handleViewChildren}
                     onViewTags={handleViewTags}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : hasError ? (
@@ -629,6 +632,15 @@ export default function ApplicationSubcategories() {
         onOpenChange={setIsRestoreModalOpen}
         subCategory={selectedSubCategory}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = subCategories.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedSubCategory(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );
