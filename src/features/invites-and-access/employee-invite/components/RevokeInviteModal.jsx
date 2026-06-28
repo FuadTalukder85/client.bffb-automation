@@ -11,7 +11,9 @@ import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import { RiFileCloseFill } from "react-icons/ri";
 import { motion as Motion } from "framer-motion";
-export function RevokeInviteModal({ open, onOpenChange, onConfirm, className }) {
+export function RevokeInviteModal({ open, onOpenChange, onConfirm, className, invite }) {
+  const isBulk = Array.isArray(invite);
+
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent
@@ -22,7 +24,7 @@ export function RevokeInviteModal({ open, onOpenChange, onConfirm, className }) 
       >
         <ModalHeader className="flex flex-col items-center justify-center pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6! space-y-4 text-center">
           <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-            Revoke Invite
+            {isBulk ? "Revoke Invites" : "Revoke Invite"}
           </ModalTitle>
 
           <Motion.div
@@ -36,9 +38,18 @@ export function RevokeInviteModal({ open, onOpenChange, onConfirm, className }) 
              </div>
           </Motion.div>
 
-          <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
-            Revoking the invite will no longer allow the person to become a member of your organization. You can always invite them again if you change your mind. Proceed?
-          </ModalDescription>
+          <div className="flex flex-col items-center gap-2">
+            <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
+              {isBulk
+                ? "Are you sure you want to revoke these invites?"
+                : "Revoking the invite will no longer allow the person to become a member of your organization. You can always invite them again if you change your mind. Proceed?"}
+            </ModalDescription>
+            {invite && isBulk && (
+              <p className="px-4 text-center font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
+                {`${invite.length} invite(s) selected`}
+              </p>
+            )}
+          </div>
         </ModalHeader>
 
         <ModalFooter className="flex flex-row justify-center mt-6 md:mt-4 lg:mt-4.5! xl:mt-5.5! 2xl:mt-6.5! 3xl:mt-8! gap-3 md:gap-3 lg:gap-3! xl:gap-4! 2xl:gap-5! 3xl:gap-6!">

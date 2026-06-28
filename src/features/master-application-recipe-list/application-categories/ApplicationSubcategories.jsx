@@ -32,6 +32,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { DesktopBreadcrumb } from "@/components/ui/DesktopBreadcrumb";
 import { useQueryClient } from "@tanstack/react-query";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -85,6 +86,11 @@ export default function ApplicationSubcategories() {
   const [exportPage, setExportPage] = useState(1);
   const [exportLimit, setExportLimit] = useState(20);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedState]);
 
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
@@ -203,14 +209,25 @@ export default function ApplicationSubcategories() {
 
   const handleArchiveConfirm = async (subCategory) => {
     try {
-      const response = await categoryService.archiveSubCategory(subCategory._id);
+      if (Array.isArray(subCategory)) {
+        const results = await Promise.allSettled(
+          subCategory.map((r) => categoryService.archiveSubCategory(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} sub-category(ies) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} sub-category(ies)`);
+        setSelectedRowIds([]);
+      } else {
+        const response = await categoryService.archiveSubCategory(subCategory._id || subCategory.id);
+        toast.success(
+          getResponseMessage(response, "Sub-category archived successfully")
+        );
+      }
       await queryClient.invalidateQueries();
       setIsArchiveModalOpen(false);
       setSelectedSubCategory(null);
       refetch();
-      toast.success(
-        getResponseMessage(response, "Sub-category archived successfully")
-      );
     } catch (err) {
       console.error("Failed to archive sub-category:", err);
       toast.error(
@@ -491,6 +508,8 @@ export default function ApplicationSubcategories() {
                     onRestore={handleRestoreSubCategory}
                     onViewChildren={handleViewChildren}
                     onViewTags={handleViewTags}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : hasError ? (
@@ -512,6 +531,14 @@ export default function ApplicationSubcategories() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopSubCategoryTable
                 subCategories={subCategories}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = subCategories.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedSubCategory(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}
@@ -605,6 +632,15 @@ export default function ApplicationSubcategories() {
         onOpenChange={setIsRestoreModalOpen}
         subCategory={selectedSubCategory}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = subCategories.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedSubCategory(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

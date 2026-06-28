@@ -24,6 +24,9 @@ export default function DesktopMaintenanceItemsTable({
   noDataDescription,
   isArchived = false,
   emptyState,
+  selectedRowIds = [],
+  onSelectionChange,
+  onBulkArchiveClick,
 }) {
   const serialOffset = (currentPage - 1) * itemsPerPage;
   const effectiveNoDataMessage = noDataMessage || "No Records Found";
@@ -130,6 +133,11 @@ export default function DesktopMaintenanceItemsTable({
       <PaginatedTable
         data={items}
         columns={columns}
+        enableSelection={!isArchived}
+        selectedRowIds={selectedRowIds}
+        onSelectionChange={onSelectionChange}
+        canSelectRow={(item) => item.isActive ?? true}
+        onBulkArchiveClick={onBulkArchiveClick}
         className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
         currentPage={currentPage}
         totalPages={totalPages}

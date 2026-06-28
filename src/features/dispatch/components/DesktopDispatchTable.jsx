@@ -49,6 +49,10 @@ export default function DesktopDispatchTable({
   onColumnSizingChange,
   permissions = [],
   emptyState,
+  isArchived = false,
+  selectedRowIds = [],
+  onSelectionChange,
+  onBulkArchiveClick,
 }) {
   const serialOffset = (currentPage - 1) * itemsPerPage;
   const noDataMessage = "No Records Found";
@@ -376,6 +380,11 @@ export default function DesktopDispatchTable({
       <PaginatedTable
         data={data}
         columns={columns}
+        enableSelection={!isArchived}
+        selectedRowIds={selectedRowIds}
+        onSelectionChange={onSelectionChange}
+        canSelectRow={(item) => item.isActive ?? true}
+        onBulkArchiveClick={onBulkArchiveClick}
         className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
         currentPage={currentPage}
         totalPages={totalPages}

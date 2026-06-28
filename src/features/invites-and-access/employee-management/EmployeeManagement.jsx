@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
@@ -10,6 +10,7 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import MobileManageUserList from "./components/MobileManageUserList";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import DesktopManageUserTable from "./components/DesktopManageUserTable";
 import { UpdateRoleModal } from "./components/UpdateRoleModal";
 import { ArchiveUserModal } from "./components/ArchiveUserModal";
@@ -26,6 +27,7 @@ const EmployeeManagement = () => {
   const [selectedFilter, setSelectedFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const {
@@ -107,6 +109,11 @@ const EmployeeManagement = () => {
     return 1;
   }, [pagination, searchResults, currentPage]);
 
+  // Reset selection on filter, search or page changes
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [selectedFilter, debouncedSearchTerm, currentPage]);
+
   // Update Role Modal State
   const [isUpdateRoleModalOpen, setIsUpdateRoleModalOpen] = useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
@@ -131,8 +138,18 @@ const EmployeeManagement = () => {
     setIsArchiveModalOpen(true);
   };
 
+  const handleBulkArchive = (ids) => {
+    if (!canDeleteUser) return;
+    const usersToArchive = searchResults.filter((user) => ids.includes(user._id || user.id));
+    if (usersToArchive.length > 0) {
+      setSelectedUserForArchive(usersToArchive);
+      setIsArchiveModalOpen(true);
+    }
+  };
+
   const handleArchiveSuccess = () => {
     setSelectedUserForArchive(null);
+    setSelectedRowIds([]);
     refetch();
   };
 
@@ -271,12 +288,18 @@ const EmployeeManagement = () => {
           canUpdatePassword={canUpdatePassword}
           canDeleteUser={canDeleteUser}
           canUnblockUser={canUnblockUser}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
         />
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
           <DesktopManageUserTable
             {...listProps}
+            isArchived={selectedFilter === "archived"}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={handleBulkArchive}
             onEdit={handleEditUser}
             onDelete={handleDeleteUser}
             onReactivate={handleReactivateUser}
@@ -345,6 +368,18 @@ const EmployeeManagement = () => {
         user={selectedUserForUnblock}
         onSuccess={handleUnblockSuccess}
         className="sm:rounded-2xl"
+      />
+
+      <MobileBulkActionBar
+        selectedIds={selectedRowIds}
+        onClearSelection={() => setSelectedRowIds([])}
+        actions={[
+          {
+            label: "Archive",
+            onClick: () => handleBulkArchive(selectedRowIds),
+            className: "bg-red-600 hover:bg-red-700 text-white",
+          },
+        ]}
       />
     </section>
   );

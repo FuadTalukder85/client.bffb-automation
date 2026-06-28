@@ -13,6 +13,7 @@ import {
   PinOff,
   GripVertical,
   RotateCcw,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -153,6 +154,12 @@ export function PaginatedTable({
   noDataMessage,
   noDataDescription,
   emptyState,
+  // Selection & Bulk Action Props
+  enableSelection = false,
+  selectedRowIds = [],
+  onSelectionChange,
+  canSelectRow,
+  onBulkArchiveClick,
 }) {
   const windowWidth = useWindowWidth();
   const [internalSorting, setInternalSorting] = React.useState([]);
@@ -171,6 +178,90 @@ export function PaginatedTable({
     () => resolveResponsiveColumns(columns, windowWidth),
     [columns, windowWidth]
   );
+
+  const finalColumns = React.useMemo(() => {
+    let cols = resolvedColumns;
+
+    if (enableSelection && cols.length > 0) {
+      const originalColumn = cols[0];
+      const newColumn = {
+        ...originalColumn,
+        cell: (cellContext) => {
+          const row = cellContext.row;
+          const record = row.original;
+          const isSelectable = canSelectRow ? canSelectRow(record) : true;
+          const isSelected = selectedRowIds.includes(record._id || record.id);
+          const isSelectionMode = selectedRowIds.length > 0;
+
+          const originalContent = originalColumn.cell
+            ? originalColumn.cell(cellContext)
+            : (currentPage && itemsPerPage
+              ? (currentPage - 1) * itemsPerPage + row.index + 1
+              : row.index + 1);
+
+          if (!isSelectable) {
+            return (
+              <div className="flex items-center justify-start pr-2">
+                {originalContent}
+              </div>
+            );
+          }
+
+          return (
+            <div className="flex items-center justify-start pr-2">
+              {isSelectionMode || isSelected ? (
+                <div className="relative">
+                  <div className="invisible">
+                    {originalContent}
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        const recordId = record._id || record.id;
+                        onSelectionChange?.(prev =>
+                          isSelected
+                            ? prev.filter(id => id !== recordId)
+                            : [...prev, recordId]
+                        );
+                      }}
+                      className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const recordId = record._id || record.id;
+                    onSelectionChange?.(prev => [...prev, recordId]);
+                  }}
+                  className="group relative cursor-pointer transition-all"
+                >
+                  <div className="group-hover:invisible">
+                    {originalContent}
+                  </div>
+                  <div className="hidden group-hover:flex absolute inset-0 items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={false}
+                      readOnly
+                      className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+      };
+      cols = [newColumn, ...cols.slice(1)];
+    }
+
+    return cols;
+  }, [resolvedColumns, enableSelection, selectedRowIds, onSelectionChange, canSelectRow, currentPage, itemsPerPage]);
 
   const sorting = controlledSorting ?? internalSorting;
   const columnVisibility = controlledVisibility ?? internalVisibility;
@@ -192,7 +283,7 @@ export function PaginatedTable({
 
   const table = useReactTable({
     data,
-    columns: resolvedColumns,
+    columns: finalColumns,
     getCoreRowModel: getCoreRowModel(),
     columnResizeMode,
     enableColumnResizing,
@@ -393,7 +484,7 @@ export function PaginatedTable({
                               {enableColumnResizing &&
                                 header.column.getCanResize() && (
                                   <GripVertical
-                                    className="h-3.5 w-3.5 cursor-col-resize shrink-0 transition-opacity"
+                                    className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4 cursor-col-resize shrink-0 transition-opacity"
                                     onMouseDown={header.getResizeHandler()}
                                     onTouchStart={header.getResizeHandler()}
                                   />
@@ -419,7 +510,7 @@ export function PaginatedTable({
             {table.getRowModel().rows.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center min-h-full">
                 {emptyState ?? (
-                  <NoData 
+                  <NoData
                     message={noDataMessage}
                     description={noDataDescription}
                   />
@@ -601,6 +692,30 @@ export function PaginatedTable({
           </div>
         </div>
       </div>
+
+      {selectedRowIds.length > 0 && onBulkArchiveClick && (
+        <div className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col md:flex-row items-center gap-2.5 lg:gap-1 xl:gap-2 2xl:gap-3 3xl:gap-4 px-5 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 py-3 lg:py-1.5 xl:py-2 2xl:py-2.5 3xl:py-3 rounded-2xl md:rounded-full bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl animate-in slide-in-from-bottom duration-300 w-[90%] max-w-[340px] md:w-auto md:max-w-none">
+          <span className="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-semibold text-foreground text-center">
+            {selectedRowIds.length} item(s) selected
+          </span>
+          <div className="hidden md:block w-px h-5 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 bg-border" />
+          <div className="flex items-center justify-center gap-2 w-full md:w-auto">
+            <button
+              className="rounded-full text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold px-2 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 border border-border text-foreground hover:bg-muted bg-transparent transition-all flex-1 md:flex-none cursor-pointer"
+              onClick={() => onSelectionChange?.([])}
+            >
+              Cancel
+            </button>
+            <button
+              className="rounded-full bg-red-600 hover:bg-red-700 text-white text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold px-2 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 flex items-center justify-center gap-1.5 cursor-pointer border-none transition-all flex-1 md:flex-none"
+              onClick={onBulkArchiveClick}
+            >
+              <Trash2 className="w-3.5 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-3.5" />
+              Archive <span className="hidden md:block">Selected</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

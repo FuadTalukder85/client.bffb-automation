@@ -19,6 +19,7 @@ import { RestoreProjectModal } from "./components/Modals/RestoreProjectModal";
 import { UploadCSVModal } from "./components/Modals/UploadCSVModal";
 import { UploadSuccessModal } from "./components/Modals/UploadSuccessModal";
 import { ExportProjectsModal } from "./components/Modals/ExportProjectsModal";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import { useMasterProjectsLogic } from "./hooks/useMasterProjectsLogic";
 import { stateOptions, masterProjectStatusFilterOptions as statusOptions } from "./constants/projectOptions";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -57,6 +58,9 @@ export default function MasterProjects() {
         isUploadSuccessModalOpen,
         setIsUploadSuccessModalOpen,
         selectedProject,
+        setSelectedProject,
+        selectedProjectIds,
+        setSelectedProjectIds,
         columnVisibility,
         setColumnVisibility,
         columnPinning,
@@ -293,6 +297,9 @@ export default function MasterProjects() {
                                         onArchive={handleArchiveProject}
                                         onRestore={handleRestoreProject}
                                         onViewDetails={handleViewProjectDetails}
+                                        selectedProjectIds={selectedProjectIds}
+                                        onSelectChange={setSelectedProjectIds}
+                                        canArchive={hasPermission(permissions, PERMISSIONS.PROJECT.DELETE)}
                                     />
                                 ))
                             ) : (
@@ -308,6 +315,13 @@ export default function MasterProjects() {
                         <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0 ">
                             <DesktopProjectTable
                                 projects={projects}
+                                selectedProjectIds={selectedProjectIds}
+                                onSelectChange={setSelectedProjectIds}
+                                onBulkArchiveClick={() => {
+                                    const selectedObjects = projects.filter(p => selectedProjectIds.includes(p._id));
+                                    setSelectedProject(selectedObjects);
+                                    setIsArchiveModalOpen(true);
+                                }}
                                 currentPage={currentPage}
                                 itemsPerPage={itemsPerPage}
                                 totalPages={pagination?.totalPages || 1}
@@ -431,6 +445,16 @@ export default function MasterProjects() {
                 totalItems={pagination?.total || 0}
                 onConfirm={handleExportConfirm}
                 isLoading={isExportingProjects}
+            />
+
+            <MobileBulkActionBar
+                selectedCount={selectedProjectIds.length}
+                onCancel={() => setSelectedProjectIds([])}
+                onAction={() => {
+                    const selectedObjects = projects.filter(p => selectedProjectIds.includes(p._id));
+                    setSelectedProject(selectedObjects);
+                    setIsArchiveModalOpen(true);
+                }}
             />
         </section>
     );

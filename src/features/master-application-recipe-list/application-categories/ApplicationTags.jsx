@@ -31,6 +31,7 @@ import { BackButton } from "@/components/ui/BackButton";
 import { Breadcrumb } from "@/components/ui/Breadcrumb";
 import { DesktopBreadcrumb } from "@/components/ui/DesktopBreadcrumb";
 import { useQueryClient } from "@tanstack/react-query";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -91,6 +92,11 @@ export default function ApplicationTags() {
   const [exportPage, setExportPage] = useState(1);
   const [exportLimit, setExportLimit] = useState(20);
   const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedState]);
 
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
@@ -184,12 +190,23 @@ export default function ApplicationTags() {
 
   const handleArchiveConfirm = async (tag) => {
     try {
-      const response = await categoryService.archiveTag(tag._id);
+      if (Array.isArray(tag)) {
+        const results = await Promise.allSettled(
+          tag.map((r) => categoryService.archiveTag(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} tag(s) archived successfully`);
+        if (failed.length > 0) toast.error(`Failed to archive ${failed.length} tag(s)`);
+        setSelectedRowIds([]);
+      } else {
+        const response = await categoryService.archiveTag(tag._id);
+        toast.success(getResponseMessage(response, "Tag archived successfully"));
+      }
       await queryClient.invalidateQueries();
       setIsArchiveModalOpen(false);
       setSelectedTag(null);
       refetch();
-      toast.success(getResponseMessage(response, "Tag archived successfully"));
     } catch (err) {
       console.error("Failed to archive tag:", err);
       toast.error(
@@ -470,6 +487,8 @@ export default function ApplicationTags() {
                     onEdit={handleEditTag}
                     onArchive={handleArchiveTag}
                     onRestore={handleRestoreTag}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : (
@@ -485,6 +504,14 @@ export default function ApplicationTags() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
               <DesktopTagTable
                 tags={tags}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = tags.filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedTag(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}
@@ -572,6 +599,15 @@ export default function ApplicationTags() {
         onOpenChange={setIsRestoreModalOpen}
         tag={selectedTag}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = tags.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedTag(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

@@ -1,7 +1,7 @@
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
 import { FloatingButton } from "@/components/ui/FloatingButton";
@@ -16,6 +16,7 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import { useDeleteInvitation, useResendInvitation } from "@/hooks/mutations";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 
 const getErrorMessage = (error, fallback) => {
@@ -43,6 +44,11 @@ function EmployeeInvitations() {
   const [isResendSuccessModalOpen, setIsResendSuccessModalOpen] =
     useState(false);
   const [selectedInvite, setSelectedInvite] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  React.useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedFilter]);
 
   // Mutation hooks
   const { mutateAsync: deleteInvitation } = useDeleteInvitation();
@@ -84,16 +90,29 @@ function EmployeeInvitations() {
   };
 
   const handleConfirmRevoke = async () => {
-    if (!selectedInvite?._id) return;
+    if (!selectedInvite) return;
 
     try {
-      await deleteInvitation(selectedInvite._id);
+      if (Array.isArray(selectedInvite)) {
+        const results = await Promise.allSettled(
+          selectedInvite.map((r) => deleteInvitation(r._id || r.id))
+        );
+        const succeeded = results.filter((res) => res.status === "fulfilled").length;
+        const failed = results.filter((res) => res.status === "rejected");
+        if (succeeded > 0) toast.success(`${succeeded} invite(s) revoked successfully`);
+        if (failed.length > 0) toast.error(`Failed to revoke ${failed.length} invite(s)`);
+        setSelectedRowIds([]);
+        setIsRevokeModalOpen(false);
+      } else {
+        if (!selectedInvite._id) return;
+        await deleteInvitation(selectedInvite._id);
 
-      setIsRevokeModalOpen(false);
-      // Small delay to make the transition smoother
-      setTimeout(() => {
-        setIsRevokeSuccessModalOpen(true);
-      }, 200);
+        setIsRevokeModalOpen(false);
+        // Small delay to make the transition smoother
+        setTimeout(() => {
+          setIsRevokeSuccessModalOpen(true);
+        }, 200);
+      }
 
       // Cache is automatically invalidated by the mutation
     } catch (error) {
@@ -231,11 +250,25 @@ function EmployeeInvitations() {
 
       <div className="flex-1 w-full flex flex-col min-h-0">
         {/* Mobile UI */}
-        <MobileInvitationList {...listProps} />
+        <MobileInvitationList
+          {...listProps}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
+        />
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
-          <DesktopInvitationTable {...listProps} />
+          <DesktopInvitationTable
+            {...listProps}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={() => {
+              const selectedObjects = searchResults.filter(r => selectedRowIds.includes(r._id || r.id));
+              setSelectedInvite(selectedObjects);
+              setIsRevokeModalOpen(true);
+            }}
+            isArchived={selectedFilter === "accepted"}
+          />
         </div>
       </div>
 
@@ -275,6 +308,15 @@ function EmployeeInvitations() {
         open={isResendSuccessModalOpen}
         onOpenChange={setIsResendSuccessModalOpen}
         email={selectedInvite?.email}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = searchResults.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedInvite(selectedObjects);
+          setIsRevokeModalOpen(true);
+        }}
       />
     </section>
   );

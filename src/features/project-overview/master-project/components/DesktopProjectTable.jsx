@@ -31,6 +31,9 @@ export default function DesktopProjectTable({
   noDataMessage,
   noDataDescription,
   emptyState,
+  selectedProjectIds = [],
+  onSelectChange,
+  onBulkArchiveClick,
 }) {
   const { permissions } = useUserPermissions();
   const canArchive = hasPermission(permissions, PERMISSIONS.PROJECT.DELETE);
@@ -308,6 +311,14 @@ export default function DesktopProjectTable({
       <PaginatedTable
         data={projects}
         columns={columns}
+        enableSelection={canArchive}
+        selectedRowIds={selectedProjectIds}
+        onSelectionChange={onSelectChange}
+        canSelectRow={(project) => {
+          const isActive = project.masterProject ? (project.masterProject.isActive ?? true) : true;
+          return isActive;
+        }}
+        onBulkArchiveClick={onBulkArchiveClick}
         className={`scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0`}
         rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
         enableSorting={true}

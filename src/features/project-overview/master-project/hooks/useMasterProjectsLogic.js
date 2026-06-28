@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { prepareMasterProjectParams, useMasterProjects } from "@/hooks/useMasterProject";
 import { useDebounce } from "@/hooks/useDebounce";
 import { projectService } from "@/services/projectService";
@@ -26,6 +27,11 @@ export const useMasterProjectsLogic = () => {
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedProjectIds, setSelectedProjectIds] = useState([]);
+
+    useEffect(() => {
+        setSelectedProjectIds([]);
+    }, [currentPage, searchTerm, selectedState, selectedStatus]);
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isUploadSuccessModalOpen, setIsUploadSuccessModalOpen] = useState(false);
@@ -178,7 +184,25 @@ export const useMasterProjectsLogic = () => {
 
     const handleArchiveConfirm = async (project) => {
         try {
-            await archiveProjectMutation.mutateAsync(project._id);
+            if (Array.isArray(project)) {
+                const results = await Promise.allSettled(
+                    project.map((p) => archiveProjectMutation.mutateAsync(p._id))
+                );
+                const succeeded = results.filter((r) => r.status === "fulfilled").length;
+                const failed = results.filter((r) => r.status === "rejected");
+
+                if (succeeded > 0) {
+                    toast.success(`${succeeded} project(s) archived successfully`);
+                }
+                if (failed.length > 0) {
+                    console.error("Some archive operations failed:", failed);
+                    const firstError = failed[0].reason?.response?.data?.message || failed[0].reason?.message || "Some projects could not be archived.";
+                    toast.error(`Failed to archive ${failed.length} project(s): ${firstError}`);
+                }
+                setSelectedProjectIds([]);
+            } else {
+                await archiveProjectMutation.mutateAsync(project._id);
+            }
         } catch (err) {
             console.error("Failed to archive project:", err);
             throw err;
@@ -241,6 +265,9 @@ export const useMasterProjectsLogic = () => {
         isUploadSuccessModalOpen,
         setIsUploadSuccessModalOpen,
         selectedProject,
+        setSelectedProject,
+        selectedProjectIds,
+        setSelectedProjectIds,
         columnVisibility,
         setColumnVisibility,
         columnPinning,

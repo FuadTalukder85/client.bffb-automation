@@ -8,6 +8,8 @@ export function MobileFinalRecipeList({
   itemsPerPage,
   onRefresh,
   isLoading,
+  selectedRowIds = [],
+  onSelectChange,
 }) {
   if (isLoading) {
     return (
@@ -35,6 +37,8 @@ export function MobileFinalRecipeList({
             recipe={recipe}
             serialNumber={serialNumber}
             onRefresh={onRefresh}
+            selectedRowIds={selectedRowIds}
+            onSelectChange={onSelectChange}
           />
         );
       })}

@@ -14,6 +14,8 @@ const MobileAccessRoleList = ({
   onEdit,
   onDelete,
   onRestore,
+  selectedRowIds = [],
+  onSelectChange,
 }) => {
   const formattedFilter =
     selectedFilter && selectedFilter !== "all"
@@ -56,6 +58,8 @@ const MobileAccessRoleList = ({
           onEdit={onEdit}
           onDelete={onDelete}
           onRestore={onRestore}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={onSelectChange}
         />
       ))}
     </div>

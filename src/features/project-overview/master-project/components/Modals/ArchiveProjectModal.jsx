@@ -59,6 +59,8 @@ export function ArchiveProjectModal({
         }
     };
 
+    const isBulk = Array.isArray(project);
+
     return (
         <Modal open={open} onOpenChange={handleClose}>
             <ModalContent
@@ -69,7 +71,7 @@ export function ArchiveProjectModal({
             >
                 <ModalHeader className="pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6!">
                     <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-                        Archive Project
+                        {isBulk ? "Archive Projects" : "Archive Project"}
                     </ModalTitle>
                 </ModalHeader>
 
@@ -87,9 +89,22 @@ export function ArchiveProjectModal({
                         <Archive className="w-8 md:w-5 lg:w-5.5! xl:w-7! 2xl:w-8! 3xl:w-10! h-8 md:h-5 lg:h-5.5! xl:h-7! 2xl:h-8! 3xl:h-10!" />
                     </motion.div>
 
-                    <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
-                        Archiving this project means all related data will be hidden from active views. You can restore it later if needed.
-                    </p>
+                    <div className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center">
+                        <p className="text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
+                            {isBulk
+                                ? "Are you sure you want to archive these projects? All related data will be hidden from active views."
+                                : "Archiving this project means all related data will be hidden from active views. You can restore it later if needed."
+                            }
+                        </p>
+                        {project && (
+                            <p className="mt-2 font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
+                                {isBulk
+                                    ? `${project.length} project(s) selected`
+                                    : `${project.masterProject?.code || ""} - ${project.masterProject?.title || ""}`
+                                }
+                            </p>
+                        )}
+                    </div>
 
                     {error && (
                         <div className="w-full p-3 text-sm lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-red-600 border border-red-200 rounded-lg bg-red-50">

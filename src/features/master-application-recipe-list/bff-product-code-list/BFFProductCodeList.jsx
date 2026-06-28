@@ -18,7 +18,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
 import { Button } from "@/components/ui/Button";
 import { ActionButtonsGroup } from "@/components/ui/ActionButtonsGroup";
-import { Plus, Download, PlusCircleIcon } from "lucide-react";
+import { Plus, Download, PlusCircleIcon, Trash2 } from "lucide-react";
 import DesktopProductCodeTable from "./components/DesktopProductCodeTable";
 import MobileProductCodeCard from "./components/MobileProductCodeCard";
 import { ProductCodeTableSkeleton } from "./components/ProductCodeTableSkeleton";
@@ -88,6 +88,7 @@ export default function BFFProductCodeList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("all");
   const [selectedState, setSelectedState] = useState("true");
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sorting, setSorting] = useState([]);
@@ -154,10 +155,10 @@ export default function BFFProductCodeList() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      
+
       const d = new Date();
       const fallback = `product-codes-${selectedSegment}-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.xlsx`;
-      
+
       link.setAttribute("download", getFilenameFromResponse(response, fallback));
       document.body.appendChild(link);
       link.click();
@@ -257,6 +258,10 @@ export default function BFFProductCodeList() {
   useEffect(() => {
     setStoredValue(STORAGE_KEYS.COLUMN_SIZING, columnSizing);
   }, [columnSizing]);
+
+  useEffect(() => {
+    setSelectedProductIds([]);
+  }, [currentPage, searchTerm, selectedSegment, selectedState]);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -370,11 +375,29 @@ export default function BFFProductCodeList() {
 
   const handleArchiveConfirm = async (productCode) => {
     try {
-      const response = await bffProductCodeService.archiveProductCode(productCode._id);
+      if (Array.isArray(productCode)) {
+        const results = await Promise.allSettled(
+          productCode.map((pc) => bffProductCodeService.archiveProductCode(pc._id))
+        );
+        const succeeded = results.filter((r) => r.status === "fulfilled").length;
+        const failed = results.filter((r) => r.status === "rejected");
+
+        if (succeeded > 0) {
+          toast.success(`${succeeded} BFF product code(s) archived successfully`);
+        }
+        if (failed.length > 0) {
+          console.error("Some archive operations failed:", failed);
+          const firstError = failed[0].reason?.response?.data?.message || failed[0].reason?.message || "Some product codes could not be archived.";
+          toast.error(`Failed to archive ${failed.length} product code(s): ${firstError}`);
+        }
+        setSelectedProductIds([]);
+      } else {
+        const response = await bffProductCodeService.archiveProductCode(productCode._id);
+        toast.success(
+          getResponseMessage(response, "BFF product code archived successfully")
+        );
+      }
       refetch();
-      toast.success(
-        getResponseMessage(response, "BFF product code archived successfully")
-      );
     } catch (err) {
       console.error("Failed to archive product code:", err);
       toast.error(
@@ -509,11 +532,10 @@ export default function BFFProductCodeList() {
             <button
               key={tab.value}
               onClick={() => handleSegmentChange(tab.value)}
-              className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${
-                selectedSegment === tab.value
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${selectedSegment === tab.value
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
             >
               {tab.label}
             </button>
@@ -612,6 +634,10 @@ export default function BFFProductCodeList() {
                     }
                     onRestore={canRestore ? handleRestoreProductCode : undefined}
                     onViewDetails={handleViewProductCode}
+                    selectedProductIds={selectedProductIds}
+                    onSelectChange={setSelectedProductIds}
+                    canArchive={canArchive}
+                    canArchiveRecord={canArchiveRecord}
                   />
                 ))
               ) : (
@@ -632,10 +658,17 @@ export default function BFFProductCodeList() {
               )}
             </div>
 
-            {/* Desktop Table */}
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0 ">
               <DesktopProductCodeTable
                 productCodes={productCodes}
+                selectedProductIds={selectedProductIds}
+                onSelectChange={setSelectedProductIds}
+                canArchive={canArchive}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = productCodes.filter(pc => selectedProductIds.includes(pc._id));
+                  setSelectedProductCode(selectedObjects);
+                  setIsArchiveModalOpen(true);
+                }}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={pagination?.totalPages || 1}
@@ -744,6 +777,38 @@ export default function BFFProductCodeList() {
         onOpenChange={setIsRemarksModalOpen}
         productCode={selectedProductCode}
       />
+
+      {selectedProductIds.length > 0 && (
+        <div className="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-50 flex flex-col md:flex-row items-center gap-2.5 md:gap-4 px-5 md:px-6 py-3 md:py-3 rounded-2xl md:rounded-full bg-background/95 backdrop-blur-md border border-border/80 shadow-2xl animate-in slide-in-from-bottom duration-300 w-[90%] max-w-[340px] md:w-auto md:max-w-none md:hidden">
+          <span className="text-xs md:text-sm font-semibold text-foreground text-center">
+            {selectedProductIds.length} item(s) selected
+          </span>
+          <div className="hidden md:block w-px h-5 bg-border" />
+          <div className="flex items-center justify-center gap-2 w-full md:w-auto">
+            <Button
+              size="sm"
+              intent="outline"
+              className="rounded-full text-xs font-semibold px-4 h-8 cursor-pointer flex-1 md:flex-none"
+              onClick={() => setSelectedProductIds([])}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              intent="primary"
+              className="rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 h-8 flex items-center justify-center gap-1.5 cursor-pointer border-none flex-1 md:flex-none"
+              onClick={() => {
+                const selectedObjects = productCodes.filter(pc => selectedProductIds.includes(pc._id));
+                setSelectedProductCode(selectedObjects);
+                setIsArchiveModalOpen(true);
+              }}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Archive <span className="hidden md:block">Selected</span>
+            </Button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

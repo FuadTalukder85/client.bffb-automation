@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import api from "@/lib/api";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
@@ -20,6 +20,8 @@ import { ArchiveInternalTaskModal } from "./components/ArchiveInternalTaskModal"
 import { TaskUpdatedModal } from "./components/TaskUpdatedModal";
 import { RestoreInternalTaskModal } from "./components/RestoreInternalTaskModal";
 import { formatDate, getDurationInDays } from "@/utils/dateFormatter";
+import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const statusOptions = createFilterOptions(
   buildStatusOptions([
@@ -92,6 +94,12 @@ const InternalTask = () => {
   const [isTaskUpdatedModalOpen, setIsTaskUpdatedModalOpen] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedStatus, selectedState]);
+
   const [taskForEdit, setTaskForEdit] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -198,9 +206,13 @@ const InternalTask = () => {
     refetch();
   };
 
-  const handleArchiveConfirm = () => {
-    // The API call is handled in ArchiveInternalTaskModal
-    // Just refetch the list after confirmation
+  const handleArchiveConfirm = (task) => {
+    if (Array.isArray(task)) {
+      toast.success("Tasks archived successfully");
+    } else {
+      toast.success("Task archived successfully");
+    }
+    setSelectedRowIds([]);
     refetch();
   };
 
@@ -284,11 +296,10 @@ const InternalTask = () => {
                   <button
                     key={tab.value}
                     onClick={() => handleStatusChange(tab.value)}
-                    className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${
-                      isSelected
+                    className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${isSelected
                         ? ""
                         : "border-transparent text-lighter-text hover:text-foreground"
-                    }`}
+                      }`}
                     style={{
                       color: isSelected ? tab.textColor : undefined,
                       borderBottomColor: isSelected ? tab.textColor : "transparent"
@@ -299,7 +310,7 @@ const InternalTask = () => {
                 );
               })}
             </div>
-           
+
           </div>
 
           {/* Bottom Row: State Filters (Active/Archived) */}
@@ -309,7 +320,7 @@ const InternalTask = () => {
               options={stateOptions}
               onChange={handleStateChange}
             />
-             <FloatingButton
+            <FloatingButton
               className={"hidden md:flex md:static px-4 lg:py-1.5 xl:py-2 2xl:py-2.5"}
               icon={Plus}
               onClick={handleAddTask}
@@ -333,6 +344,8 @@ const InternalTask = () => {
           noDataDescription={noDataDescription}
           errorMessage={errorMessage}
           hasError={hasError}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
         />
 
         {/* Desktop UI */}
@@ -340,6 +353,14 @@ const InternalTask = () => {
           <DesktopInternalTaskTable
             tasks={normalizedTasks}
             isLoading={isLoading}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={() => {
+              const selectedObjects = normalizedTasks.filter(r => selectedRowIds.includes(r.id || r._id));
+              setSelectedTask(selectedObjects);
+              setIsArchiveModalOpen(true);
+            }}
+            isArchived={selectedState === "archived"}
             selectedFilter={selectedStatus}
             searchTerm={debouncedSearchTerm}
             onEdit={handleEditTask}
@@ -417,6 +438,15 @@ const InternalTask = () => {
         onOpenChange={setIsRestoreModalOpen}
         task={selectedTask}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = normalizedTasks.filter(r => selectedRowIds.includes(r.id || r._id));
+          setSelectedTask(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );

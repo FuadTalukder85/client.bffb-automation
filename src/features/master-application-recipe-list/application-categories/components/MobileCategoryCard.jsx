@@ -4,6 +4,7 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ButtonGroup } from "@/components/ui/ButtonGroup";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 export default function MobileCategoryCard({
     category,
@@ -12,9 +13,19 @@ export default function MobileCategoryCard({
     onArchive,
     onRestore,
     onViewChildren,
+    selectedRowIds = [],
+    onSelectChange,
+    canArchive = true,
     className,
 }) {
     const isActive = category.isActive;
+
+    const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+        itemId: category._id || category.id,
+        selectedIds: selectedRowIds,
+        onSelectChange,
+        canSelect: canArchive && isActive,
+    });
 
     // Define button configurations for active categories
     const activeCategoryButtons = [
@@ -46,8 +57,10 @@ export default function MobileCategoryCard({
 
     return (
         <div
+            {...pressHandlers}
             className={cn(
-                "flex md:hidden w-full flex-col rounded-xl bg-background border border-table-stroke transition-colors dark:drop-shadow-table-stroke dark:drop-shadow-xs mb-4",
+                "flex md:hidden w-full flex-col rounded-xl bg-background border transition-all duration-200 select-none cursor-pointer mb-4",
+                isSelected ? "scale-[0.99] border-primary bg-primary/[0.06] shadow-lg" : "border-table-stroke",
                 className
             )}
         >
@@ -55,21 +68,32 @@ export default function MobileCategoryCard({
             <div
                 className={cn(
                     "flex items-center justify-between p-4",
-                    isActive ? "pb-2" : "pb-4"
+                    isActive && !isSelectionMode ? "pb-2" : "pb-4"
                 )}
             >
                 {/* Left side - Serial and Code */}
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
-                        <span className="text-sm font-semibold">{serialNumber}</span>
-                    </div>
+                    {isSelectionMode ? (
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                readOnly
+                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                            />
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                            <span className="text-sm font-semibold">{serialNumber}</span>
+                        </div>
+                    )}
                     <span className="text-sm font-semibold text-foreground">{category.categoryCode}</span>
                 </div>
 
                 {/* Right side - Name and Restore button */}
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold text-nav-highlight">{category.name}</span>
-                    {!isActive && (
+                    {!isActive && !isSelectionMode && (
                         <Button
                             variant="ghost"
                             size="icon"
@@ -84,10 +108,10 @@ export default function MobileCategoryCard({
             </div>
 
             {/* Divider for active state */}
-            {isActive && <div className="h-[0.1px] bg-table-stroke mx-4 mb-2"></div>}
+            {isActive && !isSelectionMode && <div className="h-[0.1px] bg-table-stroke mx-4 mb-2"></div>}
 
             {/* Footer with action buttons - only for active categories */}
-            {isActive && (
+            {isActive && !isSelectionMode && (
                 <ButtonGroup
                     buttons={activeCategoryButtons}
                     className="w-30 px-4 pt-2 pb-4"
@@ -98,5 +122,3 @@ export default function MobileCategoryCard({
         </div>
     );
 }
-
-

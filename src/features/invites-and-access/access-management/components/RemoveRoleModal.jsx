@@ -12,7 +12,10 @@ import { cn } from "@/lib/utils";
 import { FaTimes } from "react-icons/fa";
 import { motion as Motion } from "framer-motion";
 
-export function RemoveRoleModal({ open, onOpenChange, onConfirm, className }) {
+export function RemoveRoleModal({ open, onOpenChange, onConfirm, role, className }) {
+  const isBulk = Array.isArray(role);
+  const title = isBulk ? "Remove Roles" : "Remove Role";
+
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent
@@ -23,7 +26,7 @@ export function RemoveRoleModal({ open, onOpenChange, onConfirm, className }) {
       >
         <ModalHeader className="flex flex-col items-center justify-center pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6! space-y-4 text-center">
           <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-            Remove Role
+            {title}
           </ModalTitle>
 
           <Motion.div
@@ -37,10 +40,15 @@ export function RemoveRoleModal({ open, onOpenChange, onConfirm, className }) {
             </div>
           </Motion.div>
 
-          <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! font-medium text-lighter-text">
+          <ModalDescription className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! font-medium text-lighter-text flex flex-col gap-2">
             <span className="font-medium text-lighter-text">
-              Removing this role means it will no longer be usable within the
-              organization. Users assigned to this role will have their
+              {isBulk
+                ? `Are you sure you want to remove these ${role.length} roles?`
+                : <>Are you sure you want to remove the role <span className="font-bold">"{role?.name}"</span>?</>}
+            </span>
+            <span className="font-medium text-lighter-text">
+              Removing {isBulk ? "these roles" : "this role"} means {isBulk ? "they" : "it"} will no longer be usable within the
+              organization. Users assigned to {isBulk ? "these roles" : "this role"} will have their
               permissions revoked. Proceed?
             </span>
           </ModalDescription>

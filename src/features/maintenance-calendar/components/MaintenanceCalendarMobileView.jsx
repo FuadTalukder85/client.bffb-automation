@@ -7,6 +7,7 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { NoData } from "@/components/ui/NoData";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 const STATUS_COLORS = {
   "Pending": "bg-yellow-500/10 text-yellow-600 border-yellow-200/50",
@@ -43,11 +44,10 @@ const MonthCellMobile = ({ days, monthName }) => {
   }
 
   const handleTouch = (e) => {
-    // Prevent default to avoid scroll issues while tapping cells
     if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
-      const tooltipWidth = 288; // w-72 matching desktop
+      const tooltipWidth = 288;
       
       let left = rect.left + rect.width / 2;
       
@@ -60,8 +60,6 @@ const MonthCellMobile = ({ days, monthName }) => {
       setPosition({ top: rect.top - 10, left });
     }
     setIsHovered(true);
-    // On mobile, tooltips are usually dismissed by tapping again or elsewhere
-    // We'll keep the dismiss-only-on-tap-out or manual dismiss behavior
   };
 
   const tooltipContent = isHovered ? (
@@ -138,6 +136,95 @@ const MonthCellMobile = ({ days, monthName }) => {
   );
 };
 
+function MobileCalendarRow({
+  row,
+  selectedRowIds,
+  onSelectChange,
+  canDelete,
+  onEdit,
+  onDelete,
+  onRestore,
+}) {
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: row.id,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect: canDelete && row.isActive,
+  });
+
+  return (
+    <tr
+      {...pressHandlers}
+      className={cn(
+        "hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors h-16 cursor-pointer select-none",
+        isSelected ? "bg-primary/[0.04]" : ""
+      )}
+    >
+      <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-2 border-r border-border/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center gap-2">
+          {isSelectionMode && (
+            <input
+              type="checkbox"
+              checked={isSelected}
+              readOnly
+              className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer shrink-0"
+            />
+          )}
+          <span className="text-[13px] font-bold text-foreground line-clamp-1">{row.machinery}</span>
+        </div>
+      </td>
+
+      <td className="px-4 py-2">
+        <span className="text-[12px] font-semibold text-foreground/80">{row.department}</span>
+      </td>
+      <td className="px-4 py-2">
+        <span className="text-[12px] font-semibold text-foreground/80">{row.frequency}</span>
+      </td>
+
+      {row.months.map((monthData, idx) => (
+        <td key={idx} className="px-1 text-center">
+          <MonthCellMobile days={monthData} monthName={MONTHS_SHORT[idx]} />
+        </td>
+      ))}
+
+      <td className="px-3">
+        {!isSelectionMode && (
+          <div className="flex items-center justify-end gap-0 h-full">
+            {row.isActive ? (
+              <>
+                <Link to={`/maintenance/maintenance-calendar/${row.id}`}>
+                  <button className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-l-md rounded-r-none text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none">
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </Link>
+                <button 
+                  onClick={() => onEdit(row)}
+                  className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-none text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-background border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                   <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd"/></svg>
+                </button>
+                <button 
+                  onClick={() => onDelete(row)}
+                  className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-r-md rounded-l-none text-base-color hover:text-red-600 hover:bg-red-50 bg-background border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                   <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fillRule="evenodd" d="m18.412 6.5l-.801 13.617A2 2 0 0 1 15.614 22H8.386a2 2 0 0 1-1.997-1.883L5.59 6.5H3.5v-1A.5.5 0 0 1 4 5h16a.5.5 0 0 1 .5.5v1zM10 2.5h4a.5.5 0 0 1 .5.5v1h-5V3a.5.5 0 0 1 .5-.5M9 9l.5 9H11l-.4-9zm4.5 0l-.5 9h1.5l.5-9z"/></svg>
+                </button>
+              </>
+            ) : (
+              <button 
+                onClick={() => onRestore(row)}
+                className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-md text-nav-highlight border-primary-shade-2 bg-primary-shade-2 hover:bg-primary-shade-2/80 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              >
+                <AiFillThunderbolt className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        )}
+      </td>
+    </tr>
+  );
+}
+
 export default function MaintenanceCalendarMobileView({ 
   data, 
   onEdit, 
@@ -145,11 +232,13 @@ export default function MaintenanceCalendarMobileView({
   onRestore,
   noDataMessage,
   noDataDescription,
+  selectedRowIds = [],
+  onSelectChange,
+  canDelete = false,
 }) {
   return (
     <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-300">
       <div className="flex-1 overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-border shadow-md flex flex-col min-h-0 relative">
-        {/* Table Container with Horizontal Scroll */}
         <div className="flex-1 overflow-auto custom-scrollbar flex flex-col min-h-0">
           {data?.length > 0 ? (
           <table className="w-full border-separate border-spacing-0">
@@ -176,61 +265,16 @@ export default function MaintenanceCalendarMobileView({
             </thead>
             <tbody className="divide-y divide-border/20">
               {data.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors h-16">
-                  {/* Sticky Machinery Column */}
-                  <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-4 py-2 border-r border-border/10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                    <span className="text-[13px] font-bold text-foreground line-clamp-1">{row.machinery}</span>
-                  </td>
-
-                  {/* Scrollable Columns */}
-                  <td className="px-4 py-2">
-                    <span className="text-[12px] font-semibold text-foreground/80">{row.department}</span>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className="text-[12px] font-semibold text-foreground/80">{row.frequency}</span>
-                  </td>
-
-                  {/* Month Data Cells */}
-                  {row.months.map((monthData, idx) => (
-                    <td key={idx} className="px-1 text-center">
-                      <MonthCellMobile days={monthData} monthName={MONTHS_SHORT[idx]} />
-                    </td>
-                  ))}
-
-                  {/* Actions Column */}
-                  <td className="px-3">
-                    <div className="flex items-center justify-end gap-0 h-full">
-                      {row.isActive ? (
-                        <>
-                          <Link to={`/maintenance/maintenance-calendar/${row.id}`}>
-                            <button className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-l-md rounded-r-none text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                          </Link>
-                          <button 
-                            onClick={() => onEdit(row)}
-                            className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-none text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-background border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                          >
-                             <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd"/></svg>
-                          </button>
-                          <button 
-                            onClick={() => onDelete(row)}
-                            className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-r-md rounded-l-none text-base-color hover:text-red-600 hover:bg-red-50 bg-background border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                          >
-                             <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" fillRule="evenodd" d="m18.412 6.5l-.801 13.617A2 2 0 0 1 15.614 22H8.386a2 2 0 0 1-1.997-1.883L5.59 6.5H3.5v-1A.5.5 0 0 1 4 5h16a.5.5 0 0 1 .5.5v1zM10 2.5h4a.5.5 0 0 1 .5.5v1h-5V3a.5.5 0 0 1 .5-.5M9 9l.5 9H11l-.4-9zm4.5 0l-.5 9h1.5l.5-9z"/></svg>
-                          </button>
-                        </>
-                      ) : (
-                        <button 
-                          onClick={() => onRestore(row)}
-                          className="flex items-center justify-center gap-1.5 w-auto h-8 px-2 py-1 text-sm font-semibold rounded-md text-nav-highlight border-primary-shade-2 bg-primary-shade-2 hover:bg-primary-shade-2/80 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                        >
-                          <AiFillThunderbolt className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                <MobileCalendarRow
+                  key={row.id}
+                  row={row}
+                  selectedRowIds={selectedRowIds}
+                  onSelectChange={onSelectChange}
+                  canDelete={canDelete}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onRestore={onRestore}
+                />
               ))}
             </tbody>
           </table>

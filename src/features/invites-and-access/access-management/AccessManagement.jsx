@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import { useDebounce } from "@/hooks/useDebounce";
 import MobileAccessRoleList from "./components/MobileAccessRoleList";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 import { DesktopAccessManagementTable } from "./components/DesktopAccessManagementTable";
 import { RestoreRoleModal } from "./components/RestoreRoleModal";
 import { RemoveRoleModal } from "./components/RemoveRoleModal";
@@ -33,6 +34,7 @@ const AccessManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("active");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -88,6 +90,11 @@ const AccessManagement = () => {
     }));
   }, [searchResults]);
 
+  // Reset selection on filter, search or page changes
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [selectedFilter, debouncedSearchTerm, currentPage]);
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -121,16 +128,33 @@ const AccessManagement = () => {
     setIsRemoveModalOpen(true);
   };
 
+  const handleBulkArchive = (ids) => {
+    const rolesToArchive = enrichedSearchResults.filter((role) => ids.includes(role.id || role._id));
+    if (rolesToArchive.length > 0) {
+      setSelectedRoleForRemove(rolesToArchive);
+      setIsRemoveModalOpen(true);
+    }
+  };
+
   const handleConfirmRemove = async () => {
-    if (!selectedRoleForRemove?.id) return;
+    if (!selectedRoleForRemove) return;
     try {
-      await archiveRole(selectedRoleForRemove.id);
+      if (Array.isArray(selectedRoleForRemove)) {
+        await Promise.allSettled(
+          selectedRoleForRemove.map((role) => archiveRole(role.id || role._id))
+        );
+      } else {
+        const roleId = selectedRoleForRemove.id || selectedRoleForRemove._id;
+        if (!roleId) return;
+        await archiveRole(roleId);
+      }
       setIsRemoveModalOpen(false);
+      setSelectedRowIds([]);
       // Cache is automatically invalidated by the mutation
     } catch (error) {
       console.error("Failed to delete role:", error);
       toast.error(
-        getErrorMessage(error, "Failed to delete role. Please try again.")
+        getErrorMessage(error, "Failed to delete role(s). Please try again.")
       );
     }
   };
@@ -246,11 +270,21 @@ const AccessManagement = () => {
 
       <div className="flex-1 w-full flex flex-col min-h-0">
         {/* Mobile UI */}
-        <MobileAccessRoleList {...listProps} />
+        <MobileAccessRoleList
+          {...listProps}
+          selectedRowIds={selectedRowIds}
+          onSelectChange={setSelectedRowIds}
+        />
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
-          <DesktopAccessManagementTable {...listProps} />
+          <DesktopAccessManagementTable
+            {...listProps}
+            isArchived={selectedFilter === "archived"}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            onBulkArchiveClick={handleBulkArchive}
+          />
         </div>
       </div>
       {/* Pagination */}
@@ -276,6 +310,19 @@ const AccessManagement = () => {
         open={isRemoveModalOpen}
         onOpenChange={setIsRemoveModalOpen}
         onConfirm={handleConfirmRemove}
+        role={selectedRoleForRemove}
+      />
+
+      <MobileBulkActionBar
+        selectedIds={selectedRowIds}
+        onClearSelection={() => setSelectedRowIds([])}
+        actions={[
+          {
+            label: "Archive",
+            onClick: () => handleBulkArchive(selectedRowIds),
+            className: "bg-red-600 hover:bg-red-700 text-white",
+          },
+        ]}
       />
     </section>
   );

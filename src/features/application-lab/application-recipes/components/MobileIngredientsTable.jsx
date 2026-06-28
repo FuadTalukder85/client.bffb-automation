@@ -1,16 +1,22 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AddBFFProductModal from "./AddBFFProductModal";
 import AddStandardIngredientModal from "./AddStandardIngredientModal";
 import EditIngredientModal from "./EditIngredientModal";
+import ArchiveIngredientModal from "./ArchiveIngredientModal";
+import { useDeleteRecipeIngredient } from "@/hooks/mutations/useRecipeMutations";
 import { buildIngredientsDisplayData, isConfectionaryRecipe } from "../data/ingredientsCalculations";
 
 export default function MobileIngredientsTable({ data, isEditMode = false, onIngredientsChange }) {
   const [isBFFModalOpen, setIsBFFModalOpen] = useState(false);
   const [isStandardIngredientModalOpen, setIsStandardIngredientModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [editingIngredient, setEditingIngredient] = useState(null);
+  const [ingredientToArchive, setIngredientToArchive] = useState(null);
+
+  const deleteIngredientMutation = useDeleteRecipeIngredient();
   const [editedBatchSummary, setEditedBatchSummary] = useState({
     yield: data?.outputYield ?? 0,
     servingSize: data?.outputServingSize ?? 0,
@@ -64,7 +70,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
   const segments = useMemo(() => {
     const result = [];
     let currentSegment = [];
-    
+
     ingredients.forEach((item, index) => {
       currentSegment.push(item);
       if (item.isSeparator || index === ingredients.length - 1) {
@@ -72,7 +78,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
         currentSegment = [];
       }
     });
-    
+
     return result;
   }, [ingredients]);
 
@@ -124,12 +130,36 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
     setIsEditModalOpen(false);
   };
 
+  const handleArchiveRow = (ingredient) => {
+    setIngredientToArchive(ingredient);
+    setIsArchiveModalOpen(true);
+  };
+
+  const handleArchiveConfirm = async () => {
+    if (!ingredientToArchive) return;
+    const currentIngredients = Array.isArray(data?.ingredients) ? [...data.ingredients] : [];
+    const deleteIndex = Number(ingredientToArchive?.originalIndex);
+
+    if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
+      if (ingredientToArchive._id && data?._id) {
+        await deleteIngredientMutation.mutateAsync({
+          recipeId: data._id,
+          ingredientId: ingredientToArchive._id,
+        });
+      }
+      currentIngredients.splice(deleteIndex, 1);
+      onIngredientsChange?.(currentIngredients);
+    }
+    setIsArchiveModalOpen(false);
+    setIngredientToArchive(null);
+  };
+
   return (
     <div className="flex flex-col w-full gap-6 py-4 overflow-x-hidden">
-      
+
       <div className="flex flex-col gap-4">
         <h2 className="text-sm font-bold text-base-color px-0.5">Ingredients Table</h2>
-        
+
         {/* Table Container - Using bg-background and border-border for project theme sync */}
         <div className="relative overflow-hidden border shadow-sm border-border rounded-2xl bg-white dark:bg-background">
           <div className="overflow-x-auto custom-scrollbar pb-2">
@@ -155,8 +185,8 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
               </thead>
               <tbody className="divide-y divide-border">
                 {tableRows.map((ingredient, index) => (
-                  <tr 
-                    key={index} 
+                  <tr
+                    key={index}
                     className={cn(
                       "hover:bg-primary-shade-2/30 dark:hover:bg-primary-shade-2/5 transition-colors h-12",
                       ingredient.isSeparator && "border-b-2 border-nav-highlight"
@@ -177,11 +207,11 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
                     <td className="px-4 font-bold bg-white border-l text-base-color border-border dark:bg-background h-12">{ingredient.composition}</td>
                     <td className="px-4 font-bold bg-white border-l text-base-color border-border dark:bg-background h-12">{ingredient.bffCost}</td>
                     <td className="px-4 font-bold bg-white border-l text-base-color border-border dark:bg-background h-12">{ingredient.clientCost}</td>
-                    
+
                     {/* Merged Solid:Liquid Cell */}
                     {showSolidLiquidColumn && ingredient.isFirstInSegment ? (
-                      <td 
-                        rowSpan={ingredient.segmentLength} 
+                      <td
+                        rowSpan={ingredient.segmentLength}
                         className={cn(
                           "px-4 text-center text-base-color font-bold border-l border-border align-middle bg-white dark:bg-background",
                           ingredient.segmentHasSeparator && "border-b-2 border-b-nav-highlight"
@@ -194,12 +224,22 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
                     {/* Conditional Actions Cell */}
                     {isEditMode ? (
                       <td className="px-3 bg-white border-l border-border dark:bg-background h-12">
-                        <div className="flex justify-center items-center h-full">
-                          <button 
+                        <div className="flex items-center justify-center gap-0">
+                          <button
                             onClick={() => handleEditRow(ingredient)}
-                            className="p-1 rounded-md text-nav-highlight hover:bg-primary-shade-2 transition-colors"
+                            title="Edit"
+                            aria-label="Edit"
+                            className="p-1 action-button flex items-center justify-center gap-1.5 rounded-l-md rounded-r-none hover:bg-purple-200 bg-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer border border-primary/15"
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="2" height="2" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd" /></svg>
+                          </button>
+                          <button
+                            onClick={() => handleArchiveRow(ingredient)}
+                            title="Archive"
+                            aria-label="Archive"
+                            className="p-1 action-button flex items-center justify-center gap-1.5 rounded-r-md rounded-l-none text-base-color hover:text-red-600 hover:bg-red-50 bg-background transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer border border-primary/15"
+                          >
+                            <svg className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="2" height="2" viewBox="0 0 24 24"><path fill="currentColor" fillRule="evenodd" d="m18.412 6.5l-.801 13.617A2 2 0 0 1 15.614 22H8.386a2 2 0 0 1-1.997-1.883L5.59 6.5H3.5v-1A.5.5 0 0 1 4 5h16a.5.5 0 0 1 .5.5v1zM10 2.5h4a.5.5 0 0 1 .5.5v1h-5V3a.5.5 0 0 1 .5-.5M9 9l.5 9H11l-.4-9zm4.5 0l-.5 9h1.5l.5-9z" /></svg>
                           </button>
                         </div>
                       </td>
@@ -208,7 +248,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
                 ))}
                 {/* Total Row */}
                 <tr className="font-bold border-t bg-white dark:bg-background border-border">
-                  <td className="px-3 py-4 text-base-color" colSpan={showTypeColumn || isConfectionary ? 7 : 6}>Total</td>
+                  <td className="px-3 py-4 text-base-color" colSpan={showTypeColumn || isConfectionary ? 6 : 5}>Total</td>
                   <td className="px-4 py-4 border-l text-nav-highlight border-border">{totals.quantity}</td>
                   <td className="px-4 py-4 border-l text-base-color border-border">{totals.composition}</td>
                   <td className="px-4 py-4 border-l text-base-color border-border">{totals.bffCost}</td>
@@ -219,12 +259,12 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
               </tbody>
             </table>
           </div>
-         
+
         </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-3 mt-2">
-          <button 
+          <button
             disabled={!isEditMode}
             onClick={() => isEditMode && setIsBFFModalOpen(true)}
             className="flex items-center justify-center h-12 gap-2 text-xs font-bold text-white transition-transform rounded-full shadow-md bg-primary shadow-primary/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -232,7 +272,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
             <Plus className="w-3.5 h-3.5" />
             BFF Product
           </button>
-          <button 
+          <button
             disabled={!isEditMode}
             onClick={() => isEditMode && setIsStandardIngredientModalOpen(true)}
             className="flex items-center justify-center h-12 gap-2 text-xs font-bold text-white transition-transform rounded-full shadow-md bg-primary shadow-primary/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -249,43 +289,43 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
 
         {/* Cost Calculation Section */}
         <h3 className="text-xs font-bold text-lighter-text px-0.5 uppercase tracking-wider">Cost Calculation</h3>
-        <SummaryTable 
-          title="BFF" 
+        <SummaryTable
+          title="BFF"
           rows={[
             { label: doughCostLabel, value: batchSummary.costCalculation.doughCostPerKg.bff, unit: "৳/kg" },
             { label: "Cost per kg (with Loss)", value: batchSummary.costCalculation.costPerKgWithLoss.bff, unit: "৳/kg" },
             { label: recipeTypeLower === "beverage psd" ? "Cost per Sachet" : "Cost per Piece", value: batchSummary.costCalculation.costPerPiece.bff, unit: recipeTypeLower === "beverage psd" ? "৳/sachet" : "৳/pcs" },
-          ]} 
+          ]}
         />
-        <SummaryTable 
-          title="Client" 
+        <SummaryTable
+          title="Client"
           rows={[
             { label: doughCostLabel, value: batchSummary.costCalculation.doughCostPerKg.client, unit: "৳/kg" },
             { label: "Cost per kg (with Loss)", value: batchSummary.costCalculation.costPerKgWithLoss.client, unit: "৳/kg" },
             { label: recipeTypeLower === "beverage psd" ? "Cost per Sachet" : "Cost per Piece", value: batchSummary.costCalculation.costPerPiece.client, unit: recipeTypeLower === "beverage psd" ? "৳/sachet" : "৳/pcs" },
-          ]} 
+          ]}
         />
 
         {/* Output Section */}
-        <SummaryTable 
-          title="Output" 
+        <SummaryTable
+          title="Output"
           isEditMode={isEditMode}
           rows={[
-            { 
-              label: "Yield", 
-              value: editedBatchSummary.yield, 
+            {
+              label: "Yield",
+              value: editedBatchSummary.yield,
               unit: "%",
               onChange: (value) => handleBatchSummaryChange("yield", value)
             },
-            { 
-              label: "Serving Size", 
-              value: editedBatchSummary.servingSize, 
+            {
+              label: "Serving Size",
+              value: editedBatchSummary.servingSize,
               unit: "g",
               onChange: (value) => handleBatchSummaryChange("servingSize", value)
             },
             { label: "Output Pieces", value: batchSummary.output.outputPieces, unit: "pcs" },
             { label: "Output", value: batchSummary.output.output, unit: "g" },
-          ]} 
+          ]}
         />
       </div>
 
@@ -309,6 +349,13 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
         initialData={editingIngredient}
         isConfectionary={isConfectionary}
       />
+      <ArchiveIngredientModal
+        open={isArchiveModalOpen}
+        onOpenChange={setIsArchiveModalOpen}
+        ingredientName={ingredientToArchive?.name}
+        onConfirm={handleArchiveConfirm}
+        isLoading={deleteIngredientMutation.isPending}
+      />
     </div>
   );
 }
@@ -323,10 +370,10 @@ function SummaryTable({ title, rows, isEditMode = false }) {
         <table className="w-full border-collapse">
           <tbody>
             {rows.map((row, idx) => (
-              <tr 
-                key={idx} 
+              <tr
+                key={idx}
                 className={cn(
-                  "border-border", 
+                  "border-border",
                   idx < rows.length - 1 && "border-b"
                 )}
               >

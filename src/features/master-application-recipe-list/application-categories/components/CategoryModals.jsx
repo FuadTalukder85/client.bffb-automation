@@ -191,6 +191,8 @@ export function ArchiveCategoryModal({
         }
     };
 
+    const isBulk = Array.isArray(category);
+
     return (
         <Modal open={open} onOpenChange={handleClose}>
             <ModalContent
@@ -201,7 +203,7 @@ export function ArchiveCategoryModal({
             >
                 <ModalHeader className="pb-4 md:pb-3 lg:pb-3.5! xl:pb-4.5! 2xl:pb-5! 3xl:pb-6!">
                     <ModalTitle className="text-lg lg:text-xs! xl:text-sm! 2xl:text-md! 3xl:text-lg! font-semibold text-center">
-                        Archive Category
+                        {isBulk ? "Archive Categories" : "Archive Category"}
                     </ModalTitle>
                 </ModalHeader>
 
@@ -221,9 +223,25 @@ export function ArchiveCategoryModal({
                     </motion.div>
 
                     {/* Description */}
-                    <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! text-base-color">
-                        Archiving this category means sub-categories and sub-sub-categories under it will also be affected. Proceed with caution.
-                    </p>
+                    <div className="flex flex-col items-center gap-2">
+                        <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-sm md:text-[8px] lg:text-[8.5px]! xl:text-[11.5px]! 2xl:text-[13px]! 3xl:text-base! font-medium text-base-color">
+                            {isBulk
+                                ? "Are you sure you want to archive these categories?"
+                                : <>Are you sure you want to archive category <span className="font-bold">"{category?.name}"</span>?</>
+                            }
+                        </p>
+                        {category && (
+                            <p className="px-4 text-center font-medium text-foreground text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm!">
+                                {isBulk
+                                    ? `${category.length} category(ies) selected`
+                                    : ""
+                                }
+                            </p>
+                        )}
+                        <p className="px-4 md:px-4 lg:px-4.5! xl:px-5.5! 2xl:px-6.5! 3xl:px-8! text-center text-xs md:text-[7px] lg:text-[8px]! xl:text-[10px]! 2xl:text-xs! 3xl:text-sm! text-lighter-text">
+                            Archiving this category means sub-categories and sub-sub-categories under it will also be affected. Proceed with caution.
+                        </p>
+                    </div>
 
                     {/* Error message */}
                     {error && (

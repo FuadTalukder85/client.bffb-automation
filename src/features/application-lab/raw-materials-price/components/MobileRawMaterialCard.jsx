@@ -7,6 +7,7 @@ import { ButtonGroup } from "@/components/ui/ButtonGroup";
 import { InfoTable } from "@/features/invites-and-access/components/InfoTable";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import RawMaterialTypeBadge from "./RawMaterialTypeBadge";
+import { useMobileSelection } from "@/hooks/useMobileSelection";
 
 export default function MobileRawMaterialCard({
   item,
@@ -15,8 +16,20 @@ export default function MobileRawMaterialCard({
   onArchive,
   onRestore,
   isArchived = false,
+  selectedRowIds = [],
+  onSelectChange,
+  canArchive = false,
   className,
 }) {
+  const canSelect = canArchive && !isArchived;
+
+  const { isSelected, isSelectionMode, pressHandlers } = useMobileSelection({
+    itemId: item._id || item.id,
+    selectedIds: selectedRowIds,
+    onSelectChange,
+    canSelect,
+  });
+
   const renderActionButtons = () => {
     if (isArchived) {
       return (
@@ -60,61 +73,84 @@ export default function MobileRawMaterialCard({
   };
 
   return (
-    <ExpandableCard
-      className={cn("md:hidden p-3 my-4 rounded-xl bg-background", className)}
+    <div
+      {...pressHandlers}
+      className={cn(
+        "relative w-full md:hidden my-4 select-none cursor-pointer rounded-xl transition-all duration-200",
+        isSelected ? "scale-[0.99] shadow-lg" : ""
+      )}
     >
-      <ExpandableCard.Content initialHeight={140}>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
-            <span className="text-sm font-semibold">{serialNumber}</span>
+      {isSelected && (
+        <div className="absolute inset-0 rounded-xl pointer-events-none border border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
+      )}
+      <ExpandableCard
+        className={cn("p-3 rounded-xl bg-background w-full", className)}
+      >
+        <ExpandableCard.Content initialHeight={140}>
+          <div className="flex items-center gap-3 mb-3">
+            {isSelectionMode ? (
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  readOnly
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg shrink-0 bg-primary-shade-2 text-nav-highlight">
+                <span className="text-sm font-semibold">{serialNumber}</span>
+              </div>
+            )}
+
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-nav-highlight line-clamp-1">
+                {item.name || "—"}
+              </h3>
+            </div>
           </div>
 
-
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-nav-highlight line-clamp-1">
-              {item.name || "—"}
-            </h3>
-          </div>
-        </div>
-
-        <InfoTable>
-          <InfoTable.Row label="Raw Material Name">
-            <div className="font-semibold text-right text-nav-highlight">
-              {item.name || "—"}
-            </div>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Type">
-            <div className="flex justify-end">
-                <RawMaterialTypeBadge type={item.type} />
-            </div>
-          </InfoTable.Row>
-
-          <InfoTable.Row label="Cost (৳/kg)">
-            <div className="font-semibold text-right text-nav-highlight">
-              {item.cost || "—"}
-            </div>
-          </InfoTable.Row>
-
-          {isArchived && (
-            <InfoTable.Row label="Status">
-              <div className="font-semibold text-right text-muted-foreground">
-                <span className="italic text-xs px-2 py-0.5 bg-gray-100 rounded-full">Archived</span>
+          <InfoTable>
+            <InfoTable.Row label="Raw Material Name">
+              <div className="font-semibold text-right text-nav-highlight">
+                {item.name || "—"}
               </div>
             </InfoTable.Row>
-          )}
-        </InfoTable>
-      </ExpandableCard.Content>
 
-      <ExpandableCard.Footer className="pt-2">
-        <ExpandableCard.FooterLeft>
-          {renderActionButtons()}
-        </ExpandableCard.FooterLeft>
-        <ExpandableCard.FooterRight>
-          <ExpandableCard.ToggleButton />
-        </ExpandableCard.FooterRight>
-      </ExpandableCard.Footer>
-    </ExpandableCard>
+            <InfoTable.Row label="Type">
+              <div className="flex justify-end">
+                  <RawMaterialTypeBadge type={item.type} />
+              </div>
+            </InfoTable.Row>
+
+            <InfoTable.Row label="Cost (৳/kg)">
+              <div className="font-semibold text-right text-nav-highlight">
+                {item.cost || "—"}
+              </div>
+            </InfoTable.Row>
+
+            {isArchived && (
+              <InfoTable.Row label="Status">
+                <div className="font-semibold text-right text-muted-foreground">
+                  <span className="italic text-xs px-2 py-0.5 bg-gray-100 rounded-full">Archived</span>
+                </div>
+              </InfoTable.Row>
+            )}
+          </InfoTable>
+        </ExpandableCard.Content>
+
+        {!isSelectionMode && (
+          <ExpandableCard.Footer className="pt-2">
+            <ExpandableCard.FooterLeft>
+              {renderActionButtons()}
+            </ExpandableCard.FooterLeft>
+            <ExpandableCard.FooterRight>
+              <ExpandableCard.ToggleButton />
+            </ExpandableCard.FooterRight>
+          </ExpandableCard.Footer>
+        )}
+      </ExpandableCard>
+    </div>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router";
 import { 
@@ -38,6 +38,7 @@ import MaintenanceCalendarMobileView from "./components/MaintenanceCalendarMobil
 import MaintenanceCalendarMobileSkeleton from "./components/MaintenanceCalendarMobileSkeleton";
 import { Pagination } from "@/components/ui/Pagination";
 import { FilterInput } from "@/components/ui/FilterInput/FilterInput";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 const MONTHS_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -193,6 +194,12 @@ export default function MaintenanceCalendarPage() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedItemToDelete, setSelectedItemToDelete] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedScheduleState]);
+
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [selectedItemToRestore, setSelectedItemToRestore] = useState(null);
 
@@ -279,15 +286,24 @@ export default function MaintenanceCalendarPage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
-    if (!selectedItemToDelete) return;
+  const handleDeleteConfirm = async (item) => {
+    const itemToDelete = item || selectedItemToDelete;
+    if (!itemToDelete) return;
 
-    deleteScheduleMutation.mutate(selectedItemToDelete.scheduleId || selectedItemToDelete.id, {
-      onSuccess: () => {
-        setIsDeleteModalOpen(false);
-        setSelectedItemToDelete(null);
-      },
-    });
+    if (Array.isArray(itemToDelete)) {
+      const results = await Promise.allSettled(
+        itemToDelete.map((r) => deleteScheduleMutation.mutateAsync(r.scheduleId || r.id))
+      );
+      const succeeded = results.filter((res) => res.status === "fulfilled").length;
+      const failed = results.filter((res) => res.status === "rejected");
+      if (succeeded > 0) toast.success(`${succeeded} maintenance schedule(s) archived successfully`);
+      if (failed.length > 0) toast.error(`Failed to archive ${failed.length} maintenance schedule(s)`);
+      setSelectedRowIds([]);
+    } else {
+      await deleteScheduleMutation.mutateAsync(itemToDelete.scheduleId || itemToDelete.id);
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedItemToDelete(null);
   };
 
   const handleRestoreClick = (item) => {
@@ -548,12 +564,24 @@ export default function MaintenanceCalendarPage() {
               onRestore={handleRestoreClick}
               noDataMessage={noDataMessage}
               noDataDescription={noDataDescription}
+              selectedRowIds={selectedRowIds}
+              onSelectChange={setSelectedRowIds}
+              canDelete={selectedScheduleState === "true"}
             />
           )
         ) : (
           <PaginatedTable
             data={filteredRows}
             columns={columns}
+            enableSelection={selectedScheduleState === "true"}
+            selectedRowIds={selectedRowIds}
+            onSelectionChange={setSelectedRowIds}
+            canSelectRow={(item) => item.isActive ?? true}
+            onBulkArchiveClick={() => {
+              const selectedObjects = filteredRows.filter(r => selectedRowIds.includes(r._id || r.id));
+              setSelectedItemToDelete(selectedObjects);
+              setIsDeleteModalOpen(true);
+            }}
             className="flex-1 min-h-0"
             rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
             bodyRowClassName="border-0 hover:bg-muted/10 transition-colors"
@@ -616,6 +644,15 @@ export default function MaintenanceCalendarPage() {
         item={selectedItemToRestore}
         onConfirm={handleRestoreConfirm}
         isLoading={restoreScheduleMutation.isPending}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = filteredRows.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedItemToDelete(selectedObjects);
+          setIsDeleteModalOpen(true);
+        }}
       />
     </section>
   );

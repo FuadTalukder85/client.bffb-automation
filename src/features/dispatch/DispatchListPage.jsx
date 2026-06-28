@@ -32,6 +32,7 @@ import { STATUS_COLOR_PALETTE } from "@/constants/statusColors";
 import { NoData } from "@/components/ui/NoData";
 import { toast } from "sonner";
 import { hasPermission } from "@/lib/utils";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 // storage keys for table state
 const STORAGE_KEYS = {
@@ -127,6 +128,12 @@ export default function DispatchListPage() {
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [selectedRowIds, setSelectedRowIds] = useState([]);
+
+  useEffect(() => {
+    setSelectedRowIds([]);
+  }, [currentPage, searchTerm, selectedStatus, selectedType, selectedState]);
+
   const [isArchiveModalOpen, setArchiveModalOpen] = useState(false);
   const [isRestoreModalOpen, setRestoreModalOpen] = useState(false);
 
@@ -359,6 +366,8 @@ export default function DispatchListPage() {
                     onArchive={handleArchive}
                     onRestore={handleRestore}
                     permissions={permissions}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
                   />
                 ))
               ) : (
@@ -373,6 +382,14 @@ export default function DispatchListPage() {
             <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0 ">
               <DesktopDispatchTable
                 data={data?.data || []}
+                selectedRowIds={selectedRowIds}
+                onSelectionChange={setSelectedRowIds}
+                onBulkArchiveClick={() => {
+                  const selectedObjects = (data?.data || []).filter(r => selectedRowIds.includes(r._id || r.id));
+                  setSelectedRecord(selectedObjects);
+                  setArchiveModalOpen(true);
+                }}
+                isArchived={selectedState === "false"}
                 currentPage={currentPage}
                 itemsPerPage={itemsPerPage}
                 totalPages={data?.pagination?.totalPages || 1}
@@ -486,14 +503,25 @@ export default function DispatchListPage() {
         item={selectedRecord}
         onConfirm={async (item) => {
           try {
-            const response = await dispatchService.archiveDispatch(item._id);
+            if (Array.isArray(item)) {
+              const results = await Promise.allSettled(
+                item.map((r) => dispatchService.archiveDispatch(r._id || r.id))
+              );
+              const succeeded = results.filter((res) => res.status === "fulfilled").length;
+              const failed = results.filter((res) => res.status === "rejected");
+              if (succeeded > 0) toast.success(`${succeeded} client sample delivery(ies) archived successfully`);
+              if (failed.length > 0) toast.error(`Failed to archive ${failed.length} client sample delivery(ies)`);
+              setSelectedRowIds([]);
+            } else {
+              const response = await dispatchService.archiveDispatch(item._id);
+              toast.success(
+                getResponseMessage(
+                  response,
+                  "Client sample delivery archived successfully"
+                )
+              );
+            }
             refetch();
-            toast.success(
-              getResponseMessage(
-                response,
-                "Client sample delivery archived successfully"
-              )
-            );
           } catch (err) {
             toast.error(
               err?.response?.data?.error ||
@@ -531,7 +559,15 @@ export default function DispatchListPage() {
           }
         }}
       />
-
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = (data?.data || []).filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedRecord(selectedObjects);
+          setArchiveModalOpen(true);
+        }}
+      />
     </section>
   );
 }

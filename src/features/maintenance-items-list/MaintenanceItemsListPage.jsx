@@ -20,6 +20,7 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { NoData } from "@/components/ui/NoData";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { toast } from "sonner";
+import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
 
 export default function MaintenanceItemsListPage() {
   const isMobile = useIsMobile();
@@ -53,8 +54,12 @@ export default function MaintenanceItemsListPage() {
     isRestoreModalOpen,
     setIsRestoreModalOpen,
     selectedItem,
+    setSelectedItem,
+    selectedRowIds,
+    setSelectedRowIds,
     itemModalMode,
     handleExport,
+    canManage,
   } = useMaintenanceItemsLogic();
 
   // getErrorMessage was removed in favor of getApiErrorMessage
@@ -180,6 +185,10 @@ export default function MaintenanceItemsListPage() {
                     onEdit={handleEditItem}
                     onArchive={handleArchiveItem}
                     onRestore={handleRestoreItem}
+                    isArchived={selectedState === "archived"}
+                    selectedRowIds={selectedRowIds}
+                    onSelectChange={setSelectedRowIds}
+                    canArchive={canManage}
                   />
                 ))
               ) : (
@@ -192,6 +201,13 @@ export default function MaintenanceItemsListPage() {
           ) : (
             <DesktopMaintenanceItemsTable
               items={maintenanceItems}
+              selectedRowIds={selectedRowIds}
+              onSelectionChange={setSelectedRowIds}
+              onBulkArchiveClick={() => {
+                const selectedObjects = maintenanceItems.filter(r => selectedRowIds.includes(r._id || r.id));
+                setSelectedItem(selectedObjects);
+                setIsArchiveModalOpen(true);
+              }}
               currentPage={currentPage}
               itemsPerPage={itemsPerPage}
               totalPages={pagination?.totalPages || 1}
@@ -202,6 +218,7 @@ export default function MaintenanceItemsListPage() {
               onRestore={handleRestoreItem}
               sorting={sorting}
               onSortingChange={setSorting}
+              isArchived={selectedState === "archived"}
               emptyState={
                 hasError ? (
                   <div className="py-10 text-center text-red-500">{errorMessage}</div>
@@ -234,6 +251,15 @@ export default function MaintenanceItemsListPage() {
         onOpenChange={setIsRestoreModalOpen}
         item={selectedItem}
         onConfirm={handleRestoreConfirm}
+      />
+      <MobileBulkActionBar
+        selectedCount={selectedRowIds.length}
+        onCancel={() => setSelectedRowIds([])}
+        onAction={() => {
+          const selectedObjects = maintenanceItems.filter(r => selectedRowIds.includes(r._id || r.id));
+          setSelectedItem(selectedObjects);
+          setIsArchiveModalOpen(true);
+        }}
       />
     </section>
   );
