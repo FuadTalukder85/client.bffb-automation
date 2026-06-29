@@ -59,6 +59,14 @@ export function DesktopAccessManagementTable({
         size: getResponsiveSize({ lg: 160, xl: 213, '2xl': 240, '3xl': 300 }),
       },
       {
+        id: "platform",
+        header: "Platform",
+        headerClassName: "",
+        className: " ",
+        cell: () => <Skeleton className="w-16 h-6 rounded-full" />,
+        size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
+      },
+      {
         id: "isActive",
         header: "Status",
         headerClassName: "",
@@ -129,6 +137,33 @@ export function DesktopAccessManagementTable({
         </span>
       ),
       size: getResponsiveSize({ lg: 160, xl: 213, '2xl': 240, '3xl': 300 }),
+    },
+    {
+      accessorKey: "scope",
+      header: "Platform",
+      headerClassName: "",
+      className: "",
+      cell: ({ getValue }) => {
+        const scope = getValue();
+        if (!scope) return <span className="text-gray-400">N/A</span>;
+        const styles = {
+          application: "bg-blue-100 text-blue-700",
+          global: "bg-purple-100 text-purple-700",
+          crm: "bg-amber-100 text-amber-700",
+        };
+        const labels = {
+          application: "Lab",
+          global: "Global",
+          crm: "CRM",
+        };
+        const colorClass = styles[scope] || "bg-gray-100 text-gray-600";
+        return (
+          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+            {labels[scope] || scope}
+          </span>
+        );
+      },
+      size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
     },
     {
       accessorKey: "isActive",

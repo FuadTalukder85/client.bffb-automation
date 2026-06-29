@@ -34,6 +34,7 @@ export function InviteUserModal({ open, onOpenChange, onSuccess, className }) {
     page: 1,
     limit: 100,
     isActive: true,
+    scope: "global,application",
   });
   const rolesData = rolesQueryData?.data ?? [];
   const roleOptions = Array.isArray(rolesData)

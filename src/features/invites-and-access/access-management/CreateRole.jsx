@@ -29,11 +29,12 @@ const CreateRole = () => {
     // Let's construct a display name.
   }));
 
-  const handleCreate = async ({ roleName, selectedPermissions }) => {
+  const handleCreate = async ({ roleName, scope, selectedPermissions }) => {
     try {
       const payload = {
         name: roleName,
         permissionIds: selectedPermissions.map((p) => p.id),
+        scope,
       };
       
       await createRole(payload);
@@ -58,6 +59,7 @@ const CreateRole = () => {
         availablePermissions={formattedPermissions}
         onAvailableSearchChange={setSearchPermissionTerm}
         onSubmit={handleCreate}
+        defaultScope="application"
       />
       <RoleCreatedModal
         isOpen={isModalOpen}
