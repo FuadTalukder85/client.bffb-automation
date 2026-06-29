@@ -1123,4 +1123,32 @@ export function getAllPermissions() {
   return allPerms;
 }
 
+// ============================================================================
+// SCOPES & MAPPINGS
+// ============================================================================
+
+export const SCOPES = {
+  GLOBAL: 'global',
+  APPLICATION: 'application',
+  CRM: 'crm'
+};
+
+export const RESOURCE_SCOPES = {
+  dashboard: 'global',
+  user: 'global',
+  role: 'global',
+  permission: 'global',
+  invitation: 'global',
+  audit: 'global',
+  client: 'crm',
+  campaign: 'crm',
+  prospect: 'crm',
+  'crm-tag': 'crm'
+};
+
+export function getPermissionScope(key) {
+  const resource = key.split(':')[0];
+  return RESOURCE_SCOPES[resource] || 'application';
+}
+
 export default PERMISSIONS;

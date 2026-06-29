@@ -61,6 +61,7 @@ const AccessManagement = () => {
     limit: itemsPerPage,
     isActive: isActiveFilter,
     search: debouncedSearchTerm,
+    scope: "global,application",
   });
 
   // Extract searchResults array and pagination from the query result

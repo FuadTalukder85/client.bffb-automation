@@ -29,6 +29,7 @@ function Login() {
     const response = await api.post("/auth/login", {
       email: data.email,
       password: data.password,
+      appSource: "application",
     });
 
     // This part only runs if the API call is successful

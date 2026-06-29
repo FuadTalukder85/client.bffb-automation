@@ -25,7 +25,8 @@ export function UpdateRoleModal({ open, onOpenChange, user, onSuccess, className
   // Fetch roles from API (only active roles)
   const { data: rolesQueryData, isLoading: isLoadingRoles } = useRoles({ 
     isActive: true,
-    limit: 100 
+    limit: 100,
+    scope: "global,application"
   });
   const rolesData = rolesQueryData?.data ?? [];
 
