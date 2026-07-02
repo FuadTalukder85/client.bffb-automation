@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, Download, CheckCircle, Search, Save, X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, CheckCircle, Search, Save, X, ChevronLeft, ChevronRight, Loader2, Clock } from "lucide-react";
 import { GoPlus } from "react-icons/go";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/Button";
@@ -44,6 +44,7 @@ export default function DesktopViewRecipe({
   isSaving,
   canExportRecipe,
   handlePrepareSample,
+  handleViewDownloadHistory,
 }) {
   const toUiVersionNumber = (version) => {
     const numericVersion = Number(version);
@@ -235,6 +236,17 @@ export default function DesktopViewRecipe({
                     <Download className="desktop-page-btn text-background" />
                   </Button>
             
+                  <div className="z-10 w-px lg:h-5 xl:h-5/6 bg-background" />
+
+                  <Button
+                    size="icon"
+                    onClick={handleViewDownloadHistory}
+                    title="Download History"
+                    className="transition-colors bg-transparent border-none shadow-none cursor-pointer hover:bg-primary/90"
+                  >
+                    <Clock className="desktop-page-btn text-background" />
+                  </Button>
+
                   <div className="z-10 w-px lg:h-5 xl:h-5/6 bg-background" />
                 </>
               )}
