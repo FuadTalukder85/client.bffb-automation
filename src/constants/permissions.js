@@ -706,6 +706,7 @@ export const PERMISSIONS = {
     READ: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.READ),
     UPDATE: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.UPDATE),
     DELETE: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.DELETE),
+    EXPORT: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.EXPORT),
     REASSIGN: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.REASSIGN),
     MANAGE: PermissionBuilder.wildcard(RESOURCES.PROJECT_TASK),
   },

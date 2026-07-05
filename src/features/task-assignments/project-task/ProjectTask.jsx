@@ -10,6 +10,12 @@ import { useProjects } from "@/hooks/useProjects";
 import MobileProjectTaskList from "./components/MobileProjectTaskList";
 import { DesktopProjectTaskTable } from "./components/DesktopProjectTaskTable";
 import { useNavigate } from "react-router";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { PERMISSIONS } from "@/constants/permissions";
+import { hasPermission } from "@/lib/utils";
+import api from "@/lib/api";
 
 const ProjectTask = () => {
   const navigate = useNavigate();
@@ -88,6 +94,29 @@ const ProjectTask = () => {
     setCurrentPage(1);
   };
 
+  const { permissions = [] } = useUserPermissions();
+  const canExportTasks = hasPermission(permissions, PERMISSIONS.PROJECT_TASK.EXPORT);
+
+  const handleExportTasks = async () => {
+    try {
+      const response = await api.get("/project-tasks/export", {
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const filename = `project-tasks-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export project tasks:", error);
+    }
+  };
+
   const handleManageTasks = (project) => {
     const projectId = project._id || project.id;
     // Navigate to single project task view to manage tasks for this project
@@ -128,6 +157,7 @@ const ProjectTask = () => {
 
         {/* Search & Theme Toggle(Desktop Only) */}
         <div className="items-center hidden gap-2 md:flex">
+
           <SearchInput
             placeholder="Search..."
             value={searchTerm}
@@ -157,7 +187,20 @@ const ProjectTask = () => {
             options={statusOptions}
             onChange={handleStatusChange}
           />
+
+          {canExportTasks && (
+            <Button
+              intent="secondary"
+              onClick={handleExportTasks}
+              className="lg:h-5.5 xl:h-7 2xl:h-8 3xl:h-10 px-5 rounded-full border border-primary text-primary hover:bg-primary/10"
+            >
+              <Download className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 mr-2" />
+              Export
+            </Button>
+          )}
         </div>
+
+
       </div>
 
       <div className="flex-1 w-full flex flex-col min-h-0">
@@ -166,8 +209,8 @@ const ProjectTask = () => {
 
         {/* Desktop UI */}
         <div className="hidden md:flex md:flex-col md:flex-1 md:min-h-0">
-          <DesktopProjectTaskTable 
-            {...listProps} 
+          <DesktopProjectTaskTable
+            {...listProps}
             emptyState={
               hasError ? (
                 <div className="py-10 text-center text-red-500">
