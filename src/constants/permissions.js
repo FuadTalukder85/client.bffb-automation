@@ -706,6 +706,7 @@ export const PERMISSIONS = {
     READ: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.READ),
     UPDATE: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.UPDATE),
     DELETE: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.DELETE),
+    EXPORT: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.EXPORT),
     REASSIGN: PermissionBuilder.resource(RESOURCES.PROJECT_TASK, ACTIONS.REASSIGN),
     MANAGE: PermissionBuilder.wildcard(RESOURCES.PROJECT_TASK),
   },
@@ -1121,6 +1122,34 @@ export function getAllPermissions() {
     allPerms.push(...Object.values(resourcePerms));
   });
   return allPerms;
+}
+
+// ============================================================================
+// SCOPES & MAPPINGS
+// ============================================================================
+
+export const SCOPES = {
+  GLOBAL: 'global',
+  APPLICATION: 'application',
+  CRM: 'crm'
+};
+
+export const RESOURCE_SCOPES = {
+  dashboard: 'global',
+  user: 'global',
+  role: 'global',
+  permission: 'global',
+  invitation: 'global',
+  audit: 'global',
+  client: 'crm',
+  campaign: 'crm',
+  prospect: 'crm',
+  'crm-tag': 'crm'
+};
+
+export function getPermissionScope(key) {
+  const resource = key.split(':')[0];
+  return RESOURCE_SCOPES[resource] || 'application';
 }
 
 export default PERMISSIONS;

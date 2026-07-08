@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { ChevronRight, Plus, Check, X, Loader2 } from "lucide-react";
+import { ChevronRight, Plus, Check, X, Loader2, Trash2 } from "lucide-react";
 import { DeleteEntryModal } from "./DeleteEntryModal";
 import { RestoreScheduleModal } from "./RestoreScheduleModal";
 import { AiFillThunderbolt } from "react-icons/ai";
@@ -47,7 +47,7 @@ const CustomSelect = ({ value, options, onChange, bgColor, disabled }) => {
       </button>
 
       {open && !disabled && (
-        <div className="absolute left-0 top-full mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-border z-50 overflow-hidden">
+        <div className="absolute left-0 top-full mt-1 w-full bg-white dark:bg-gray-800 rounded-md shadow-lg border border-border z-50 overflow-hidden flex flex-col gap-1 p-1">
           {options.map((option) => (
             <button
               key={option.value}
@@ -61,6 +61,19 @@ const CustomSelect = ({ value, options, onChange, bgColor, disabled }) => {
               {option.label}
             </button>
           ))}
+          {value && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="w-full px-3 py-1 lg:px-1 lg:py-0.5 xl:px-1.5 xl:py-0.5 2xl:px-2 2xl:py-1 3xl:px-3 3xl:py-1 border border-red-200 hover:border-red-300 dark:border-red-900/50 rounded-md hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer flex items-center justify-center text-red-500 transition-colors"
+              title="Remove value"
+            >
+              <Trash2 className="w-3.5 h-3.5 lg:w-2 lg:h-2 xl:w-2.5 xl:h-2.5 2xl:w-3 2xl:h-3 3xl:w-3.5 3xl:h-3.5" />
+            </button>
+          )}
         </div>
       )}
 

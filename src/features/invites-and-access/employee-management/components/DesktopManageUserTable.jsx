@@ -98,6 +98,14 @@ const DesktopManageUserTable = ({
         size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
       },
       {
+        id: "platform",
+        header: "Platform",
+        headerClassName: "",
+        className: " ",
+        cell: () => <Skeleton className="w-full h-5" />,
+        size: getResponsiveSize({ lg: 64, xl: 85, '2xl': 96, '3xl': 120 }),
+      },
+      {
         id: "joinDate",
         header: "Join Date",
         headerClassName: "",
@@ -200,6 +208,33 @@ const DesktopManageUserTable = ({
       headerClassName: "",
       className: " ",
       size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
+    },
+    {
+      id: "platform",
+      header: "Platform",
+      headerClassName: "",
+      className: "",
+      cell: ({ row }) => {
+        const scope = row.original.scope;
+        if (!scope) return <span className="text-gray-400">N/A</span>;
+        const styles = {
+          application: "bg-blue-100 text-blue-700",
+          global: "bg-purple-100 text-purple-700",
+          crm: "bg-amber-100 text-amber-700",
+        };
+        const labels = {
+          application: "Lab",
+          global: "Global",
+          crm: "CRM",
+        };
+        const colorClass = styles[scope] || "bg-gray-100 text-gray-600";
+        return (
+          <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+            {labels[scope] || scope}
+          </span>
+        );
+      },
+      size: getResponsiveSize({ lg: 64, xl: 85, '2xl': 96, '3xl': 120 }),
     },
     {
       id: "joinDate",

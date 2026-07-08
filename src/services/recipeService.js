@@ -88,6 +88,12 @@ export const recipeAPI = {
     return response.data;
   },
 
+  // Get download history for a recipe
+  getRecipeDownloadHistory: async (id) => {
+    const response = await api.get(`/recipes/${id}/download-history`);
+    return response.data;
+  },
+
   // Get master projects enriched with latest recipe createdAt
   // Server route: GET /projects/project-list-with-latest-recipe
   getProjectsWithLatestRecipeDate: async (params = {}, config = {}) => {

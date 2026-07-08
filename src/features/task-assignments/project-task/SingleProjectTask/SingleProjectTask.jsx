@@ -9,7 +9,7 @@ import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FloatingButton } from "@/components/ui/FloatingButton";
-import { Plus, Loader2, ChevronRight } from "lucide-react";
+import { Plus, Loader2, ChevronRight, Download } from "lucide-react";
 import { Pagination } from "@/components/ui/Pagination";
 import { Button } from "@/components/ui/Button";
 import { CreateTaskModal } from "./components/CreateTaskModal";
@@ -21,6 +21,10 @@ import {
   useRestoreProjectTask,
   useUpdateProjectTaskStatus,
 } from "@/hooks/mutations";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { PERMISSIONS } from "@/constants/permissions";
+import { hasPermission } from "@/lib/utils";
+import api from "@/lib/api";
 
 // Mobile status options (full list)
 const mobileStatusOptions = [
@@ -208,6 +212,31 @@ const SingleProjectTask = () => {
     }
   };
 
+  const { permissions = [] } = useUserPermissions();
+  const canExportTasks = hasPermission(permissions, PERMISSIONS.PROJECT_TASK.EXPORT);
+
+  const handleExportTasks = async () => {
+    try {
+      const params = { projectId };
+      const response = await api.get("/project-tasks/export", {
+        params,
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const filename = `project-tasks-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export project tasks:", error);
+    }
+  };
+
   const handleCreateSuccess = () => {
     // Cache is automatically invalidated by the mutation
   };
@@ -323,6 +352,16 @@ const SingleProjectTask = () => {
               options={stateOptions}
               onChange={handleStateChange}
             />
+            {canExportTasks && (
+              <Button
+                intent="secondary"
+                onClick={handleExportTasks}
+                className="lg:h-5.5 xl:h-7 2xl:h-8 3xl:h-10 px-5 rounded-full border border-primary text-primary hover:bg-primary/10"
+              >
+                <Download className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 mr-2" />
+                Export
+              </Button>
+            )}
             <Button
               intent="primary"
               onClick={() => setIsCreateTaskModalOpen(true)}

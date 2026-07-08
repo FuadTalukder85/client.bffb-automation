@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { ChevronDown, ChevronUp, Plus, Check, X, Loader2, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Check, X, Loader2, Pencil, Trash2 } from "lucide-react";
 import { DeleteEntryModal } from './DeleteEntryModal';
 import { RestoreScheduleModal } from './RestoreScheduleModal';
 import { AiFillThunderbolt } from "react-icons/ai";
@@ -60,7 +60,7 @@ const CustomSelect = ({ value, options, onChange, disabled }) => {
       )}
 
       {open && !disabled && (
-        <div className="absolute left-0 top-full mt-0 w-full bg-white dark:bg-gray-800 shadow-lg border border-border overflow-hidden z-50">
+        <div className="absolute left-0 top-full mt-0 w-full bg-white dark:bg-gray-800 shadow-lg border border-border overflow-hidden z-50 flex flex-col gap-1 p-1">
           {options.map((option) => (
             <button
               key={option.value}
@@ -69,11 +69,24 @@ const CustomSelect = ({ value, options, onChange, disabled }) => {
                 onChange(option.value);
                 setOpen(false);
               }}
-              className={`w-full py-2 ${getOptionBgColor(option.value)} hover:opacity-80 cursor-pointer text-center dark:text-gray-600`}
+              className={`w-full py-2 ${getOptionBgColor(option.value)} hover:opacity-80 cursor-pointer text-center rounded-md dark:text-gray-600`}
             >
               {option.label}
             </button>
           ))}
+          {value && (
+            <button
+              type="button"
+              onClick={() => {
+                onChange("");
+                setOpen(false);
+              }}
+              className="w-full py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-md cursor-pointer flex items-center justify-center transition-colors dark:bg-red-950/20 dark:hover:bg-red-900/30"
+              title="Remove value"
+            >
+              <Trash2 className="w-4 h-4 text-red-500" />
+            </button>
+          )}
         </div>
       )}
     </div>

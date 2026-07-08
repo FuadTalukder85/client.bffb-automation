@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Edit, Download, CheckCircle, Search, ChevronLeft, ChevronRight, Save, X, Loader2 } from "lucide-react";
+import { Edit, Download, CheckCircle, Search, ChevronLeft, ChevronRight, Save, X, Loader2, Clock } from "lucide-react";
 import { GoPlus } from "react-icons/go";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/Button";
@@ -46,6 +46,7 @@ export default function MobileViewRecipe({
   isSaving,
   canExportRecipe,
   handlePrepareSample,
+  handleViewDownloadHistory,
 }) {
   const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
 
@@ -124,6 +125,7 @@ export default function MobileViewRecipe({
   const viewActions = [
     { icon: <Edit className="w-3.5 h-3.5" />, onClick: handleEdit, label: "Edit", disabled: isFinalized },
     { icon: <Download className="w-3.5 h-3.5" />, onClick: handleDownload, label: "Download", show: canExportRecipe },
+    { icon: <Clock className="w-3.5 h-3.5" />, onClick: handleViewDownloadHistory, label: "History", show: canExportRecipe },
     { icon: <CheckCircle className="w-3.5 h-3.5" />, onClick: () => setIsFinalizeModalOpen(true), label: "Finalize", disabled: isFinalized }
   ].filter(action => action.show !== false);
 

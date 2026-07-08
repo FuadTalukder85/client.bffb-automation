@@ -90,15 +90,24 @@ const UpdateRole = () => {
     }));
   }, [rolePermissions]);
 
-  const handleUpdate = async ({ roleName, selectedPermissions }) => {
+  const handleUpdate = async ({ roleName, scope, selectedPermissions }) => {
     if (!roleId) return;
     
     setSubmitError(null);
 
     try {
-      // Update basic info
+      // Update basic info (including scope)
+      const updateData = {};
       if (roleName !== initialRoleName) {
-        await updateRole({ id: roleId, data: { name: roleName } });
+        updateData.name = roleName;
+      }
+      const initialScope = roleFromState?.scope || fetchedRole?.scope;
+      if (scope !== initialScope) {
+        updateData.scope = scope;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await updateRole({ id: roleId, data: updateData });
       }
 
       // Update permissions (Replace all)
@@ -184,6 +193,7 @@ const UpdateRole = () => {
       <RoleForm
         title={`Update Role: ${initialRoleName}`}
         initialRoleName={initialRoleName}
+        initialScope={roleFromState?.scope || fetchedRole?.scope || ""}
         initialSelectedPermissions={initialSelectedPermissions}
         availablePermissions={formattedAvailablePermissions}
         onAvailableSearchChange={setSearchPermissionTerm}

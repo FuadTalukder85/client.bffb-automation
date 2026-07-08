@@ -24,6 +24,7 @@ import { PERMISSIONS } from "@/constants/permissions";
 import { hasPermission } from "@/lib/utils";
 import { useProjectMembers } from "@/hooks/useProjectMembers";
 import { PrepareSampleModal } from "./components/PrepareSampleModal";
+import DownloadHistoryModal from "./components/DownloadHistoryModal";
 
 
 const tabs = [
@@ -244,6 +245,7 @@ export default function ViewRecipePage() {
   const [isExportTypeModalOpen, setIsExportTypeModalOpen] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isPrepareSampleModalOpen, setIsPrepareSampleModalOpen] = useState(false);
+  const [isDownloadHistoryModalOpen, setIsDownloadHistoryModalOpen] = useState(false);
   const hasAutoTriggeredEditRef = useRef(false);
 
   // Get project members for task assignments
@@ -874,6 +876,7 @@ export default function ViewRecipePage() {
     onChangeRecipeType: handleOpenRecipeTypeModal,
     canExportRecipe,
     handlePrepareSample: () => setIsPrepareSampleModalOpen(true),
+    handleViewDownloadHistory: () => setIsDownloadHistoryModalOpen(true),
   };
 
   if (commonProps.isLoading) {
@@ -944,6 +947,13 @@ export default function ViewRecipePage() {
         onOpenChange={setIsPrepareSampleModalOpen}
         projectId={projectId}
         projectMembers={projectMembers}
+      />
+
+      <DownloadHistoryModal
+        open={isDownloadHistoryModalOpen}
+        onOpenChange={setIsDownloadHistoryModalOpen}
+        recipeId={recipe?._id}
+        recipeName={recipe?.recipeName || recipe?.name}
       />
     </section>
   );

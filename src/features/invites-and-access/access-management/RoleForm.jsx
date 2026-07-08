@@ -14,6 +14,7 @@ const EMPTY_ARRAY = [];
 
 const RoleForm = ({
   initialRoleName = "",
+  initialScope = "",
   initialSelectedPermissions = EMPTY_ARRAY,
   availablePermissions: initialAvailablePermissions = EMPTY_ARRAY,
   onSubmit,
@@ -22,9 +23,11 @@ const RoleForm = ({
   isEditMode = false,
   onAvailableSearchChange,
   isSubmitting = false,
+  defaultScope = "application",
 }) => {
   const navigate = useNavigate();
   const [roleName, setRoleName] = useState(initialRoleName);
+  const [scope, setScope] = useState(initialScope || defaultScope);
   const [availableSearch, setAvailableSearch] = useState("");
   const [selectedSearch, setSelectedSearch] = useState("");
   const debouncedAvailableSearch = useDebounce(availableSearch, 300);
@@ -50,6 +53,10 @@ const RoleForm = ({
   useEffect(() => {
     setRoleName(initialRoleName);
   }, [initialRoleName]);
+
+  useEffect(() => {
+    setScope(initialScope || defaultScope);
+  }, [initialScope, defaultScope]);
 
   useEffect(() => {
     setSelectedPermissions(initialSelectedPermissions);
@@ -142,7 +149,7 @@ const RoleForm = ({
   };
 
   const handleSubmit = () => {
-    onSubmit({ roleName, selectedPermissions });
+    onSubmit({ roleName, scope, selectedPermissions });
   };
 
   return (
@@ -166,6 +173,22 @@ const RoleForm = ({
             <span className="absolute -translate-y-1/2 left-6 top-1/2 text-lighter-text">
               <FaPencilAlt className="w-3 h-3" />
             </span>
+          </div>
+
+          {/* Platform / Scope Input (Mobile) */}
+          <div className="relative mt-3 p-0.5 border rounded-full border-table-stroke bg-primary-shade-2">
+            <select
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
+              className="w-full p-2 text-sm border-none rounded-full pl-6 bg-transparent text-base-color focus:outline-none focus:ring-0 appearance-none font-medium"
+            >
+              <option value="application">Lab (Application)</option>
+              <option value="crm">CRM</option>
+              <option value="global">Global</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-lighter-text">
+              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            </div>
           </div>
         </div>
 
@@ -405,7 +428,7 @@ const RoleForm = ({
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 bg-[#4a287c] rounded-b-[20px] mt-auto">
             {/* Role Name Input */}
-            <div className="relative flex items-center w-1/3 min-w-[250px]">
+            <div className="relative flex items-center w-1/4 min-w-[200px]">
               <div className="absolute -translate-y-1/2 left-4 lg:left-3 xl:left-3 2xl:left-3 3xl:left-4 top-1/2 text-lighter-text">
                 <svg className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd"/></svg>
               </div>
@@ -416,6 +439,22 @@ const RoleForm = ({
                 placeholder="Enter role name"
                 className="w-full py-2.5 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 pl-10 lg:pl-6.5 xl:pl-7 2xl:pl-8 3xl:pl-10 pr-4 text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm bg-primary-shade-2 text-base-color border border-white/20 rounded-full focus:bg-white/10 focus:text-white transition-colors placeholder:text-lighter-text placeholder:text-sm placeholder:lg:text-[8px] placeholder:xl:text-[10px] placeholder:2xl:text-xs placeholder:3xl:text-sm focus:outline-none focus:ring-0"
               />
+            </div>
+
+            {/* Platform / Scope Select (Desktop) */}
+            <div className="relative flex items-center w-1/4 min-w-[200px] ml-4">
+              <select
+                value={scope}
+                onChange={(e) => setScope(e.target.value)}
+                className="w-full py-2.5 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 px-4 pr-10 text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm bg-primary-shade-2 text-base-color border border-white/20 rounded-full focus:bg-white/10 focus:text-white transition-colors focus:outline-none focus:ring-0 appearance-none font-medium"
+              >
+                <option value="application" className="bg-[#4a287c] text-white">Lab (Application)</option>
+                <option value="crm" className="bg-[#4a287c] text-white">CRM</option>
+                <option value="global" className="bg-[#4a287c] text-white">Global</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
             </div>
 
             {/* Action Buttons */}
