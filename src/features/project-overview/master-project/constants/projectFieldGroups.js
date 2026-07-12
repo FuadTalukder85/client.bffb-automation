@@ -65,7 +65,7 @@ export const projectFieldGroups = [
     [
         { id: "raisedBy", label: "Raised By", type: "text", path: "masterProject.raisedBy", canEdit: true },
         { id: "purpose", label: "Purpose", type: "select", options: purposeOptions, path: "masterProject.purpose", canEdit: true },
-        { id: "purposeDetails", label: "Purpose Details", type: "text", path: "masterProject.purposeDetails", canEdit: true },
+        { id: "purposeDetails", label: "Purpose Name", type: "text", path: "masterProject.purposeDetails", canEdit: true },
     ],
 
     // 8. Objective Group (max 3)
