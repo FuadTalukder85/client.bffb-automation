@@ -283,16 +283,26 @@ export const EditableField = React.forwardRef(
       }
       if (type === "select") {
         if (isEmpty) return <span className="text-muted-foreground">—</span>;
-        const selectedOption = options.find(
-          (opt) => opt.value === currentValue,
-        );
-        const displayValue =
-          selectedOption?.label ||
-          (typeof currentValue === "object" && currentValue
-            ? currentValue.name || currentValue.label || String(currentValue)
-            : looksLikeObjectId(currentValue)
-            ? ""
-            : currentValue);
+        let displayValue;
+        if (Array.isArray(currentValue)) {
+          displayValue = currentValue
+            .map((val) => {
+              const opt = options.find((o) => o.value === val);
+              return opt?.label || val;
+            })
+            .join(", ");
+        } else {
+          const selectedOption = options.find(
+            (opt) => opt.value === currentValue,
+          );
+          displayValue =
+            selectedOption?.label ||
+            (typeof currentValue === "object" && currentValue
+              ? currentValue.name || currentValue.label || String(currentValue)
+              : looksLikeObjectId(currentValue)
+              ? ""
+              : currentValue);
+        }
         return <span className="text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body">{displayValue || <span className="text-muted-foreground">—</span>}</span>;
       }
       if (type === "asyncselect") {
@@ -348,6 +358,16 @@ export const EditableField = React.forwardRef(
         );
       }
       if (isEmpty) return <span className="text-muted-foreground">—</span>;
+      if (Array.isArray(currentValue)) {
+        const labels = currentValue
+          .map((val) => {
+            if (typeof val === "object" && val !== null) return val.name || val.label || val.title || String(val);
+            const opt = options?.find((o) => o.value === val);
+            return opt?.label || val;
+          })
+          .join(", ");
+        return <span className="text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body">{labels}</span>;
+      }
       if (typeof currentValue === "object" && currentValue !== null) {
         return <span className="text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body">{currentValue.name || currentValue.label || currentValue.title || String(currentValue)}</span>;
       }
