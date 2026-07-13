@@ -25,24 +25,33 @@ export const MultiSelectWithSearch = ({
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const listRef = useRef(null);
+  // Accumulates option labels across search terms so a previously selected
+  // option doesn't disappear from the display just because a later search
+  // no longer includes it in `options`.
+  const [labelCache, setLabelCache] = useState(() => new Map());
+
+  useEffect(() => {
+    setLabelCache(prev => {
+      let changed = false;
+      const next = new Map(prev);
+      options.forEach(option => {
+        const key = String(option.value);
+        if (next.get(key) !== option) {
+          next.set(key, option);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [options]);
 
   const selectedValues = useMemo(() => {
-    const values = Array.isArray(value) ? value : [];
-    console.log("🔄 MultiSelectWithSearch - selectedValues updated:", {
-      values,
-      value,
-      timestamp: new Date().toISOString()
-    });
-    return values;
+    return Array.isArray(value) ? value : [];
   }, [value]);
 
   // Create a Map for faster option lookup by value
   const optionsMap = useMemo(() => {
     const map = new Map();
-    console.log("🔄 MultiSelectWithSearch - optionsMap rebuilding:", {
-      optionsCount: options.length,
-      timestamp: new Date().toISOString()
-    });
     options.forEach(option => {
       // Use string comparison for robust matching
       map.set(String(option.value), option);
@@ -51,15 +60,11 @@ export const MultiSelectWithSearch = ({
   }, [options]);
 
   const selectedOptions = useMemo(() => {
-    const result = selectedValues.map(val => optionsMap.get(String(val))).filter(Boolean);
-    console.log("🔄 MultiSelectWithSearch - selectedOptions updated:", {
-      selectedValues,
-      optionsMapKeys: Array.from(optionsMap.keys()),
-      result,
-      timestamp: new Date().toISOString()
+    return selectedValues.map(val => {
+      const key = String(val);
+      return optionsMap.get(key) || labelCache.get(key) || { value: val, label: key };
     });
-    return result;
-  }, [selectedValues, optionsMap]);
+  }, [selectedValues, optionsMap, labelCache]);
 
   const filteredOptions = useMemo(() => {
     const searchLower = searchTerm.toLowerCase().trim();
@@ -169,25 +174,11 @@ export const MultiSelectWithSearch = ({
   const handleSelect = useCallback((optionValue) => {
     const optionValueStr = String(optionValue);
     const isSelected = selectedValues.some(v => String(v) === optionValueStr);
-    
-    console.log("🎯 MultiSelectWithSearch - handleSelect called:", {
-      optionValue,
-      optionValueStr,
-      isSelected,
-      selectedValues,
-      timestamp: new Date().toISOString()
-    });
-    
+
     const newValue = isSelected
       ? selectedValues.filter(v => String(v) !== optionValueStr)
       : [...selectedValues, optionValue];
-    
-    console.log("🎯 MultiSelectWithSearch - newValue:", {
-      newValue,
-      length: newValue.length,
-      timestamp: new Date().toISOString()
-    });
-    
+
     onChange({ target: { value: newValue } });
     setHighlightedIndex(-1);
   }, [selectedValues, onChange]);
@@ -247,9 +238,9 @@ export const MultiSelectWithSearch = ({
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {selectedOptions.length > 0 && (
+          {selectedValues.length > 0 && (
             <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-              {selectedOptions.length}
+              {selectedValues.length}
             </span>
           )}
           {isOpen ? (
@@ -300,16 +291,7 @@ export const MultiSelectWithSearch = ({
               filteredOptions.map((option, index) => {
                 const optionValueStr = String(option.value);
                 const isSelected = selectedValues.some(v => String(v) === optionValueStr);
-                
-                console.log("📋 MultiSelectWithSearch - Rendering option:", {
-                  index,
-                  value: optionValueStr,
-                  label: option.label,
-                  isSelected,
-                  selectedValues,
-                  timestamp: new Date().toISOString()
-                });
-                
+
                 return (
                   <button
                     key={option.value}

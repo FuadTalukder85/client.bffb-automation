@@ -238,7 +238,10 @@ export const DetailsFieldGroups = ({
           }
           return item;
         });
-        value = localValues.tags.length > 0 ? localValues.tags : tagIds;
+        const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
+        // Prefer full tag objects for display so labels render without
+        // depending on the currently search-scoped async options list.
+        value = tagObjects.length > 0 ? tagObjects : tagIds;
       }
     }
 

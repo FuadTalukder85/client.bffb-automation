@@ -135,46 +135,17 @@ export const EditableField = React.forwardRef(
 
     useEffect(() => {
       const isMultiselectType = type === "multiselect" || type === "multiselectwithsearch";
-      
-      // Helper to check if value is effectively empty
-      const isEmpty = (val) => {
-        if (val === null || val === undefined) return true;
-        if (Array.isArray(val)) return val.length === 0;
-        if (typeof val === "string") return val.trim() === "";
-        return false;
-      };
-      
-      const initialIsEmpty = isEmpty(initialValue);
-      const currentIsEmpty = isEmpty(currentValue);
-      
+
       if (!isMultiselectType) {
-        console.log("🔄 EditableField - useEffect triggered (non-multiselect):", {
-          initialValue,
-          previousValue: currentValue,
-          type,
-          timestamp: new Date().toISOString()
-        });
         setCurrentValue(initialValue);
-      } else {
-        // For multiselect: only reset if currentValue is also empty
-        // This preserves user selections during parent re-renders
-        if (currentIsEmpty) {
-          console.log("🔄 EditableField - useEffect triggered for multiselect (initial load):", {
-            initialValue,
-            previousValue: currentValue,
-            type,
-            timestamp: new Date().toISOString()
-          });
-          setCurrentValue(initialValue);
-        } else {
-          console.log("🔄 EditableField - useEffect skipped for multiselect (preserving user selection):", {
-            initialValue,
-            currentValue,
-            type,
-            timestamp: new Date().toISOString()
-          });
-          // Don't reset - preserve the user's selection!
-        }
+        return;
+      }
+
+      // While the user is actively editing a multiselect field, don't let a
+      // parent re-render (e.g. from search-term state changes) clobber their
+      // in-progress selection with a stale/recomputed initialValue.
+      if (!isEditing) {
+        setCurrentValue(initialValue);
       }
     }, [initialValue]);
 

@@ -250,18 +250,9 @@ export const DetailsFieldGroups = ({
           return item;
         });
         const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
-        if (!config.asyncType) {
-          const tagNames = value.map((item) => {
-            if (typeof item === "object" && item !== null) {
-              return item.name || item.title || String(item);
-            }
-            return String(item);
-          });
-          value = tagNames.join(", ");
-        } else {
-          // For async multiselect, pass the tag objects for display, but AccordionSelect needs IDs
-          value = tagObjects.length > 0 ? tagObjects : tagIds;
-        }
+        // Prefer full tag objects for display so labels render without
+        // depending on the currently search-scoped async options list.
+        value = tagObjects.length > 0 ? tagObjects : tagIds;
       } else if (value) {
         value = String(value);
       }

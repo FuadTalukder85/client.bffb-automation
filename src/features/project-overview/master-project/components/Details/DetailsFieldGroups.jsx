@@ -429,7 +429,10 @@ export const DetailsFieldGroups = ({
           }
           return item;
         });
-        value = Array.isArray(localValues.tags) ? localValues.tags : tagIds;
+        const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
+        // Prefer full tag objects for display so labels render without
+        // depending on the currently search-scoped async options list.
+        value = tagObjects.length > 0 ? tagObjects : tagIds;
       }
     } else if (config.path === "common.productsUsed") {
       if (Array.isArray(value)) {
