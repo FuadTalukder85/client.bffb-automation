@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { Eye } from "lucide-react";
 import GlobalStatusBadge from "@/components/ui/StatusBadge";
 
@@ -263,10 +263,13 @@ export default function SensoryTopSheetTable({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-        columnPinning={columnPinning || { left: ["serial"], right: ["actions"] }}
-        onColumnPinningChange={onColumnPinningChange}
+        {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
+        enableSorting={true}
+        enableColumnResizing={true}
+        enablePinning={true}
+        enableHiding={true}
         rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
         headerRowClassName="bg-transparent"
         bodyRowClassName="border-0 group hover:bg-muted/30 transition-colors"

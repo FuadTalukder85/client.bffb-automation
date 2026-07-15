@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { AiFillThunderbolt } from "react-icons/ai";
 
 export default function DesktopMaintenanceItemsTable({
@@ -148,10 +148,13 @@ export default function DesktopMaintenanceItemsTable({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
-        onColumnPinningChange={onColumnPinningChange}
+        {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
+        enableSorting={true}
+        enableColumnResizing={true}
+        enablePinning={true}
+        enableHiding={true}
         rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
         headerRowClassName="bg-transparent"
         bodyRowClassName="border-0"

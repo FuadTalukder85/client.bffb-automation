@@ -1,6 +1,6 @@
 import React from "react";
 import { ClipboardList, Eye } from "lucide-react";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { Skeleton } from "@/components/ui/Skeleton";
 import { format } from "date-fns";
 
@@ -301,9 +301,7 @@ export function DesktopAccessHistoryTable({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-         // Adapt columnPinning logic
-        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
-        onColumnPinningChange={onColumnPinningChange}
+        {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
         bodyRowClassName="border-0"

@@ -116,6 +116,23 @@ export function useResponsiveSize(sizes, breakpoints = DEFAULT_DESKTOP_BREAKPOIN
   return getResponsiveSize(windowWidth, sizes, breakpoints);
 }
 
+export const DEFAULT_COLUMN_PINNING = { left: ["serial"], right: ["actions"] };
+
+export function getColumnPinningProps({ columnPinning, onColumnPinningChange } = {}) {
+  if (onColumnPinningChange) {
+    const hasCustomPins =
+      (columnPinning?.left?.length ?? 0) > 0 ||
+      (columnPinning?.right?.length ?? 0) > 0;
+
+    return {
+      columnPinning: hasCustomPins ? columnPinning : DEFAULT_COLUMN_PINNING,
+      onColumnPinningChange,
+    };
+  }
+
+  return { defaultColumnPinning: DEFAULT_COLUMN_PINNING };
+}
+
 export function PaginatedTable({
   data,
   columns,
@@ -164,8 +181,11 @@ export function PaginatedTable({
   const windowWidth = useWindowWidth();
   const [internalSorting, setInternalSorting] = React.useState([]);
   const [internalVisibility, setInternalVisibility] = React.useState({});
-  const [internalPinning, setInternalPinning] = React.useState(defaultColumnPinning ?? {});
+  const [internalPinning, setInternalPinning] = React.useState(
+    defaultColumnPinning ?? DEFAULT_COLUMN_PINNING
+  );
   const [internalSizing, setInternalSizing] = React.useState({});
+  const isControlledPinning = controlledPinning !== undefined;
 
   const resolvedRowGap = React.useMemo(() => {
     if (rowGap && typeof rowGap === "object") {
@@ -265,8 +285,27 @@ export function PaginatedTable({
 
   const sorting = controlledSorting ?? internalSorting;
   const columnVisibility = controlledVisibility ?? internalVisibility;
-  const columnPinning = controlledPinning ?? internalPinning;
+  const columnPinning = isControlledPinning ? controlledPinning : internalPinning;
   const columnSizing = controlledSizing ?? internalSizing;
+
+  const handleColumnPinningChange = React.useCallback(
+    (updater) => {
+      const resolveNext = (prev) =>
+        typeof updater === "function" ? updater(prev) : updater;
+
+      if (isControlledPinning) {
+        onColumnPinningChange?.(resolveNext(controlledPinning ?? {}));
+        return;
+      }
+
+      setInternalPinning((prev) => {
+        const next = resolveNext(prev);
+        onColumnPinningChange?.(next);
+        return next;
+      });
+    },
+    [isControlledPinning, controlledPinning, onColumnPinningChange]
+  );
 
   const handleSortingChange = (updater) => {
     const newSorting =
@@ -287,6 +326,7 @@ export function PaginatedTable({
     getCoreRowModel: getCoreRowModel(),
     columnResizeMode,
     enableColumnResizing,
+    enableColumnPinning: enablePinning,
     enableSorting,
     manualSorting: !!onSortingChange,
     defaultColumn: { size: 200, minSize: 50 },
@@ -298,7 +338,7 @@ export function PaginatedTable({
     },
     onSortingChange: handleSortingChange,
     onColumnVisibilityChange: onColumnVisibilityChange ?? setInternalVisibility,
-    onColumnPinningChange: onColumnPinningChange ?? setInternalPinning,
+    onColumnPinningChange: handleColumnPinningChange,
     onColumnSizingChange: onColumnSizingChange ?? setInternalSizing,
   });
 
@@ -655,8 +695,13 @@ export function PaginatedTable({
                 if (onColumnVisibilityChange) onColumnVisibilityChange({});
                 else setInternalVisibility({});
 
-                if (onColumnPinningChange) onColumnPinningChange({});
-                else setInternalPinning({});
+                const resetPinning = defaultColumnPinning ?? DEFAULT_COLUMN_PINNING;
+                if (isControlledPinning) {
+                  onColumnPinningChange?.(resetPinning);
+                } else {
+                  setInternalPinning(resetPinning);
+                  onColumnPinningChange?.(resetPinning);
+                }
 
                 if (onColumnSizingChange) onColumnSizingChange({});
                 else setInternalSizing({});

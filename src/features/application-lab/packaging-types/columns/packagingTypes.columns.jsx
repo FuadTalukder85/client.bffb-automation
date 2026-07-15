@@ -5,7 +5,7 @@ export const getPackagingTypesColumns = ({ serialOffset = 0, onEdit, onArchive, 
   {
     id: "serial",
     header: "SL",
-    headerClassName: "table-head-cell text-start",
+    headerClassName: "table-head-cell text-start sticky left-0 z-20 bg-background",
     cell: ({ row }) => (
       <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
         <span className="text-nav-highlight">{serialOffset + row.index + 1}</span>
@@ -31,7 +31,7 @@ export const getPackagingTypesColumns = ({ serialOffset = 0, onEdit, onArchive, 
   {
     id: "actions",
     header: "Actions",
-    headerClassName: "table-head-cell",
+    headerClassName: "table-head-cell sticky right-0 z-20 bg-background text-center",
     enablePinning: true,
     cell: ({ row }) => (
       <PackagingTypeActions

@@ -1,5 +1,5 @@
 import { AiFillThunderbolt } from "react-icons/ai";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { Skeleton } from "@/components/ui/Skeleton";
 import { format } from "date-fns";
 import { MdLockOpen, MdLockReset } from "react-icons/md";
@@ -426,8 +426,7 @@ const DesktopManageUserTable = ({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
-        onColumnPinningChange={onColumnPinningChange}
+        {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
         bodyRowClassName="border-0"

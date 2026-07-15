@@ -1,6 +1,6 @@
 import React from "react";
 import { AiFillThunderbolt } from "react-icons/ai";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { Skeleton } from "@/components/ui/Skeleton";
 
 export function DesktopAccessManagementTable({
@@ -250,8 +250,7 @@ export function DesktopAccessManagementTable({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
-        onColumnPinningChange={onColumnPinningChange}
+        {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
         bodyRowClassName="border-0"

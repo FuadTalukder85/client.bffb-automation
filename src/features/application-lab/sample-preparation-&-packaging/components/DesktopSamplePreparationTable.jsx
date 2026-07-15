@@ -1,5 +1,5 @@
 import React from "react";
-import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
+import { PaginatedTable, getResponsiveSize, getColumnPinningProps } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { Eye, AlertCircle } from "lucide-react";
 import { RecordStatusBadge } from "@/features/application-lab/application-lab-records/columns/applicationLabRecords.columns";
 import GlobalStatusBadge from "@/components/ui/StatusBadge";
@@ -339,8 +339,7 @@ export default function DesktopSamplePreparationTable({
                 onSortingChange={onSortingChange}
                 columnVisibility={columnVisibility}
                 onColumnVisibilityChange={onColumnVisibilityChange}
-                columnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
-                onColumnPinningChange={onColumnPinningChange}
+                {...getColumnPinningProps({ columnPinning, onColumnPinningChange })}
                 columnSizing={columnSizing}
                 onColumnSizingChange={onColumnSizingChange}
                 bodyRowClassName="border-0"
