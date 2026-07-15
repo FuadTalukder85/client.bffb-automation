@@ -231,7 +231,7 @@ export function DesktopInvitationTable({
         onSortingChange={onSortingChange}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
-        columnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
+        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
         onColumnPinningChange={onColumnPinningChange}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}

@@ -302,7 +302,7 @@ export function DesktopAccessHistoryTable({
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={onColumnVisibilityChange}
          // Adapt columnPinning logic
-        columnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
+        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
         onColumnPinningChange={onColumnPinningChange}
         columnSizing={columnSizing}
         onColumnSizingChange={onColumnSizingChange}
