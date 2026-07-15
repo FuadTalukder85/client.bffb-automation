@@ -6,7 +6,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  ArrowUpDown,
   Eye,
   EyeOff,
   Pin,
@@ -132,6 +131,7 @@ export function PaginatedTable({
   columnVisibility: controlledVisibility,
   onColumnPinningChange,
   columnPinning: controlledPinning,
+  defaultColumnPinning,
   onColumnSizingChange,
   columnSizing: controlledSizing,
   // Pagination props
@@ -164,7 +164,7 @@ export function PaginatedTable({
   const windowWidth = useWindowWidth();
   const [internalSorting, setInternalSorting] = React.useState([]);
   const [internalVisibility, setInternalVisibility] = React.useState({});
-  const [internalPinning, setInternalPinning] = React.useState({});
+  const [internalPinning, setInternalPinning] = React.useState(defaultColumnPinning ?? {});
   const [internalSizing, setInternalSizing] = React.useState({});
 
   const resolvedRowGap = React.useMemo(() => {
@@ -363,7 +363,6 @@ export function PaginatedTable({
                         const canHide =
                           enableHiding &&
                           header.column.columnDef.enableHiding !== false;
-                        const canSort = enableSorting && header.column.getCanSort();
 
                         const headerContent = (
                           <div className="flex-1 line-clamp-2">
@@ -402,7 +401,7 @@ export function PaginatedTable({
                             }}
                           >
                             <div className="flex items-center justify-between gap-0.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2">
-                              {canSort || canPin || canUnpin || canHide ? (
+                              {canPin || canUnpin || canHide ? (
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <div className="flex-1 cursor-pointer hover:bg-muted/50 rounded p-0.5 lg:p-0.5 xl:p-[2.5px] 2xl:p-[3px] 3xl:p-1">
@@ -413,28 +412,6 @@ export function PaginatedTable({
                                     className={"bg-background text-foreground"}
                                     align="end"
                                   >
-                                    {canSort && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            header.column.toggleSorting(false)
-                                          }
-                                        >
-                                          <ArrowUpDown className="w-4 h-4 mr-2" />
-                                          Sort Ascending
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            header.column.toggleSorting(true)
-                                          }
-                                        >
-                                          <ArrowUpDown className="w-4 h-4 mr-2" />
-                                          Sort Descending
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                      </>
-                                    )}
-
                                     {canPin && (
                                       <>
                                         <DropdownMenuItem

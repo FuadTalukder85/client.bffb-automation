@@ -267,7 +267,7 @@ export default function DesktopProjectListView({
         }}
         sorting={sorting}
         onSortingChange={setSorting}
-        columnPinning={{ left: ["serial"], right: ["actions"] }}
+        defaultColumnPinning={{ left: ["serial"], right: ["actions"] }}
         rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
         headerRowClassName="bg-transparent"
         bodyRowClassName="border-0 group hover:bg-muted/30 transition-colors"

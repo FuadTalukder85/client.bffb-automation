@@ -421,7 +421,7 @@ const TasksDesktop = () => {
               noDataMessage={noDataMessage}
               noDataDescription={noDataDescription}
               enablePinning={true}
-              columnPinning={{ right: ["actions"] }}
+              defaultColumnPinning={{ right: ["actions"] }}
             />
           </div>
         )}
@@ -444,7 +444,7 @@ const TasksDesktop = () => {
               noDataMessage={noDataMessage}
               noDataDescription={noDataDescription}
               enablePinning={true}
-              columnPinning={{ right: ["actions"] }}
+              defaultColumnPinning={{ right: ["actions"] }}
             />
           </div>
         )}
@@ -465,7 +465,7 @@ const TasksDesktop = () => {
               rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
               bodyCellClassName="first:pl-6 last:pr-6 py-0"
               enablePinning={true}
-              columnPinning={{ right: ["actions"] }}
+              defaultColumnPinning={{ right: ["actions"] }}
             />
           </div>
         )}

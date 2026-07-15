@@ -40,7 +40,7 @@ export const ApplicationLabRecordsTable = ({
         enableHiding={true}
         sorting={sorting}
         onSortingChange={onSortingChange}
-        columnPinning={{
+        defaultColumnPinning={{
           left: ["serial"],
           right: ["actions"],
         }}

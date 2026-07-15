@@ -123,7 +123,7 @@ export function DesktopFinalRecipeTableSkeleton({
         enablePinning={true}
         enableHiding={false}
         columnVisibility={columnVisibility}
-        columnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
+        defaultColumnPinning={columnPinning && (columnPinning.left || columnPinning.right) ? columnPinning : { left: ["serial"], right: ["actions"] }}
         columnSizing={columnSizing}
         bodyRowClassName="border-0 hover:bg-transparent"
         bodyCellClassName="first:pl-6 last:pr-6 py-4"

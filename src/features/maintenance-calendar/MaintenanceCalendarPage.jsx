@@ -586,7 +586,7 @@ export default function MaintenanceCalendarPage() {
             rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
             bodyRowClassName="border-0 hover:bg-muted/10 transition-colors"
             bodyCellClassName="py-3 px-4 first:rounded-l-2xl last:rounded-r-2xl"
-            columnPinning={columnPinning}
+            defaultColumnPinning={columnPinning}
             currentPage={currentPage}
             totalPages={Math.ceil(filteredRows.length / itemsPerPage)}
             onPageChange={setCurrentPage}

@@ -66,7 +66,7 @@ export default function CleanlinessItemsTableSkeleton({
                 enableColumnResizing={false}
                 enablePinning={true}
                 enableHiding={false}
-                columnPinning={columnPinning}
+                defaultColumnPinning={columnPinning}
                 bodyRowClassName="border-0 hover:bg-transparent"
                 bodyCellClassName="first:pl-6 last:pr-6 py-4"
                 showFooter={false}
