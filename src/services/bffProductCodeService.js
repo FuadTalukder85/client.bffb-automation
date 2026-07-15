@@ -69,4 +69,10 @@ export const bffProductCodeService = {
         const response = await api.get(`/bff-product-codes/${id}/recipes`);
         return response.data;
     },
+
+    // Sync all recipe ingredient prices with current BFF product costs
+    syncRecipePrices: async () => {
+        const response = await api.post("/bff-product-codes/sync-prices");
+        return response.data;
+    },
 };

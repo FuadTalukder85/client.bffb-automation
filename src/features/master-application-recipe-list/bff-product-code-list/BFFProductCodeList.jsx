@@ -18,7 +18,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
 import { Button } from "@/components/ui/Button";
 import { ActionButtonsGroup } from "@/components/ui/ActionButtonsGroup";
-import { Plus, Download, PlusCircleIcon, Trash2 } from "lucide-react";
+import { Plus, Download, PlusCircleIcon, Trash2, RefreshCw } from "lucide-react";
 import DesktopProductCodeTable from "./components/DesktopProductCodeTable";
 import MobileProductCodeCard from "./components/MobileProductCodeCard";
 import { ProductCodeTableSkeleton } from "./components/ProductCodeTableSkeleton";
@@ -30,6 +30,7 @@ import {
 } from "./components/ProductCodeModals";
 import { ViewProductDetailsModal } from "./components/ViewProductDetailsModal";
 import { UploadProductCodesModal } from "./components/UploadProductCodesModal";
+import { SyncRecipePricesModal } from "./components/SyncRecipePricesModal";
 import { ExportModal } from "@/components/ui/ExportModal";
 import { Upload } from "lucide-react";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -234,6 +235,7 @@ export default function BFFProductCodeList() {
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [isRemarksModalOpen, setIsRemarksModalOpen] = useState(false);
   const [selectedProductCode, setSelectedProductCode] = useState(null);
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
   // Table state with session storage persistence
   const [columnVisibility, setColumnVisibility] = useState(() =>
@@ -423,6 +425,22 @@ export default function BFFProductCodeList() {
     }
   };
 
+  const handleSyncConfirm = async () => {
+    try {
+      const response = await bffProductCodeService.syncRecipePrices();
+      toast.success(
+        getResponseMessage(response, "Recipe prices synced successfully")
+      );
+      refetch();
+    } catch (err) {
+      console.error("Failed to sync recipe prices:", err);
+      toast.error(
+        err?.response?.data?.message || err?.message || "Failed to sync recipe prices"
+      );
+      throw err;
+    }
+  };
+
   // Check if we're on a specific segment tab (not "all")
   const isSpecificSegment = selectedSegment !== "all";
 
@@ -511,9 +529,21 @@ export default function BFFProductCodeList() {
           className="py-4 pb-6 text-heading md:p-0 md:m-0"
         />
 
-        {isSpecificSegment && (
-          <ActionButtonsGroup actions={mobileActions} className="md:hidden" />
-        )}
+        <div className="flex items-center gap-2 md:hidden">
+          {canUpdate && (
+            <Button
+              size="icon"
+              onClick={() => setIsSyncModalOpen(true)}
+              title="Sync recipe prices with current product costs"
+              className="bg-primary text-background hover:bg-primary/90 rounded-full! shadow-sm"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </Button>
+          )}
+          {isSpecificSegment && (
+            <ActionButtonsGroup actions={mobileActions} />
+          )}
+        </div>
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
           <SearchInput
@@ -552,6 +582,17 @@ export default function BFFProductCodeList() {
               />
             </div>
             <div className="flex items-center gap-2">
+              {/* Sync button - always visible */}
+              {canUpdate && (
+                <Button
+                  size="icon"
+                  onClick={() => setIsSyncModalOpen(true)}
+                  title="Sync recipe prices with current product costs"
+                  className="transition-colors bg-primary text-background hover:bg-primary/90 rounded-full! shadow-sm"
+                >
+                  <RefreshCw className="desktop-page-btn" />
+                </Button>
+              )}
               {/* Show Create and Download buttons only on specific segment tabs */}
               {isSpecificSegment && actions.length > 0 && (
                 <div className="bg-primary flex desktop-page-btn-wrapper w-fit rounded-full! items-center shadow-sm">
@@ -746,6 +787,13 @@ export default function BFFProductCodeList() {
         uploadResult={uploadResult}
         uploadError={uploadError}
         selectedSegment={selectedSegment}
+      />
+
+      {/* Sync Recipe Prices Modal */}
+      <SyncRecipePricesModal
+        open={isSyncModalOpen}
+        onOpenChange={setIsSyncModalOpen}
+        onConfirm={handleSyncConfirm}
       />
 
       {/* Modals */}

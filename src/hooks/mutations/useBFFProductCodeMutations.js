@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
+import { bffProductCodeService } from "@/services/bffProductCodeService";
 
 const getSuccessMessage = (response, fallback) =>
   response?.message || response?.data?.message || fallback;
@@ -32,6 +33,7 @@ export function useUpdateBFFProductCode() {
     onSuccess: (response, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductCodes.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductCodes.detail(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all });
       toast.success(getSuccessMessage(response, "BFF product code updated successfully"));
     },
   });
@@ -102,6 +104,22 @@ export function useImportBFFProductCodes() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductCodes.all });
       toast.success(getSuccessMessage(response, "BFF product codes imported successfully"));
+    },
+  });
+}
+
+/**
+ * Hook for syncing all recipe ingredient prices with current BFF product costs
+ */
+export function useSyncRecipePrices() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => bffProductCodeService.syncRecipePrices(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bffProductCodes.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recipes.all });
+      toast.success(getSuccessMessage(response, "Recipe prices synced successfully"));
     },
   });
 }
