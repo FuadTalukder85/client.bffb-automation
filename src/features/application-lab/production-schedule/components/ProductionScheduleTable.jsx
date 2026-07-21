@@ -191,7 +191,14 @@ export default function ProductionScheduleTable({
         <table className="w-full border-collapse text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm">
           <thead>
             <tr className="dark:bg-gray-800">
-              <th className="bg-white border-b border-primary px-10 lg:px-5 xl:px-7 2xl:px-8 3xl:px-10 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 text-left font-medium sticky left-0 dark:bg-gray-800 z-20 transition-all duration-700 whitespace-nowrap">Project Code</th>
+              <th className="bg-white border-b border-primary px-10 lg:px-5 xl:px-7 2xl:px-8 3xl:px-10 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 text-left font-medium sticky left-0 dark:bg-gray-800 z-20 transition-all duration-700 whitespace-nowrap">
+                Project Code
+                <div className="absolute right-0.5 top-1/2 -translate-y-1/2 z-30">
+                  <button onClick={onToggleExpand} className="w-8 lg:w-4.5 xl:w-5.5 2xl:w-6.5 3xl:w-8 h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 rounded-full bg-[#EEEBF4] dark:bg-gray-800 border border-border shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex items-center justify-center">
+                    <ChevronRight className={`w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 text-gray-600 dark:text-gray-400 transition-transform duration-700 ${isExpanded ? "rotate-180" : "rotate-0"}`} />
+                  </button>
+                </div>
+              </th>
               <th className={`text-left font-medium dark:bg-gray-800 overflow-hidden whitespace-nowrap transition-all duration-700 ease-in-out ${isExpanded ? "border-b border-primary px-4 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 w-37.5 lg:w-20 xl:w-26 2xl:w-30 3xl:w-37.5 opacity-100" : "px-0 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 max-w-0 opacity-0"}`}>
                 <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>Project Name</span>
               </th>
@@ -208,15 +215,6 @@ export default function ProductionScheduleTable({
                 <th key={time} className="border border-border px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-3 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-3 text-center font-medium min-w-15 lg:min-w-8 xl:min-w-9.5 2xl:min-w-12 3xl:min-w-15 transition-all duration-700">{time}</th>
               ))}
               <th className="bg-white border border-border px-4 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 text-center font-medium sticky right-0 dark:bg-gray-800 z-20 min-w-25 transition-all duration-700">Action</th>
-            </tr>
-            <tr className="relative h-0">
-              <th colSpan={timeSlots.length + (isExpanded ? 6 : 2)} className="border-0 p-0 h-0 font-normal">
-                <div className={`absolute -top-3 z-20 transition-all duration-700 ease-in-out ${isExpanded ? "left-208 lg:left-122 xl:left-148 2xl:left-180 3xl:left-208" : "left-47 lg:left-25 xl:left-33 2xl:left-37 3xl:left-47"}`}>
-                  <button onClick={onToggleExpand} className="w-8 lg:w-4.5 xl:w-5.5 2xl:w-6.5 3xl:w-8 h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 rounded-full bg-[#EEEBF4] dark:bg-gray-800 border border-border shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 flex items-center justify-center">
-                    <ChevronRight className={`w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 text-gray-600 dark:text-gray-400 transition-transform duration-700 ${isExpanded ? "rotate-180" : "rotate-0"}`} />
-                  </button>
-                </div>
-              </th>
             </tr>
           </thead>
           <tbody>
