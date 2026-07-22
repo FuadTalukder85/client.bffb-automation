@@ -56,6 +56,12 @@ export default function RecordDetailsPage() {
   } = useSamplesByProject(record?._id, {
     searchTerm: debouncedSearchTerm,
     HODStatus: selectedStatus === "all" ? undefined : selectedStatus,
+    isActive:
+      activeToggle === "active"
+        ? true
+        : activeToggle === "archived"
+          ? false
+          : "all",
     page: currentPage,
     limit: itemsPerPage,
   });
@@ -163,14 +169,8 @@ export default function RecordDetailsPage() {
     },
   ];
 
-  // Filter logic for active/archived (client-side since API doesn't have this filter)
-  const filteredData = normalizedSamples.filter((item) => {
-    const matchesActive =
-      activeToggle === "all" ||
-      (activeToggle === "active" && item.status === "Active") ||
-      (activeToggle === "archived" && item.status === "Archived");
-    return matchesActive;
-  });
+  // Filter logic for active/archived (handled server-side via isActive)
+  const filteredData = normalizedSamples;
 
   const totalPages = pagination.totalPages || 0;
 
@@ -257,12 +257,7 @@ export default function RecordDetailsPage() {
             <div className="mt-6 md:hidden">
               {filteredData.length > 0 ? (
                 <div className="space-y-3">
-                  {filteredData
-                    .slice(
-                      (currentPage - 1) * itemsPerPage,
-                      currentPage * itemsPerPage,
-                    )
-                    .map((item, index) => (
+                  {filteredData.map((item, index) => (
                       <MobileRecordDetailsCard
                         key={item.id}
                         record={item}

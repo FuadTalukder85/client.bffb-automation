@@ -102,12 +102,9 @@ export const useSamplePreparationDetailLogic = (projectId) => {
         });
     }
 
-    // Calculate pagination for filtered samples
-    const totalItems = filteredSamples.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const paginatedSamples = filteredSamples.slice(startIndex, endIndex);
+  // Calculate pagination from API — samples are already one page
+    const totalPages = pagination.totalPages || 0;
+    const paginatedSamples = filteredSamples;
 
     const handleSearchChange = (value) => {
         setSearchTerm(value);

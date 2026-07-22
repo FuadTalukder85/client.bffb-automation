@@ -125,21 +125,7 @@ export default function SensoryTopSheet() {
     }));
   }, [projects]);
 
-  const paginatedData = useMemo(() => {
-    // Note: If API already paginates, filteredData is already the current page.
-    // If API returns more (e.g. client-side filtering or non-paginated API), we slice here.
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    
-    // Check if the data is already the right length (server-side pagination).
-    // If filteredData length is <= itemsPerPage, we assume it's already one page.
-    if (filteredData.length <= itemsPerPage && currentPage === pagination.page) {
-      return filteredData;
-    }
-    
-    // If not, we slice it (client-side pagination fallback).
-    return filteredData.slice(start, end);
-  }, [filteredData, currentPage, itemsPerPage, pagination.page]);
+  const paginatedData = filteredData;
 
   const handleViewDetails = (project) => {
     const id = project?._id || project?.id || project?.projectId;

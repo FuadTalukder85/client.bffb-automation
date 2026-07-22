@@ -143,24 +143,12 @@ export default function SensoryFormProjectListPage() {
     }));
   }, [projects]);
 
-  const paginatedProjects = useMemo(() => {
-    // Note: If API already paginates, normalizedProjects is already the current page.
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    
-    if (normalizedProjects.length <= itemsPerPage && currentPage === pagination.page) {
-      return normalizedProjects;
-    }
-    
-    return normalizedProjects.slice(start, end);
-  }, [normalizedProjects, currentPage, itemsPerPage, pagination.page]);
-
   const commonProps = {
     searchTerm,
     handleSearchChange,
     error,
     isLoading,
-    normalizedProjects: paginatedProjects,
+    normalizedProjects,
     currentPage,
     totalPages,
     setCurrentPage,

@@ -41,6 +41,7 @@ export default function SensorySampleListPage() {
     isLoading,
     error,
   } = useSensorySamplesByProject(projectId, {
+    searchTerm,
     page: currentPage,
     limit: itemsPerPage,
   });
@@ -89,30 +90,13 @@ export default function SensorySampleListPage() {
   ], [selectedStatus]);
 
   const filteredSamples = useMemo(() => {
-    let filtered = samples;
-    
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(sample => sample.packagingStatus === selectedStatus);
-    }
-    
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(sample => 
-        (sample.recipeCode && sample.recipeCode.toLowerCase().includes(term)) ||
-        (sample.recipeName && sample.recipeName.toLowerCase().includes(term)) ||
-        (sample.applicationRecipeName && sample.applicationRecipeName.toLowerCase().includes(term))
-      );
-    }
-    
-    return filtered;
-  }, [samples, selectedStatus, searchTerm]);
+    if (selectedStatus === "all") return samples;
+    return samples.filter((sample) => sample.packagingStatus === selectedStatus);
+  }, [samples, selectedStatus]);
 
-  const paginatedSamples = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredSamples.slice(start, start + itemsPerPage);
-  }, [filteredSamples, currentPage, itemsPerPage]);
-
-  const totalPagesDisplay = Math.ceil(filteredSamples.length / itemsPerPage);
+  // API already returns the current page — do not slice again
+  const paginatedSamples = filteredSamples;
+  const totalPagesDisplay = totalPages;
 
   const formatDate = (date) => {
     if (!date) return "—";

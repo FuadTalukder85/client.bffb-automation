@@ -236,7 +236,6 @@ export default function ApplicationLabRecordsPage() {
               ) : filteredData.length > 0 ? (
                 <div className="space-y-3">
                   {filteredData
-                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                     .map((record, index) => (
                       <MobileApplicationLabRecordsCard
                         key={record.id}

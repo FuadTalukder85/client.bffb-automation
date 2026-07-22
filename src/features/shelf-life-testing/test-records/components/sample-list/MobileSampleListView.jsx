@@ -83,7 +83,7 @@ export default function MobileSampleListView({
       {data.length > 0 ? (
         <div className="flex flex-col flex-1 w-full min-h-0 py-4 overflow-y-auto custom-scrollbar">
           <div className="space-y-4">
-            {data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((sample, index) => (
+            {data.map((sample, index) => (
               <MobileShelfLifeSampleCard
                 key={sample.id || sample._id || index}
                 sample={sample}
