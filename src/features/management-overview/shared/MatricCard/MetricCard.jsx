@@ -17,7 +17,7 @@ function MetricCard({ title, value, icon: Icon, description, isLoading, colorCla
     return (
         <div
             className={cn(
-                "relative flex 3xl:min-h-22.5 2xl:min-h-20 xl:min-h-18 lg:min-h-16 min-h-14 w-full flex-col gap-2 rounded-md border-[0.8px] border-transparent bg-no-repeat px-3.5 3xl:py-3 2xl:py-2.5 xl:py-2 lg:py-1.5 py-1",
+                "relative flex 3xl:min-h-22.5 2xl:min-h-20 xl:min-h-18 lg:min-h-16 min-h-14 w-full flex-col gap-2 rounded-md border-[0.8px] border-transparent bg-no-repeat px-1.5 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-3.5 3xl:py-3 2xl:py-2.5 xl:py-2 lg:py-1.5 py-1",
                 rowCardClass
             )}
         >
@@ -31,7 +31,7 @@ function MetricCard({ title, value, icon: Icon, description, isLoading, colorCla
 
             <div
                 className={cn(
-                    "absolute right-4 top-3 flex 3xl:h-10 2xl:h-8 xl:h-6.5 lg:h-5 h-6 3xl:w-10 2xl:w-8 xl:w-6.5 lg:w-5 w-6 items-center justify-center 3xl:rounded-lg 2xl:rounded-md xl:rounded-sm lg:rounded-sm rounded-[5px] bg-[#D0C2E5]! dark:bg-[#5D3294]!",
+                    "absolute right-1.5 lg:right-2 xl:right-2.5 2xl:right-3 3xl:right-4 top-1 lg:top-1.5 xl:top-2 2xl:top-2.5 3xl:top-3 flex 3xl:h-10 2xl:h-8 xl:h-6.5 lg:h-5 h-6 3xl:w-10 2xl:w-8 xl:w-6.5 lg:w-5 w-6 items-center justify-center 3xl:rounded-lg 2xl:rounded-md xl:rounded-sm lg:rounded-sm rounded-[5px] bg-[#D0C2E5]! dark:bg-[#5D3294]!",
                     colorClass
                 )}
             >

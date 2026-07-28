@@ -60,8 +60,8 @@ const StatusBarChart = ({ data, dateRangeLabel, isLoading }) => {
           <div className="flex-1 flex justify-around items-end pb-10 px-10">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="flex flex-col items-center gap-2 w-full">
-                <Skeleton 
-                  className="w-6 md:w-12 rounded-t-[10px]" 
+                <Skeleton
+                  className="w-6 md:w-12 rounded-t-[10px]"
                   style={{ height: `${20 + Math.random() * 60}%` }}
                 />
                 <Skeleton className="w-12 md:w-16 h-3 md:h-4 rounded-sm mt-4" />
@@ -97,7 +97,7 @@ const StatusBarChart = ({ data, dateRangeLabel, isLoading }) => {
         </div>
 
         {/* Content Area Wrap */}
-        <div className="flex-1 overflow-x-auto custom-scrollbar pb-2">
+        <div className="flex-1 overflow-x-auto overflow-y-visible custom-scrollbar pb-2">
           {hasData ? (
             <div className="relative h-full flex flex-col min-w-[500px]">
               {/* Grid Lines */}
@@ -112,11 +112,15 @@ const StatusBarChart = ({ data, dateRangeLabel, isLoading }) => {
 
               {/* Bars Container */}
               <div className="absolute inset-x-0 top-0 bottom-10 flex justify-around items-end z-10 px-10">
-                {displayData.map((item, index) => (
+                {displayData.map((item, index) => {
+                  const barPct = (item.count / roundedMax) * 100;
+                  // If bar is tall (>70%), tooltip won't fit above — position it inside the bar
+                  const tooltipAbove = barPct <= 70;
+                  return (
                   <div
                     key={item.label}
                     className="relative group flex flex-col items-center"
-                    style={{ height: `${(item.count / roundedMax) * 100}%` }}
+                    style={{ height: `${barPct}%` }}
                     onMouseEnter={() => setActiveIdx(index)}
                     onMouseLeave={() => setActiveIdx(null)}
                     onClick={() => setActiveIdx(activeIdx === index ? null : index)}
@@ -139,16 +143,20 @@ const StatusBarChart = ({ data, dateRangeLabel, isLoading }) => {
 
                     {/* Interactive Tooltip */}
                     {activeIdx === index && (
-                      <div className="absolute top-[-50px] left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-50 animate-in fade-in zoom-in duration-200">
+                      <div
+                        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none z-50 animate-in fade-in zoom-in duration-200"
+                        style={{ top: tooltipAbove ? '-50px' : '10px' }}
+                      >
                         <div className="bg-white dark:bg-[#2D213D] px-3 py-2 rounded-xl shadow-[0_8px_20px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-nav-highlight/20 min-w-[120px]">
-                           <span className="text-body text-[#9C9C9C] dark:text-gray-400 font-normal leading-none mb-1">{item.label} :</span>
-                           <span className="text-body font-bold pl-1" style={{ color: item.text }}>{item.count}</span>
+                          <span className="text-body text-[#9C9C9C] dark:text-gray-400 font-normal leading-none mb-1">{item.label} :</span>
+                          <span className="text-body font-bold pl-1" style={{ color: item.text }}>{item.count}</span>
                         </div>
                         <div className="w-4 h-4 rounded-full border-4 border-white dark:border-[#2D213D] -mt-2 shadow-sm" style={{ backgroundColor: item.text }} />
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (

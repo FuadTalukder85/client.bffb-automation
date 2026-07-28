@@ -169,7 +169,7 @@ function ApplicationLabDashboard() {
                 value={dateRange}
                 onChange={handleDateRangeChange}
               />
-        </div>
+            </div>
           </div>
 
           <div className="items-center gap-3 md:flex">
@@ -177,11 +177,11 @@ function ApplicationLabDashboard() {
           </div>
         </div>
 
-        
+
       </div>
 
       <div className="flex flex-col gap-4 md:gap-4 xl:gap-3 3xl:gap-7">
-        <div className="grid gap-3 md:gap-4 grid-cols-1 lg:grid-cols-6 mt-4 md:mt-2">
+        <div className="grid gap-3 lg:gap-1 xl:gap-2 2xl:gap-3 3xl:gap-4 grid-cols-1 lg:grid-cols-6 mt-4 md:mt-2">
           {cards.map((card, cardIdx) => (
             <MetricCard
               key={cardIdx}
