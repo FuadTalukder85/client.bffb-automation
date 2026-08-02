@@ -18,6 +18,7 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import {
   BFF_PRODUCT_SEGMENT_LABELS as BFF_PRODUCT_TAXONOMY_LABELS,
+  BFF_PRODUCT_SEGMENT_KINDS as BFF_PRODUCT_TAXONOMY_KINDS,
   isValidSegmentKind as isValidTaxonomyKind,
 } from "@/constants/bffProductSegment";
 import { useBFFProductSegment as useBFFProductTaxonomy } from "@/hooks/useBFFProductSegment";
@@ -28,12 +29,30 @@ import {
   useRestoreBFFProductSegmentItem as useRestoreBFFProductTaxonomyItem,
 } from "@/hooks/mutations/useBFFProductSegmentMutations";
 import SegmentActions from "./components/SegmentActions";
+import DesktopSegmentTable from "./components/DesktopSegmentTable";
 import { SegmentFormModal } from "./components/Modals/SegmentFormModal";
 import { SegmentConfirmModal } from "./components/Modals/SegmentConfirmModal";
 
+/**
+ * Hook to retrieve product segments (kind: "segment") from BFFProductSegmentPage data source.
+ */
+export function useBFFProductSegments() {
+  const { data } = useBFFProductTaxonomy(BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT, {
+    status: "active",
+    page: 1,
+    limit: 200,
+  });
+  return data?.data || [];
+}
+
 export default function BFFProductSegmentPage() {
-  const { kind } = useParams();
+  const { kind: paramKind } = useParams();
+  const kind = paramKind || BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT;
   const label = BFF_PRODUCT_TAXONOMY_LABELS[kind] || "Taxonomy";
+
+  if (paramKind === BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT) {
+    return <Navigate to="/bff-product/segment" replace />;
+  }
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedState, setSelectedState] = useState("active");
@@ -166,64 +185,6 @@ export default function BFFProductSegmentPage() {
   ];
 
   const serialOffset = (currentPage - 1) * itemsPerPage;
-  const columns = useMemo(
-    () => [
-      {
-        id: "serial",
-        header: "SL",
-        headerClassName: "table-head-cell text-start sticky left-0 z-20 bg-background",
-        cell: ({ row }) => (
-          <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
-            <span className="text-nav-highlight">{serialOffset + row.index + 1}</span>
-          </div>
-        ),
-        size: getResponsiveSize({ lg: 32, xl: 43, "2xl": 48, "3xl": 60 }),
-        enableSorting: false,
-        enableHiding: false,
-        enablePinning: true,
-      },
-      {
-        accessorKey: "name",
-        header: label,
-        headerClassName: "table-head-cell",
-        cell: ({ getValue }) => (
-          <span className="font-medium text-nav-highlight">{getValue() || "—"}</span>
-        ),
-        minSize: 400,
-        size: getResponsiveSize({ lg: 320, xl: 427, "2xl": 480, "3xl": 600 }),
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        headerClassName: "table-head-cell sticky right-0 z-20 bg-background text-center",
-        enablePinning: true,
-        cell: ({ row }) => (
-          <SegmentActions
-            data={row.original}
-            onEdit={(item) => {
-              setSelectedItem(item);
-              setIsFormModalOpen(true);
-            }}
-            onArchive={(item) => {
-              setSelectedItem(item);
-              setIsArchiveModalOpen(true);
-            }}
-            onRestore={(item) => {
-              setSelectedItem(item);
-              setIsRestoreModalOpen(true);
-            }}
-            isArchived={selectedState === "archived" || row.original.isActive === false}
-            canUpdate={canUpdate}
-            canDelete={canDelete}
-          />
-        ),
-        size: getResponsiveSize({ lg: 64, xl: 85, "2xl": 96, "3xl": 120 }),
-        enableSorting: false,
-        enableHiding: false,
-      },
-    ],
-    [serialOffset, label, selectedState, canUpdate, canDelete]
-  );
 
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
@@ -328,54 +289,49 @@ export default function BFFProductSegmentPage() {
               )}
             </div>
 
-            <div className="hidden px-2 md:flex-1 md:flex md:flex-col md:min-h-0">
-              <PaginatedTable
-                data={items}
-                columns={columns}
-                enableSelection={!isMobile && selectedState !== "archived" && canDelete}
-                selectedRowIds={selectedRowIds}
-                onSelectionChange={setSelectedRowIds}
-                canSelectRow={(item) => item.isActive ?? true}
-                onBulkArchiveClick={() => {
-                  const selectedObjects = items.filter((r) =>
-                    selectedRowIds.includes(r._id || r.id)
-                  );
-                  setSelectedItem(selectedObjects);
-                  setIsArchiveModalOpen(true);
-                }}
-                className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
-                rowGap={{ "3xl": "16px", "2xl": "13px", xl: "11.5px", lg: "8.5px", normal: "8px" }}
-                enableSorting={true}
-                enableColumnResizing={false}
-                enablePinning={true}
-                enableHiding={false}
-                sorting={sorting}
-                onSortingChange={setSorting}
-                defaultColumnPinning={{ left: ["serial"], right: ["actions"] }}
-                bodyRowClassName="border-0"
-                bodyCellClassName="first:pl-6 last:pr-6 py-0 bg-background transition-colors"
-                currentPage={currentPage}
-                totalPages={pagination.totalPages}
-                onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                onItemsPerPageChange={(val) => {
-                  setItemsPerPage(val);
-                  setCurrentPage(1);
-                }}
-                isLoading={isLoading}
-                emptyState={
-                  hasError ? (
-                    <div className="py-10 text-center text-red-500">{errorMessage}</div>
-                  ) : null
-                }
-                noDataMessage="No Records Found"
-                noDataDescription={
-                  searchTerm
-                    ? `No ${label.toLowerCase()} match "${searchTerm}". Try adjusting your search.`
-                    : `No ${label.toLowerCase()} available yet.`
-                }
-              />
-            </div>
+            <DesktopSegmentTable
+              items={items}
+              label={label}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalPages={pagination.totalPages}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => {
+                setItemsPerPage(val);
+                setCurrentPage(1);
+              }}
+              onEdit={(item) => {
+                setSelectedItem(item);
+                setIsFormModalOpen(true);
+              }}
+              onArchive={(item) => {
+                setSelectedItem(item);
+                setIsArchiveModalOpen(true);
+              }}
+              onRestore={(item) => {
+                setSelectedItem(item);
+                setIsRestoreModalOpen(true);
+              }}
+              selectedState={selectedState}
+              canUpdate={canUpdate}
+              canDelete={canDelete}
+              isMobile={isMobile}
+              selectedRowIds={selectedRowIds}
+              onSelectionChange={setSelectedRowIds}
+              onBulkArchiveClick={() => {
+                const selectedObjects = items.filter((r) =>
+                  selectedRowIds.includes(r._id || r.id)
+                );
+                setSelectedItem(selectedObjects);
+                setIsArchiveModalOpen(true);
+              }}
+              sorting={sorting}
+              onSortingChange={setSorting}
+              isLoading={isLoading}
+              hasError={hasError}
+              errorMessage={errorMessage}
+              searchTerm={searchTerm}
+            />
           </>
         )}
 

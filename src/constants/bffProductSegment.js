@@ -46,6 +46,6 @@ export const getBFFProductSegmentNavItems = () =>
   BFF_PRODUCT_SEGMENT_KIND_VALUES.map((kind) => ({
     id: `bff-product-segment-${kind}`,
     label: BFF_PRODUCT_SEGMENT_LABELS[kind],
-    path: `/bff-product/segment/${kind}`,
+    path: kind === BFF_PRODUCT_SEGMENT_KINDS.SEGMENT ? "/bff-product/segment" : `/bff-product/segment/${kind}`,
   }));
 export const getBFFProductTaxonomyNavItems = getBFFProductSegmentNavItems;

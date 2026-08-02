@@ -152,6 +152,14 @@ const bffProductRoutes = [
     ),
   },
   {
+    path: "bff-product/segment",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_SEGMENT.READ}>
+        <LazyWrapper><BFFProductSegmentPage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
     path: "bff-product/segment/:kind",
     element: (
       <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_SEGMENT.READ}>
