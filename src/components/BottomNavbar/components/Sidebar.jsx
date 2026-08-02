@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
+import { getBFFProductTaxonomyNavItems } from "@/constants/bffProductTaxonomy";
 import { resolveAvatarUrl } from "@/utils/avatarUrl";
 import { NavIcon } from "@/components/Sidebar/NavIcon";
 import { hasPermission as checkPermission } from "@/lib/utils";
@@ -143,7 +144,6 @@ export function Sidebar({
     ...(() => {
       const subItems = [
         ...(hasPermission(PERMISSIONS.RECIPE.READ) ? [{ id: "application-recipes", label: "Application Recipes", path: "/application-recipes" }] : []),
-        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_CODE.READ) ? [{ id: "bff-product-code-list", label: "BFF Product Code List", path: "/bff-product-code-list" }] : []),
         ...(hasPermission(PERMISSIONS.CATEGORY.READ) ? [{ id: "application-categories", label: "Application Categories", path: "/application-categories" }] : []),
       ];
       return subItems.length > 0 ? [{
@@ -153,6 +153,25 @@ export function Sidebar({
         iconDark: MasterRecipesIconWhite,
         subItems
       }] : [];
+    })(),
+    ...(() => {
+      const subItems = [
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
+          ? [{ id: "bff-product-list", label: "Product List", path: "/bff-product/list" }]
+          : []),
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_TAXONOMY.READ)
+          ? getBFFProductTaxonomyNavItems()
+          : []),
+      ];
+      return subItems.length > 0
+        ? [{
+            id: "bff-product",
+            label: "BFF Product",
+            icon: MasterRecipesIcon,
+            iconDark: MasterRecipesIconWhite,
+            subItems,
+          }]
+        : [];
     })(),
     ...(hasPermission(PERMISSIONS.DISPATCH.READ) ? [{
       id: "sample-dispatch",

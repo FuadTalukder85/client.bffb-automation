@@ -10,10 +10,9 @@ import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  useBFFProductCodes,
-  PRODUCT_SEGMENTS,
-} from "@/hooks/useBFFProductCodes";
+import { useBFFProductCodes } from "@/hooks/useBFFProductCodes";
+import { useBFFProductTaxonomy } from "@/hooks/useBFFProductTaxonomy";
+import { BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductTaxonomy";
 import { useDebounce } from "@/hooks/useDebounce";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
 import { Button } from "@/components/ui/Button";
@@ -65,15 +64,6 @@ const setStoredValue = (key, value) => {
   }
 };
 
-// Segment tabs
-const segmentTabs = [
-  { label: "All", value: "all" },
-  { label: "Flavours", value: PRODUCT_SEGMENTS.FLAVOURS },
-  { label: "Colours", value: PRODUCT_SEGMENTS.COLOURS },
-  { label: "Ingredients", value: PRODUCT_SEGMENTS.INGREDIENTS },
-  { label: "Seasonings", value: PRODUCT_SEGMENTS.SEASONINGS },
-];
-
 // State filter options
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -105,11 +95,36 @@ export default function BFFProductCodeList() {
   const fileInputRef = useRef(null);
   const { permissions, loading: permissionsLoading } = useUserPermissions();
 
+  const { data: segmentTaxonomy } = useBFFProductTaxonomy(BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT, {
+    status: "active",
+    page: 1,
+    limit: 200,
+  });
+
+  const segmentTabs = useMemo(() => {
+    const items = (segmentTaxonomy?.data || []).map((item) => ({
+      label: item.name,
+      value: item.id || item._id,
+    }));
+    return [{ label: "All", value: "all" }, ...items];
+  }, [segmentTaxonomy]);
+
+  // Drop stale legacy enum filters (e.g. "colours") once taxonomy tabs have loaded
+  useEffect(() => {
+    if (selectedSegment === "all") return;
+    if (!segmentTaxonomy?.data) return;
+    const exists = segmentTabs.some((tab) => tab.value === selectedSegment);
+    if (!exists) setSelectedSegment("all");
+  }, [selectedSegment, segmentTabs, segmentTaxonomy]);
+
+  const selectedSegmentLabel =
+    segmentTabs.find((tab) => tab.value === selectedSegment)?.label || selectedSegment;
+
   const noDataMessage = "No Records Found";
   const noDataDescription = searchTerm
     ? `No product codes match "${searchTerm}". Try adjusting your search.`
     : selectedSegment !== "all"
-      ? `No product codes in the ${selectedSegment} segment.`
+      ? `No product codes in the ${selectedSegmentLabel} segment.`
       : "No product codes available yet.";
 
 
@@ -444,19 +459,22 @@ export default function BFFProductCodeList() {
   // Check if we're on a specific segment tab (not "all")
   const isSpecificSegment = selectedSegment !== "all";
 
-  const canImport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.IMPORT);
-  const canExport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.EXPORT);
-  const canCreate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.CREATE);
-  const canUpdate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.UPDATE);
-  const canArchive = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.DELETE);
-  const canManageCommercialized = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.MANAGE_COMMERCIALIZED);
+  const canImport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.IMPORT);
+  const canExport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.EXPORT);
+  const canCreate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.CREATE);
+  const canUpdate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.UPDATE);
+  const canArchive = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.DELETE);
+  const canManageCommercialized = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.MANAGE_COMMERCIALIZED);
 
   const canRestore = canUpdate;
 
   const canEditRecord = useCallback(
     (record) => {
       if (!canUpdate) return false;
-      return record?.commercializedProductCode ? canManageCommercialized : true;
+      const isCommercialized = Boolean(
+        record?.commercialCode || record?.commercializedProductCode
+      );
+      return isCommercialized ? canManageCommercialized : true;
     },
     [canManageCommercialized, canUpdate],
   );
@@ -464,7 +482,10 @@ export default function BFFProductCodeList() {
   const canArchiveRecord = useCallback(
     (record) => {
       if (!canArchive) return false;
-      return record?.commercializedProductCode ? canManageCommercialized : true;
+      const isCommercialized = Boolean(
+        record?.commercialCode || record?.commercializedProductCode
+      );
+      return isCommercialized ? canManageCommercialized : true;
     },
     [canArchive, canManageCommercialized],
   );

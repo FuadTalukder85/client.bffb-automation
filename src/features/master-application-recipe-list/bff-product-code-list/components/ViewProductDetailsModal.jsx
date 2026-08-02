@@ -13,23 +13,11 @@ import { ViewProductDetailsModalMobile } from "./ViewProductDetailsModalMobile";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-
-// Demo recipe data for the Recipe List section
-const DEMO_RECIPES = [
-    { id: 1, recipeCode: "REC 012345", recipeName: "Strawberry Jam Cake" },
-    { id: 2, recipeCode: "REC 012345", recipeName: "Strawberry Jam Cake" },
-    { id: 3, recipeCode: "REC 012345", recipeName: "Strawberry Jam Cake" },
-    { id: 4, recipeCode: "REC 012345", recipeName: "Strawberry Jam Cake" },
-    { id: 5, recipeCode: "REC 012345", recipeName: "Strawberry Jam Cake" },
-];
-
-// Segment display mapping
-const segmentDisplayMap = {
-    flavours: "Flavours",
-    colours: "Colours",
-    ingredients: "Ingredients",
-    seasonings: "Seasonings",
-};
+import {
+    getProductDisplayCode,
+    getProductDisplayName,
+    getTaxonomyLabel,
+} from "../utils/productDisplay";
 
 export function ViewProductDetailsModal({
     open,
@@ -71,10 +59,12 @@ export function ViewProductDetailsModal({
         fetchRecipes();
     }, [open, productCode?._id]);
 
-    const isCommercialized = Boolean(productCode?.commercializedProductCode);
-    const displayProductCode = productCode?.commercializedProductCode || productCode?.displayProductCode || productCode?.productCode || "N/A";
-    const displayName = productCode?.name || "N/A";
-    const displaySegment = segmentDisplayMap[productCode?.segment] || productCode?.segment || "N/A";
+    const isCommercialized = Boolean(
+        productCode?.commercialCode || productCode?.commercializedProductCode
+    );
+    const displayProductCode = getProductDisplayCode(productCode);
+    const displayName = getProductDisplayName(productCode);
+    const displaySegment = getTaxonomyLabel(productCode?.segment);
     const displayStatus = isCommercialized ? "Commercialized" : "Experimental";
     
     const filteredRecipes = recipes.filter(recipe => 

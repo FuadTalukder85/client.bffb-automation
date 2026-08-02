@@ -5,7 +5,7 @@
  * Keep in sync with: server/src/constants/permissions.js
  * 
  * NAMING CONVENTION (ENFORCED):
- * - Resources: kebab-case (e.g., 'project', 'bff-product-code', 'internal-task')
+ * - Resources: kebab-case (e.g., 'project', 'bff-product', 'internal-task')
  * - Actions: lowercase (e.g., 'read', 'create', 'update', 'delete')
  * - Sections: camelCase (e.g., 'masterProject', 'applicationLab')
  * - Fields: dot notation camelCase (e.g., 'masterProject.code')
@@ -38,7 +38,8 @@ export const RESOURCES = {
   SUBCATEGORY: 'subcategory',
   SUBSUBCATEGORY: 'subsubcategory',
   RECIPE: 'recipe',
-  BFF_PRODUCT_CODE: 'bff-product-code',
+  BFF_PRODUCT: 'bff-product',
+  BFF_PRODUCT_TAXONOMY: 'bff-product-taxonomy',
   SENSORY_EVALUATION: 'sensory-evaluation',
   SENSORY_FORM: 'sensory-form',
   SENSORY_TOP_SHEET: 'sensory-top-sheet',
@@ -757,15 +758,33 @@ export const PERMISSIONS = {
     VIEW_ALL_MANAGE_RECIPE_PROJECTS: PermissionBuilder.resource(RESOURCES.RECIPE, ACTIONS.VIEW_ALL_MANAGE_RECIPE_PROJECTS),
     MANAGE: PermissionBuilder.wildcard(RESOURCES.RECIPE),
   },
+  BFF_PRODUCT: {
+    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.CREATE),
+    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.READ),
+    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.UPDATE),
+    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.DELETE),
+    MANAGE_COMMERCIALIZED: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.MANAGE_COMMERCIALIZED),
+    IMPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.IMPORT),
+    EXPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.EXPORT),
+    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT),
+  },
+  BFF_PRODUCT_TAXONOMY: {
+    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.CREATE),
+    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.READ),
+    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.UPDATE),
+    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.DELETE),
+    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT_TAXONOMY),
+  },
+  /** @deprecated Alias — use BFF_PRODUCT */
   BFF_PRODUCT_CODE: {
-    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.CREATE),
-    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.READ),
-    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.UPDATE),
-    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.DELETE),
-    MANAGE_COMMERCIALIZED: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.MANAGE_COMMERCIALIZED),
-    IMPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.IMPORT),
-    EXPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_CODE, ACTIONS.EXPORT),
-    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT_CODE),
+    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.CREATE),
+    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.READ),
+    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.UPDATE),
+    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.DELETE),
+    MANAGE_COMMERCIALIZED: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.MANAGE_COMMERCIALIZED),
+    IMPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.IMPORT),
+    EXPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.EXPORT),
+    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT),
   },
   SENSORY_EVALUATION: {
     CREATE: PermissionBuilder.resource(RESOURCES.SENSORY_EVALUATION, ACTIONS.CREATE),
@@ -1141,6 +1160,8 @@ export const RESOURCE_SCOPES = {
   permission: 'global',
   invitation: 'global',
   audit: 'global',
+  'bff-product': 'global',
+  'bff-product-taxonomy': 'global',
   client: 'crm',
   campaign: 'crm',
   prospect: 'crm',

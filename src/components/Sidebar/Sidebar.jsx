@@ -11,6 +11,7 @@ import api from "@/lib/api";
 import { NavIcon } from "./NavIcon";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
+import { getBFFProductTaxonomyNavItems } from "@/constants/bffProductTaxonomy";
 import { hasPermission as checkPermission } from "@/lib/utils";
 import { resolveAvatarUrl } from "@/utils/avatarUrl";
 
@@ -168,7 +169,6 @@ export function Sidebar() {
     ...(() => {
       const subItems = [
         ...(hasPermission(PERMISSIONS.RECIPE.READ) ? [{ id: "application-recipes", label: "Application Recipes", path: "/application-recipes" }] : []),
-        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_CODE.READ) ? [{ id: "bff-product-code-list", label: "BFF Product Code List", path: "/bff-product-code-list" }] : []),
         ...(hasPermission(PERMISSIONS.CATEGORY.READ) ? [{ id: "application-categories", label: "Application Categories", path: "/application-categories" }] : []),
       ];
       return subItems.length > 0 ? [{
@@ -177,6 +177,25 @@ export function Sidebar() {
         iconName: "master-application-recipe-list",
         subItems
       }] : [];
+    })(),
+
+    ...(() => {
+      const subItems = [
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
+          ? [{ id: "bff-product-list", label: "Product List", path: "/bff-product/list" }]
+          : []),
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_TAXONOMY.READ)
+          ? getBFFProductTaxonomyNavItems()
+          : []),
+      ];
+      return subItems.length > 0
+        ? [{
+            id: "bff-product",
+            label: "BFF Product",
+            iconName: "master-application-recipe-list",
+            subItems,
+          }]
+        : [];
     })(),
 
     ...(hasPermission(PERMISSIONS.DISPATCH.READ) ? [{

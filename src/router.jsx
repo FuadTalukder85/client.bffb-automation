@@ -50,6 +50,7 @@ const ApplicationSubcategories = lazy(() => import("./features/master-applicatio
 const ApplicationSubSubcategories = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationSubSubcategories.jsx"));
 const ApplicationTags = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationTags.jsx"));
 const BFFProductCodeList = lazy(() => import("./features/master-application-recipe-list/bff-product-code-list/BFFProductCodeList.jsx"));
+const BFFProductTaxonomyPage = lazy(() => import("./features/bff-product/taxonomy/BFFProductTaxonomyPage.jsx"));
 const DispatchPage = lazy(() => import("./features/dispatch/DispatchListPage.jsx"));
 const MasterProjects = lazy(() => import("./features/project-overview/master-project/MasterProjects.jsx"));
 const MasterProjectDetails = lazy(() => import("./features/project-overview/master-project/MasterProjectDetails.jsx"));
@@ -137,8 +138,27 @@ const masterApplicationRecipeRoutes = [
   },
   {
     path: "bff-product-code-list",
-    element: <LazyWrapper><BFFProductCodeList /></LazyWrapper>,
+    element: <Navigate to="/bff-product/list" replace />,
   }
+];
+
+const bffProductRoutes = [
+  {
+    path: "bff-product/list",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT.READ}>
+        <LazyWrapper><BFFProductCodeList /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
+    path: "bff-product/taxonomy/:kind",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_TAXONOMY.READ}>
+        <LazyWrapper><BFFProductTaxonomyPage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
 ];
 
 
@@ -333,6 +353,7 @@ export const router = createBrowserRouter([
           { path: "profile", element: <LazyWrapper><UserProfilePage /></LazyWrapper> },
           ...invitesAndAccessRoutes,
           ...masterApplicationRecipeRoutes,
+          ...bffProductRoutes,
           ...projectOverviewRoutes,
           ...applicationLabRoutes,
           ...sensoryTestingRoutes,

@@ -4,14 +4,11 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { TbMessage2Search } from "react-icons/tb";
 import StatusBadge from "@/components/ui/StatusBadge";
-
-// Segment display mapping
-const segmentDisplayMap = {
-    flavours: "Flavours",
-    colours: "Colours",
-    ingredients: "Ingredients",
-    seasonings: "Seasonings",
-};
+import {
+    getProductDisplayCode,
+    getProductDisplayName,
+    getTaxonomyLabel,
+} from "../utils/productDisplay";
 
 // Type display mapping
 const typeDisplayMap = {
@@ -77,7 +74,7 @@ export default function DesktopProductCodeTable({
             className: " ",
             cell: ({ row }) => (
                 <span className="font-medium text-nav-highlight">
-                    {row.original.commercializedProductCode || row.original.displayProductCode || row.original.productCode || "N/A"}
+                    {getProductDisplayCode(row.original)}
                 </span>
             ),
             size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
@@ -87,9 +84,9 @@ export default function DesktopProductCodeTable({
             header: "Product Name",
             headerClassName: "",
             className: " ",
-            cell: ({ getValue }) => (
+            cell: ({ row }) => (
                 <span className="font-semibold">
-                    {getValue() || "N/A"}
+                    {getProductDisplayName(row.original)}
                 </span>
             ),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
@@ -99,14 +96,11 @@ export default function DesktopProductCodeTable({
             header: "Product Segment",
             headerClassName: "",
             className: " ",
-            cell: ({ getValue }) => {
-                const segment = getValue();
-                return (
-                    <span className="font-medium rounded-full bg-primary-shade-2 px-2  text-nav-highlight">
-                        {segmentDisplayMap[segment] || segment || "N/A"}
-                    </span>
-                );
-            },
+            cell: ({ getValue }) => (
+                <span className="font-medium rounded-full bg-primary-shade-2 px-2  text-nav-highlight">
+                    {getTaxonomyLabel(getValue())}
+                </span>
+            ),
             size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
         {
@@ -115,7 +109,9 @@ export default function DesktopProductCodeTable({
             headerClassName: "",
             className: " ",
             cell: ({ row }) => {
-                const isCommercialized = Boolean(row.original?.commercializedProductCode);
+                const isCommercialized = Boolean(
+                    row.original?.commercialCode || row.original?.commercializedProductCode
+                );
                 return (
                     <StatusBadge
                         status={isCommercialized ? "Commercialized" : "Experimental"}
@@ -147,7 +143,7 @@ export default function DesktopProductCodeTable({
             className: "  ",
             cell: ({ row }) => {
                 const productCode = row.original;
-                const cost = productCode.cost || 0;
+                const cost = productCode.standardPrice ?? productCode.cost ?? 0;
                 return (
                     <span className="font-medium">
                         ৳{cost.toLocaleString()}/kg
