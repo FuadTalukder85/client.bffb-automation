@@ -39,7 +39,7 @@ export const RESOURCES = {
   SUBSUBCATEGORY: 'subsubcategory',
   RECIPE: 'recipe',
   BFF_PRODUCT: 'bff-product',
-  BFF_PRODUCT_TAXONOMY: 'bff-product-taxonomy',
+  BFF_PRODUCT_SEGMENT: 'bff-product-segment',
   SENSORY_EVALUATION: 'sensory-evaluation',
   SENSORY_FORM: 'sensory-form',
   SENSORY_TOP_SHEET: 'sensory-top-sheet',
@@ -768,12 +768,12 @@ export const PERMISSIONS = {
     EXPORT: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT, ACTIONS.EXPORT),
     MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT),
   },
-  BFF_PRODUCT_TAXONOMY: {
-    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.CREATE),
-    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.READ),
-    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.UPDATE),
-    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_TAXONOMY, ACTIONS.DELETE),
-    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT_TAXONOMY),
+  BFF_PRODUCT_SEGMENT: {
+    CREATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_SEGMENT, ACTIONS.CREATE),
+    READ: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_SEGMENT, ACTIONS.READ),
+    UPDATE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_SEGMENT, ACTIONS.UPDATE),
+    DELETE: PermissionBuilder.resource(RESOURCES.BFF_PRODUCT_SEGMENT, ACTIONS.DELETE),
+    MANAGE: PermissionBuilder.wildcard(RESOURCES.BFF_PRODUCT_SEGMENT),
   },
   /** @deprecated Alias — use BFF_PRODUCT */
   BFF_PRODUCT_CODE: {
@@ -1160,8 +1160,7 @@ export const RESOURCE_SCOPES = {
   permission: 'global',
   invitation: 'global',
   audit: 'global',
-  'bff-product': 'global',
-  'bff-product-taxonomy': 'global',
+  'bff-product-segment': 'global',
   client: 'crm',
   campaign: 'crm',
   prospect: 'crm',

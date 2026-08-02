@@ -1,28 +1,29 @@
-﻿import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { queryKeys } from "@/lib/queryKeys";
-import { bffProductTaxonomyService } from "@/services/bffProductTaxonomyService";
+import { bffProductSegmentService } from "@/services/bffProductSegmentService";
 
 const getSuccessMessage = (response, fallback) =>
   response?.message || response?.data?.message || fallback;
 
-export function useCreateBFFProductTaxonomyItem(kind) {
+export function useCreateBFFProductSegmentItem(kind) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => bffProductTaxonomyService.createItem(kind, data),
+    mutationFn: (data) => bffProductSegmentService.createItem(kind, data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductTaxonomy.all });
       toast.success(getSuccessMessage(response, "Entry created successfully"));
     },
   });
 }
+export const useCreateBFFProductTaxonomyItem = useCreateBFFProductSegmentItem;
 
-export function useUpdateBFFProductTaxonomyItem(kind) {
+export function useUpdateBFFProductSegmentItem(kind) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }) => bffProductTaxonomyService.updateItem(kind, id, data),
+    mutationFn: ({ id, data }) => bffProductSegmentService.updateItem(kind, id, data),
     onSuccess: (response, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductTaxonomy.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductTaxonomy.detail(kind, id) });
@@ -30,27 +31,30 @@ export function useUpdateBFFProductTaxonomyItem(kind) {
     },
   });
 }
+export const useUpdateBFFProductTaxonomyItem = useUpdateBFFProductSegmentItem;
 
-export function useArchiveBFFProductTaxonomyItem(kind) {
+export function useArchiveBFFProductSegmentItem(kind) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => bffProductTaxonomyService.archiveItem(kind, id),
+    mutationFn: (id) => bffProductSegmentService.archiveItem(kind, id),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductTaxonomy.all });
       toast.success(getSuccessMessage(response, "Entry archived successfully"));
     },
   });
 }
+export const useArchiveBFFProductTaxonomyItem = useArchiveBFFProductSegmentItem;
 
-export function useRestoreBFFProductTaxonomyItem(kind) {
+export function useRestoreBFFProductSegmentItem(kind) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => bffProductTaxonomyService.restoreItem(kind, id),
+    mutationFn: (id) => bffProductSegmentService.restoreItem(kind, id),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.bffProductTaxonomy.all });
       toast.success(getSuccessMessage(response, "Entry restored successfully"));
     },
   });
 }
+export const useRestoreBFFProductTaxonomyItem = useRestoreBFFProductSegmentItem;

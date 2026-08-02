@@ -50,7 +50,7 @@ const ApplicationSubcategories = lazy(() => import("./features/master-applicatio
 const ApplicationSubSubcategories = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationSubSubcategories.jsx"));
 const ApplicationTags = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationTags.jsx"));
 const BFFProductCodeList = lazy(() => import("./features/master-application-recipe-list/bff-product-code-list/BFFProductCodeList.jsx"));
-const BFFProductTaxonomyPage = lazy(() => import("./features/bff-product/taxonomy/BFFProductTaxonomyPage.jsx"));
+const BFFProductSegmentPage = lazy(() => import("./features/bff-product/segment/BFFProductSegmentPage.jsx"));
 const DispatchPage = lazy(() => import("./features/dispatch/DispatchListPage.jsx"));
 const MasterProjects = lazy(() => import("./features/project-overview/master-project/MasterProjects.jsx"));
 const MasterProjectDetails = lazy(() => import("./features/project-overview/master-project/MasterProjectDetails.jsx"));
@@ -152,10 +152,10 @@ const bffProductRoutes = [
     ),
   },
   {
-    path: "bff-product/taxonomy/:kind",
+    path: "bff-product/segment/:kind",
     element: (
-      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_TAXONOMY.READ}>
-        <LazyWrapper><BFFProductTaxonomyPage /></LazyWrapper>
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_SEGMENT.READ}>
+        <LazyWrapper><BFFProductSegmentPage /></LazyWrapper>
       </PermissionRoute>
     ),
   },

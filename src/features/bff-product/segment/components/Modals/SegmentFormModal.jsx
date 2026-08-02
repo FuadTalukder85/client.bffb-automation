@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/Input";
 import FieldError from "@/components/Error/field-error";
 import { getApiErrorMessage } from "@/utils/apiError";
 
-export function TaxonomyFormModal({
+export function SegmentFormModal({
   open,
   onOpenChange,
   onSubmit,
@@ -120,18 +120,18 @@ export function TaxonomyFormModal({
             <Button
               type="submit"
               intent="primary"
+              className="w-full sm:w-1/2 h-10 lg:h-5 xl:h-7 2xl:h-8 3xl:h-10 rounded-lg text-white"
               disabled={isLoading}
-              className="w-full sm:w-1/2 h-10 lg:h-5 xl:h-7 2xl:h-8 3xl:h-10 rounded-lg text-white bg-primary hover:bg-primary/90 disabled:opacity-50"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   {isEdit ? "Saving..." : "Adding..."}
                 </>
               ) : isEdit ? (
-                "Save"
+                "Save Changes"
               ) : (
-                "Add"
+                `Add ${label}`
               )}
             </Button>
           </ModalFooter>

@@ -1,7 +1,7 @@
-﻿import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/queryKeys";
-import { bffProductTaxonomyService } from "@/services/bffProductTaxonomyService";
-import { isValidTaxonomyKind } from "@/constants/bffProductTaxonomy";
+import { bffProductSegmentService } from "@/services/bffProductSegmentService";
+import { isValidSegmentKind } from "@/constants/bffProductSegment";
 
 const DEFAULT_PAGINATION = { page: 1, limit: 10, total: 0, totalPages: 1 };
 
@@ -38,17 +38,17 @@ const transformItem = (item) => ({
 });
 
 /**
- * Fetch paginated taxonomy items for a kind
+ * Fetch paginated segment items for a kind
  */
-export function useBFFProductTaxonomy(kind, filters = {}) {
+export function useBFFProductSegment(kind, filters = {}) {
   const { page = DEFAULT_PAGINATION.page, limit = DEFAULT_PAGINATION.limit } = filters;
   const apiParams = prepareParams({ ...filters, page, limit });
-  const enabled = isValidTaxonomyKind(kind);
+  const enabled = isValidSegmentKind(kind);
 
   return useQuery({
     queryKey: queryKeys.bffProductTaxonomy.list(kind, apiParams),
     queryFn: ({ signal }) =>
-      bffProductTaxonomyService.getItems(kind, apiParams, { signal }),
+      bffProductSegmentService.getItems(kind, apiParams, { signal }),
     enabled,
     placeholderData: keepPreviousData,
     select: (responseData) => {
@@ -60,30 +60,33 @@ export function useBFFProductTaxonomy(kind, filters = {}) {
     },
   });
 }
+export const useBFFProductTaxonomy = useBFFProductSegment;
 
 /**
- * Fetch available taxonomy kinds
+ * Fetch available segment kinds
  */
-export function useBFFProductTaxonomyKinds({ enabled = true } = {}) {
+export function useBFFProductSegmentKinds({ enabled = true } = {}) {
   return useQuery({
     queryKey: queryKeys.bffProductTaxonomy.kinds(),
-    queryFn: ({ signal }) => bffProductTaxonomyService.getKinds({ signal }),
+    queryFn: ({ signal }) => bffProductSegmentService.getKinds({ signal }),
     enabled,
     select: (response) => response?.data || response || [],
   });
 }
+export const useBFFProductTaxonomyKinds = useBFFProductSegmentKinds;
 
 /**
- * Fetch a single taxonomy item
+ * Fetch a single segment item
  */
-export function useBFFProductTaxonomyItem(kind, id, { enabled = true } = {}) {
+export function useBFFProductSegmentItem(kind, id, { enabled = true } = {}) {
   return useQuery({
     queryKey: queryKeys.bffProductTaxonomy.detail(kind, id),
-    queryFn: ({ signal }) => bffProductTaxonomyService.getItem(kind, id, { signal }),
-    enabled: enabled && !!kind && !!id && isValidTaxonomyKind(kind),
+    queryFn: ({ signal }) => bffProductSegmentService.getItem(kind, id, { signal }),
+    enabled: enabled && !!kind && !!id && isValidSegmentKind(kind),
     select: (response) => {
       const data = response?.data || response;
       return data ? transformItem(data) : null;
     },
   });
 }
+export const useBFFProductTaxonomyItem = useBFFProductSegmentItem;

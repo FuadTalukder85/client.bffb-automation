@@ -13,7 +13,7 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { getApiErrorMessage } from "@/utils/apiError";
 
-export function TaxonomyConfirmModal({
+export function SegmentConfirmModal({
   open,
   onOpenChange,
   item,
@@ -118,7 +118,7 @@ export function TaxonomyConfirmModal({
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 {isArchive ? "Archiving..." : "Restoring..."}
               </>
             ) : isArchive ? (

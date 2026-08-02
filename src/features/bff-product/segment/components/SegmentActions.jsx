@@ -1,6 +1,6 @@
 import { AiFillThunderbolt } from "react-icons/ai";
 
-export const TaxonomyActions = ({
+export const SegmentActions = ({
   onEdit,
   onArchive,
   onRestore,
@@ -52,4 +52,4 @@ export const TaxonomyActions = ({
   );
 };
 
-export default TaxonomyActions;
+export default SegmentActions;

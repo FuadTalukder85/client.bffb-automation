@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
-import { getBFFProductTaxonomyNavItems } from "@/constants/bffProductTaxonomy";
+import { getBFFProductSegmentNavItems as getBFFProductTaxonomyNavItems } from "@/constants/bffProductSegment";
 import { resolveAvatarUrl } from "@/utils/avatarUrl";
 import { NavIcon } from "@/components/Sidebar/NavIcon";
 import { hasPermission as checkPermission } from "@/lib/utils";
@@ -159,7 +159,7 @@ export function Sidebar({
         ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
           ? [{ id: "bff-product-list", label: "Product List", path: "/bff-product/list" }]
           : []),
-        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_TAXONOMY.READ)
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_SEGMENT.READ)
           ? getBFFProductTaxonomyNavItems()
           : []),
       ];

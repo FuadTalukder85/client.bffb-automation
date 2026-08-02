@@ -17,21 +17,21 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import {
-  BFF_PRODUCT_TAXONOMY_LABELS,
-  isValidTaxonomyKind,
-} from "@/constants/bffProductTaxonomy";
-import { useBFFProductTaxonomy } from "@/hooks/useBFFProductTaxonomy";
+  BFF_PRODUCT_SEGMENT_LABELS as BFF_PRODUCT_TAXONOMY_LABELS,
+  isValidSegmentKind as isValidTaxonomyKind,
+} from "@/constants/bffProductSegment";
+import { useBFFProductSegment as useBFFProductTaxonomy } from "@/hooks/useBFFProductSegment";
 import {
-  useCreateBFFProductTaxonomyItem,
-  useUpdateBFFProductTaxonomyItem,
-  useArchiveBFFProductTaxonomyItem,
-  useRestoreBFFProductTaxonomyItem,
-} from "@/hooks/mutations/useBFFProductTaxonomyMutations";
-import TaxonomyActions from "./components/TaxonomyActions";
-import { TaxonomyFormModal } from "./components/Modals/TaxonomyFormModal";
-import { TaxonomyConfirmModal } from "./components/Modals/TaxonomyConfirmModal";
+  useCreateBFFProductSegmentItem as useCreateBFFProductTaxonomyItem,
+  useUpdateBFFProductSegmentItem as useUpdateBFFProductTaxonomyItem,
+  useArchiveBFFProductSegmentItem as useArchiveBFFProductTaxonomyItem,
+  useRestoreBFFProductSegmentItem as useRestoreBFFProductTaxonomyItem,
+} from "@/hooks/mutations/useBFFProductSegmentMutations";
+import SegmentActions from "./components/SegmentActions";
+import { SegmentFormModal } from "./components/Modals/SegmentFormModal";
+import { SegmentConfirmModal } from "./components/Modals/SegmentConfirmModal";
 
-export default function BFFProductTaxonomyPage() {
+export default function BFFProductSegmentPage() {
   const { kind } = useParams();
   const label = BFF_PRODUCT_TAXONOMY_LABELS[kind] || "Taxonomy";
 
@@ -75,9 +75,9 @@ export default function BFFProductTaxonomyPage() {
     return <Navigate to="/bff-product/list" replace />;
   }
 
-  const canCreate = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_TAXONOMY.CREATE);
-  const canUpdate = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_TAXONOMY.UPDATE);
-  const canDelete = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_TAXONOMY.DELETE);
+  const canCreate = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_SEGMENT.CREATE);
+  const canUpdate = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_SEGMENT.UPDATE);
+  const canDelete = hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_SEGMENT.DELETE);
 
   const getErrorMessage = (err) =>
     err?.response?.data?.error ||
@@ -198,7 +198,7 @@ export default function BFFProductTaxonomyPage() {
         headerClassName: "table-head-cell sticky right-0 z-20 bg-background text-center",
         enablePinning: true,
         cell: ({ row }) => (
-          <TaxonomyActions
+          <SegmentActions
             data={row.original}
             onEdit={(item) => {
               setSelectedItem(item);
@@ -295,7 +295,7 @@ export default function BFFProductTaxonomyPage() {
                         </div>
                         <span className="font-medium text-nav-highlight truncate">{item.name}</span>
                       </div>
-                      <TaxonomyActions
+                      <SegmentActions
                         data={item}
                         onEdit={(row) => {
                           setSelectedItem(row);
@@ -395,7 +395,7 @@ export default function BFFProductTaxonomyPage() {
         )}
       </div>
 
-      <TaxonomyFormModal
+      <SegmentFormModal
         open={isFormModalOpen}
         onOpenChange={setIsFormModalOpen}
         item={selectedItem && !Array.isArray(selectedItem) ? selectedItem : null}
@@ -403,7 +403,7 @@ export default function BFFProductTaxonomyPage() {
         onSubmit={selectedItem && !Array.isArray(selectedItem) ? handleEditConfirm : handleAddConfirm}
       />
 
-      <TaxonomyConfirmModal
+      <SegmentConfirmModal
         open={isArchiveModalOpen}
         onOpenChange={setIsArchiveModalOpen}
         item={selectedItem}
@@ -412,7 +412,7 @@ export default function BFFProductTaxonomyPage() {
         onConfirm={handleArchiveConfirm}
       />
 
-      <TaxonomyConfirmModal
+      <SegmentConfirmModal
         open={isRestoreModalOpen}
         onOpenChange={setIsRestoreModalOpen}
         item={selectedItem}

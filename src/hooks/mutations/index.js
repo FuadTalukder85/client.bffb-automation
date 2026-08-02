@@ -31,8 +31,8 @@ export * from './useInternalTaskMutations';
 // BFF Product Code mutations
 export * from './useBFFProductCodeMutations';
 
-// BFF Product Taxonomy mutations
-export * from './useBFFProductTaxonomyMutations';
+// BFF Product Segment mutations
+export * from './useBFFProductSegmentMutations';
 
 // Packaging Type mutations
 export * from './usePackagingTypeMutations';

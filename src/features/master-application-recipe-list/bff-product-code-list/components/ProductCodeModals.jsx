@@ -19,12 +19,12 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { getApiErrorMessage } from "@/utils/apiError";
 import { PRODUCT_TYPES } from "@/hooks/useBFFProductCodes";
-import { useBFFProductTaxonomy } from "@/hooks/useBFFProductTaxonomy";
+import { useBFFProductSegment as useBFFProductTaxonomy } from "@/hooks/useBFFProductSegment";
 import { useBFFProductCodes } from "@/hooks/useBFFProductCodes";
 import { usePackagingTypes } from "@/hooks/usePackagingTypes";
-import { BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductTaxonomy";
+import { BFF_PRODUCT_SEGMENT_KINDS as BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductSegment";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
-import { useCreateBFFProductTaxonomyItem } from "@/hooks/mutations/useBFFProductTaxonomyMutations";
+import { useCreateBFFProductSegmentItem as useCreateBFFProductTaxonomyItem } from "@/hooks/mutations/useBFFProductSegmentMutations";
 
 const toId = (value) => {
     if (!value) return "";
