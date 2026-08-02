@@ -31,10 +31,10 @@ const ProjectsDesktop = () => {
 
   if (selectedProject) {
     return (
-      <div className="flex flex-col flex-1 min-h-0 bg-background 3xl:rounded-2xl 2xl:rounded-xl xl:rounded-lg lg:rounded-md overflow-hidden border border-table-stroke shadow-sm">
-        <div className="flex items-center justify-between px-4 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-3 lg:py-1.5 xl:py-2 2xl:py-2.5 3xl:py-3 border-b border-table-stroke bg-background sticky top-0 z-20 shrink-0">
+      <div className="flex flex-col flex-1 min-h-0 bg-background 3xl:rounded-2xl 2xl:rounded-xl xl:rounded-lg lg:rounded-md rounded-sm overflow-hidden border border-table-stroke shadow-sm">
+        <div className="flex items-center justify-between px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-3 lg:py-1.5 xl:py-2 2xl:py-2.5 3xl:py-3 border-b border-table-stroke bg-background sticky top-0 z-20 shrink-0">
           <div className="flex items-center gap-3 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3 min-w-0">
-             <button
+            <button
               onClick={handleCloseProjectChat}
               className="p-1.5 rounded-full hover:bg-primary/10 text-nav-highlight transition-all shrink-0 border border-primary/20"
               title="Back to Projects"
@@ -65,13 +65,13 @@ const ProjectsDesktop = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <h2 className="3xl:text-xl 2xl:text-[16px] xl:text-[13px] lg:text-[10px] font-semibold text-foreground 3xl:p-4 2xl:p-3 xl:p-2 lg:p-1.5">Your Projects</h2>
+      <h2 className="text-[8px] lg:text-[10px] xl:text-[13px] 2xl:text-[16px] 3xl:text-xl font-semibold text-foreground 3xl:p-4 2xl:p-3 xl:p-2 lg:p-1.5">Your Projects</h2>
       <div className="flex-1 min-h-0 overflow-auto custom-scrollbar divide-y divide-table-stroke/70">
         {memberProjects.length === 0 ? (
           <div className="py-4 lg:py-5 xl:py-6 2xl:py-7 3xl:py-8">
             <NoData
               message="No Projects Found"
-              description={debouncedSearch 
+              description={debouncedSearch
                 ? `No projects match "${debouncedSearch}". Try adjusting your search.`
                 : "No projects available yet."}
             />

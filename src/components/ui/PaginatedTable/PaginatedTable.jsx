@@ -419,7 +419,7 @@ export function PaginatedTable({
                           <th
                             key={header.id}
                             className={cn(
-                              "relative p-0.5 lg:p-1 xl:p-1.5 2xl:p-2 3xl:p-3 text-center text-base lg:text-[9px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-bold text-foreground transition-all duration-200",
+                              "relative p-0.5 lg:p-1 xl:p-1.5 2xl:p-2 3xl:p-3 text-center text-[8px] lg:text-[9px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-bold text-foreground transition-all duration-200",
                               isPinned &&
                               "sticky z-30 bg-background",
                               headerCellClassName,
@@ -457,13 +457,13 @@ export function PaginatedTable({
                                         <DropdownMenuItem
                                           onClick={() => header.column.pin("left")}
                                         >
-                                          <Pin className="w-4 h-4 mr-2" />
+                                          <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                                           Pin Left
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                           onClick={() => header.column.pin("right")}
                                         >
-                                          <Pin className="w-4 h-4 mr-2" />
+                                          <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                                           Pin Right
                                         </DropdownMenuItem>
                                       </>
@@ -473,7 +473,7 @@ export function PaginatedTable({
                                       <DropdownMenuItem
                                         onClick={() => header.column.pin(false)}
                                       >
-                                        <PinOff className="w-4 h-4 mr-2" />
+                                        <PinOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                                         Unpin
                                       </DropdownMenuItem>
                                     )}
@@ -488,7 +488,7 @@ export function PaginatedTable({
                                           header.column.toggleVisibility(false)
                                         }
                                       >
-                                        <EyeOff className="w-4 h-4 mr-2" />
+                                        <EyeOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                                         Hide Column
                                       </DropdownMenuItem>
                                     )}
@@ -501,7 +501,7 @@ export function PaginatedTable({
                               {enableColumnResizing &&
                                 header.column.getCanResize() && (
                                   <GripVertical
-                                    className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4 cursor-col-resize shrink-0 transition-opacity"
+                                    className="w-1.5 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4 cursor-col-resize shrink-0 transition-opacity"
                                     onMouseDown={header.getResizeHandler()}
                                     onTouchStart={header.getResizeHandler()}
                                   />
@@ -579,7 +579,7 @@ export function PaginatedTable({
                             <td
                               key={cell.id}
                               className={cn(
-                                " font-medium text-center text-foreground/80 text-body",
+                                " font-medium text-center text-foreground/80 text-[6px] lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.5px] 3xl:text-[14px]",
                                 isPinned && "sticky z-10 bg-background",
                                 bodyCellClassName,
                                 cell.column.columnDef.className
@@ -614,7 +614,7 @@ export function PaginatedTable({
         </div>
 
         {/* Footer Area */}
-        <div className="px-10 lg:px-5 xl:px-7 2xl:px-8 3xl:px-10 lg:py-0.5 xl:py-1 2xl:py-1 3xl:py-1.5 flex flex-wrap items-center justify-between gap-1 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-4">
+        <div className="px-4 lg:px-5 xl:px-7 2xl:px-8 3xl:px-10 py-0.5 lg:py-0.5 xl:py-1 2xl:py-1 3xl:py-1.5 flex flex-wrap items-center justify-between gap-1 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-4">
           {/* Pagination */}
           <div className="flex-1 min-w-fit">
             <Pagination
@@ -629,21 +629,21 @@ export function PaginatedTable({
           </div>
 
           {/* Table Controls */}
-          <div className="flex items-center gap-3 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3">
+          <div className="flex items-center gap-1 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3">
             {enableHiding && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center gap-1.5 2xl:gap-2 h-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-2 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 text-xs lg:text-[6.5px] xl:text-[8.5px] 2xl:text-[9.5px] 3xl:text-[12px] font-semibold rounded-md 2xl:rounded-lg text-primary hover:bg-primary-shade-2 bg-primary-shade-2/50 border border-primary-shade-2/30 transition-all">
-                    <Eye className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
+                  <button className="flex items-center justify-center gap-1.5 2xl:gap-2 h-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-1 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 text-[6.5px] lg:text-[6.5px] xl:text-[8.5px] 2xl:text-[9.5px] 3xl:text-[12px] font-semibold rounded-xs lg:rounded-xs xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg text-primary hover:bg-primary-shade-2 bg-primary-shade-2/50 border border-primary-shade-2/30 transition-all">
+                    <Eye className="w-1.5 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
                     Hidden Columns ({
                       table.getAllColumns().filter((col) => !col.getIsVisible()).length
                     })
-                    <ChevronDown className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
+                    <ChevronDown className="w-2 h-2 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 lg:w-29 xl:w-39 2xl:w-44 3xl:w-56 border bg-background border-border p-2"
+                  className="w-25 lg:w-29 xl:w-39 2xl:w-44 3xl:w-56 border bg-background border-border p-2"
                 >
                   <DropdownMenuItem
                     className="rounded-lg mb-1 text-foreground"
@@ -659,11 +659,11 @@ export function PaginatedTable({
                       }
                     }}
                   >
-                    <Eye className="mr-2 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                    <Eye className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                     Show All
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="my-1" />
-                  <div className="max-h-60 lg:max-h-32 xl:max-h-42 2xl:max-h-48 3xl:max-h-60 overflow-y-auto custom-scrollbar text-foreground">
+                  <div className="max-h-25 lg:max-h-32 xl:max-h-42 2xl:max-h-48 3xl:max-h-60 overflow-y-auto custom-scrollbar text-foreground">
                     {table.getAllColumns().map((column) => (
                       <DropdownMenuItem
                         key={column.id}
@@ -671,9 +671,9 @@ export function PaginatedTable({
                         onClick={() => column.toggleVisibility(!column.getIsVisible())}
                       >
                         {column.getIsVisible() ? (
-                          <Eye className="mr-2 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 opacity-50" />
+                          <Eye className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 opacity-50" />
                         ) : (
-                          <EyeOff className="mr-2 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                          <EyeOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
                         )}
                         <span className={!column.getIsVisible() ? "font-semibold" : ""}>
                           {typeof column.columnDef.header === "string"
@@ -706,9 +706,9 @@ export function PaginatedTable({
                 if (onColumnSizingChange) onColumnSizingChange({});
                 else setInternalSizing({});
               }}
-              className="flex items-center justify-center gap-1.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2 h-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-2 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 text-xs lg:text-[6.5px] xl:text-[8.5px] 2xl:text-[9.5px] 3xl:text-[12px] font-semibold rounded-md 2xl:rounded-lg text-primary hover:bg-primary-shade-2 bg-primary-shade-2/50 border border-primary-shade-2/30 transition-all"
+              className="flex items-center justify-center gap-0.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2 h-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-1 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 text-[6.5px] lg:text-[6.5px] xl:text-[8.5px] 2xl:text-[9.5px] 3xl:text-[12px] font-semibold rounded-xs lg:rounded-xs xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg text-primary hover:bg-primary-shade-2 bg-primary-shade-2/50 border border-primary-shade-2/30 transition-all"
             >
-              <RotateCcw className="w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
+              <RotateCcw className="w-1.5 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4" />
               Reset
             </button>
           </div>

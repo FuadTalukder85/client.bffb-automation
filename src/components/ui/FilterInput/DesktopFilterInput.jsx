@@ -34,17 +34,17 @@ export function DesktopFilterPills({ value, options, onChange, variant = "pills"
 
   // Pills variant - rounded pill style (default)
   return (
-    <div className="w-fit flex items-center gap-2 lg:gap-1 xl:gap-2 rounded-full border border-table-stroke/70 bg-desktop-filter-bg p-1 lg:p-0.5 text-body">
+    <div className="w-fit flex items-center gap-0.5 lg:gap-1 xl:gap-2 rounded-full border border-table-stroke/70 bg-desktop-filter-bg p-0.5 lg:p-0.5 text-[6.5px] lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.5px] 3xl:text-[14px]">
       {options.map((option) => {
         const isSelected = value === option.value;
         const hasCustomColors = option.bgColor && option.textColor;
-        
+
         // Custom style for options with bgColor and textColor
-        const customStyle = hasCustomColors && isSelected 
-          ? { 
-              backgroundColor: option.bgColor, 
-              color: option.textColor 
-            }
+        const customStyle = hasCustomColors && isSelected
+          ? {
+            backgroundColor: option.bgColor,
+            color: option.textColor
+          }
           : {};
 
         return (
@@ -54,7 +54,7 @@ export function DesktopFilterPills({ value, options, onChange, variant = "pills"
             onClick={() => onChange(option.value)}
             style={customStyle}
             className={cn(
-              "rounded-full flex items-center justify-center px-3 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 3xl:py-1.5 2xl:py-1 xl:py-1 lg:py-1 transition-all",
+              "rounded-full flex items-center justify-center px-1.5 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 3xl:py-1.5 2xl:py-1 xl:py-1 lg:py-1 py-0.5 transition-all",
               isSelected
                 ? hasCustomColors
                   ? "font-semibold"
@@ -65,8 +65,8 @@ export function DesktopFilterPills({ value, options, onChange, variant = "pills"
             <span
               className={cn(
                 isSelected
-                  ? "rounded-full w-1.5 h-1.5 2xl:w-2 2xl:h-2 bg-primary inline-block mr-1.5 2xl:mr-2"
-                  : "rounded-full w-1.5 h-1.5 2xl:w-2 2xl:h-2 bg-white dark:bg-transparent inline-block mr-1.5 2xl:mr-2 border border-foreground"
+                  ? "rounded-full w-1 h-1 2xl:w-2 2xl:h-2 bg-primary inline-block mr-1.5 2xl:mr-2"
+                  : "rounded-full w-1 h-1 2xl:w-2 2xl:h-2 bg-white dark:bg-transparent inline-block mr-1.5 2xl:mr-2 border border-foreground"
               )}
             />
             {option.label}

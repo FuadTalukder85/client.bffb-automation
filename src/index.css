@@ -12,7 +12,7 @@
   /* --- Custom Breakpoints --- */
   --breakpoint-mm: 375px;
   --breakpoint-lm: 380px;
-  /* --breakpoint-md: 760px; */
+  --breakpoint-md: 760px;
   --breakpoint-lg: 1010px;
   --breakpoint-xl: 1270px;
   --breakpoint-2xl: 1530px;
@@ -116,6 +116,7 @@
 }
 
 @layer utilities {
+
   /* Scrollbar */
   @-moz-document url-prefix() {
     .custom-scrollbar {
@@ -197,25 +198,25 @@
   /* ≥ 768px */
   @media (min-width: 760px) {
     .text-heading {
-      font-size: 1.45rem;
-      line-height: 1.75rem;
+      font-size: 0.6rem;
+      line-height: 0.75rem;
     }
 
-      /* .text-sub-heading {
-    font-size: 0.7rem;
-    line-height: 0.8rem;
-    font-weight: 600;
-  } */
+    .text-sub-heading {
+      font-size: 0.7rem;
+      line-height: 0.8rem;
+      font-weight: 600;
+    }
 
-  .text-body {
-    font-size: 0.6rem;
-    line-height: 0.7rem;
-  }
+    /* .text-body {
+      font-size: 0.4rem;
+      line-height: 0.5rem;
+    } */
 
-  .text-sub-text {
-    font-size: 0.55rem;
-    line-height: 0.6rem;
-  }
+    .text-sub-text {
+      font-size: 0.55rem;
+      line-height: 0.6rem;
+    }
   }
 
   /* ≥ 1010px */
@@ -224,36 +225,43 @@
       font-size: 0.8rem;
       line-height: 1rem;
     }
+
     .action-button-icon {
       width: .7rem;
       height: .7rem;
     }
-  .desktop-page-btn{
+
+    .desktop-page-btn {
       height: 0.7rem;
       width: 0.7rem;
       margin: .3rem 0.4rem;
     }
+
     .desktop-page-btn-wrapper {
       min-height: 1.35rem;
       padding: 0 0.2rem;
     }
-   .action-button {
+
+    .action-button {
       width: 1.5rem;
       height: 1.1rem;
     }
-      .text-sub-heading {
-    font-size: 0.5rem;
-    line-height: 0.8rem;
-    font-weight: 600;
-  }
-  .text-sub-text {
-    font-size: 0.4rem;
-    line-height: 0.5rem;
-  }
-   .custom-scrollbar::-webkit-scrollbar {
-    height: 3px;
-    width: 3px;
-  }
+
+    .text-sub-heading {
+      font-size: 0.5rem;
+      line-height: 0.8rem;
+      font-weight: 600;
+    }
+
+    .text-sub-text {
+      font-size: 0.4rem;
+      line-height: 0.5rem;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 3px;
+      width: 3px;
+    }
   }
 
   /* ≥ 1010px */
@@ -262,6 +270,7 @@
       font-size: 1.2rem;
       line-height: 1rem;
     }
+
     /* .text-sub-heading {
       font-size: 0.5rem;
       line-height: 1.25rem;
@@ -271,30 +280,36 @@
       line-height: 0.7rem;
     }
   }
+
   /* ≥ 1270px */
   @media (min-width: 1270px) {
     .text-heading {
       font-size: 1.3rem;
       line-height: 1.5rem;
     }
+
     .text-body {
       font-size: 0.6rem;
       line-height: 0.7rem;
     }
-     .text-sub-heading {
+
+    .text-sub-heading {
       font-size: 0.7rem;
       line-height: 1.25rem;
     }
-  .custom-scrollbar::-webkit-scrollbar {
-    height: 4.5px;
-    width: 4.5px;
-  }
-  .text-sub-text {
-    font-size: 0.5rem;
-    line-height: 0.6rem;
-  }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 4.5px;
+      width: 4.5px;
+    }
+
+    .text-sub-text {
+      font-size: 0.5rem;
+      line-height: 0.6rem;
+    }
 
   }
+
   /* ≥ 1536px */
   @media (min-width: 1530px) {
     .text-heading {
@@ -316,10 +331,11 @@
       font-size: 0.6rem;
       line-height: 0.7rem;
     }
+
     .custom-scrollbar::-webkit-scrollbar {
-    height: 5px;
-    width: 5px;
-  }
+      height: 5px;
+      width: 5px;
+    }
   }
 
   /* ≥ 1910px */
@@ -329,29 +345,30 @@
       line-height: 2.5rem;
     }
 
- .text-sub-heading {
-    font-size: 1rem;
-    line-height: 1.25rem;
-    font-weight: 600;
-  }
+    .text-sub-heading {
+      font-size: 1rem;
+      line-height: 1.25rem;
+      font-weight: 600;
+    }
 
-  .text-body {
-    font-size: 0.875rem;
-    line-height: 1rem;
-  }
+    .text-body {
+      font-size: 0.875rem;
+      line-height: 1rem;
+    }
 
-  .text-sub-text {
-    font-size: 0.75rem;
-    line-height: 0.875rem;
-  }
-  .custom-scrollbar::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-  }
+    .text-sub-text {
+      font-size: 0.75rem;
+      line-height: 0.875rem;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
   }
 
   .page-section-spacing {
-    @apply md:pb-0!;
+    @apply md:pb-0 !;
   }
 
   /* Action Button - Responsive sizing across desktop breakpoints */
@@ -368,13 +385,13 @@
       width: 2rem;
       height: 1.4rem;
     }
-    
-    
-    .desktop-page-btn-wrapper{
+
+
+    .desktop-page-btn-wrapper {
       height: 1.4rem
     }
 
-    .desktop-page-btn{
+    .desktop-page-btn {
       height: 0.7rem;
       width: 0.7rem;
       margin: .3rem 0.5rem;
@@ -391,14 +408,17 @@
       width: 2.2rem;
       height: 1.6rem;
     }
-    .desktop-page-btn-wrapper{
+
+    .desktop-page-btn-wrapper {
       height: 1.6em;
     }
-    .desktop-page-btn{
+
+    .desktop-page-btn {
       height: 1rem;
       width: 1rem;
       margin: 0.5em 0.6rem;
     }
+
     .action-button-icon {
       width: 1rem;
       height: 1rem;
@@ -410,14 +430,17 @@
       width: 2.75rem;
       height: 2rem;
     }
-    .desktop-page-btn-wrapper{
-        height: 2rem;
-      }
-    .desktop-page-btn{
+
+    .desktop-page-btn-wrapper {
+      height: 2rem;
+    }
+
+    .desktop-page-btn {
       height: 1.25rem;
       width: 1.25rem;
       margin: 0.8em 1rem;
     }
+
     .action-button-icon {
       width: 1.25rem;
       height: 1.25rem;
@@ -436,11 +459,13 @@
       background-color: rgba(85, 46, 142, 0.1);
       border-radius: 0.5rem;
     }
+
     50% {
       box-shadow: 0 0 0 8px rgba(85, 46, 142, 0);
       background-color: rgba(85, 46, 142, 0.15);
       border-radius: 0.5rem;
     }
+
     100% {
       box-shadow: 0 0 0 0 rgba(85, 46, 142, 0);
       background-color: transparent;
@@ -460,11 +485,13 @@
       background-color: rgba(133, 97, 198, 0.15);
       border-radius: 0.5rem;
     }
+
     50% {
       box-shadow: 0 0 0 8px rgba(133, 97, 198, 0);
       background-color: rgba(133, 97, 198, 0.2);
       border-radius: 0.5rem;
     }
+
     100% {
       box-shadow: 0 0 0 0 rgba(133, 97, 198, 0);
       background-color: transparent;

@@ -72,7 +72,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 lg:px-0.5 xl:px-1 2xl:px-1.5 3xl:px-2 py-1.5 lg:py-0.5 xl:py-1 2xl:py-1 3xl:py-1.5 text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8",
+        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-0.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2 rounded-sm px-0.5 lg:px-0.5 xl:px-1 2xl:px-1.5 3xl:px-2 py-0.5 lg:py-0.5 xl:py-1 2xl:py-1 3xl:py-1.5 text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8",
         className
       )}
       {...props}

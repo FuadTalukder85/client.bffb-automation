@@ -129,17 +129,17 @@ export function Pagination({
     <div
       className={cn(
         "flex items-center w-full justify-center",
-        !staticPosition && "lg:absolute! lg:right-20! lg:bottom-6! 2xl:bottom-6! 3xl:bottom-12! lg:justify-end! lg:mt-0!",
+        !staticPosition && "lg:absolute! lg:right-20! bottom-5!lg:bottom-6! 2xl:bottom-6! 3xl:bottom-12! lg:justify-end! lg:mt-0!",
         className
       )}
     >
       {/* Items Per Page Selector */}
       {onItemsPerPageChange && (
-        <div className="relative mr-1 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2" ref={dropdownRef}>
+        <div className="relative mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className={cn(
-              "h-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-2 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 flex items-center gap-1 rounded-md text-xs lg:text-[9px] xl:text-[11px] 2xl:text-xs 3xl:text-base font-medium",
+              "h-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 px-1.5 lg:px-2 xl:px-2.5 2xl:px-3 3xl:px-4 flex items-center gap-[1px] lg:gap-0.5 xl:gap-0.5 2xl:gap-[3px] 3xl:gap-1 rounded-xs lg:rounded-sm 2xl:rounded-md text-[7.5px] lg:text-[9px] xl:text-[11px] 2xl:text-xs 3xl:text-base font-medium",
               "bg-background border border-table-stroke text-foreground dark:text-white",
               "hover:bg-primary-shade-2"
             )}
@@ -147,22 +147,22 @@ export function Pagination({
             {selectedItemsPerPageLabel}
             <ChevronUp
               className={cn(
-                "h-2.5 w-2.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4",
+                "h-[7px] w-[7px] lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-4 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-4",
                 isDropdownOpen && "rotate-180"
               )}
             />
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute left-0 z-50 mb-1 overflow-hidden border rounded-md shadow-lg bottom-full bg-background border-table-stroke">
+            <div className="absolute left-0 z-50 mb-[1px] lg:mb-0.5 xl:mb-0.5 2xl:mb-[3px] 3xl:mb-1 overflow-hidden border rounded-md shadow-lg bottom-full bg-background border-table-stroke">
               {normalizedItemsPerPageOptions.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => handleItemsPerPageSelect(option.value)}
                   className={cn(
-                    "w-full px-3 py-1.5 2xl:px-4 2xl:py-2 text-xs 2xl:text-sm text-left text-foreground dark:text-white hover:bg-primary-shade-2",
+                    "w-full px-3 py-1.5 2xl:px-4 2xl:py-2 text-[7.5px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm text-left text-foreground dark:text-white hover:bg-primary-shade-2",
                     itemsPerPage === option.value &&
-                      "bg-primary-shade-2 text-nav-highlight dark:bg-primary dark:text-white font-medium"
+                    "bg-primary-shade-2 text-nav-highlight dark:bg-primary dark:text-white font-medium"
                   )}
                 >
                   {option.label}
@@ -178,13 +178,13 @@ export function Pagination({
         onClick={handlePrevious}
         disabled={disabled || currentPage === 1}
         className={cn(
-          "h-6 w-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-md mr-1 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2",
+          "h-4 w-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-xs lg:rounded-sm 2xl:rounded-md mr-[2px] lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2",
           "bg-background border border-table-stroke",
           "hover:bg-primary-shade-2 disabled:opacity-50 disabled:cursor-not-allowed"
         )}
         aria-label="Previous page"
       >
-        <ChevronLeft className="w-3.5 h-3.5 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
+        <ChevronLeft className="w-2 h-2 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
       </button>
 
       {/* Page Numbers */}
@@ -213,12 +213,12 @@ export function Pagination({
               onClick={() => handlePageChange(page)}
               disabled={disabled}
               className={cn(
-                "h-6 w-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-md text-xs lg:text-[9px] xl:text-[11px] 2xl:text-xs 3xl:text-base font-medium",
+                "h-4 w-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-xs lg:rounded-sm 2xl:rounded-md text-[7.5px] lg:text-[9px] xl:text-[11px] 2xl:text-xs 3xl:text-base font-medium",
                 isActive
                   ? "bg-primary text-white"
                   : "bg-background border border-table-stroke text-foreground hover:bg-primary-shade-2",
                 disabled && "opacity-50 cursor-not-allowed",
-                showMarginLeft && "ml-2"
+                showMarginLeft && "ml-[2px] lg:ml-0.5 xl:ml-1 2xl:ml-1.5 3xl:ml-2"
               )}
               aria-label={`Go to page ${page}`}
               aria-current={isActive ? "page" : undefined}
@@ -234,13 +234,13 @@ export function Pagination({
         onClick={handleNext}
         disabled={disabled || currentPage === totalPages}
         className={cn(
-          "h-6 w-6 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-md ml-1 lg:ml-0.5 xl:ml-1 2xl:ml-1.5 3xl:ml-2",
+          "h-4 w-4 lg:h-5 xl:h-6 2xl:h-7 3xl:h-9 lg:w-5 xl:w-6 2xl:w-7 3xl:w-9 flex items-center justify-center rounded-xs lg:rounded-sm 2xl:rounded-md ml-[2px] lg:ml-0.5 xl:ml-1 2xl:ml-1.5 3xl:ml-2",
           "bg-background border border-table-stroke",
           "hover:bg-primary-shade-2 disabled:opacity-50 disabled:cursor-not-allowed"
         )}
         aria-label="Next page"
       >
-        <ChevronRight className="w-3.5 h-3.5 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
+        <ChevronRight className="w-2 h-2 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
       </button>
     </div>
   );

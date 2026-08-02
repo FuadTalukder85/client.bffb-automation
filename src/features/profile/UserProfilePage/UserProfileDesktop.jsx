@@ -14,11 +14,11 @@ import { cn } from "@/lib/utils";
 import SidebarToggle from "@/features/project-overview/project-activity-sidebar/components/layout/SidebarToggle";
 
 const UserProfileDesktop = () => {
-  const { 
-    searchTerm, 
+  const {
+    searchTerm,
     setSearchTerm,
     isSidebarExpanded,
-    handleToggleSidebar 
+    handleToggleSidebar
   } = useUserProfile();
 
   return (
@@ -49,7 +49,7 @@ const UserProfileDesktop = () => {
 
       <div className={cn(
         "grid flex-1 pt-1.5 lg:pt-2 xl:pt-2.5 2xl:pt-3 3xl:pt-4 min-h-0 min-w-0 transition-all duration-500 ease-in-out",
-        isSidebarExpanded ? "lg:grid-cols-[minmax(0,1fr)_15rem] xl:grid-cols-[minmax(0,1fr)_19rem] 2xl:grid-cols-[minmax(0,1fr)_22rem] 3xl:grid-cols-[minmax(0,1fr)_28rem] 3xl:gap-6 2xl:gap-5 xl:gap-4 lg:gap-3" : "lg:grid-cols-[minmax(0,1fr)_0rem] gap-0"
+        isSidebarExpanded ? "md:grid-cols-[minmax(0,1fr)_13rem] lg:grid-cols-[minmax(0,1fr)_15rem]! xl:grid-cols-[minmax(0,1fr)_19rem]! 2xl:grid-cols-[minmax(0,1fr)_22rem]! 3xl:grid-cols-[minmax(0,1fr)_28rem]! 3xl:gap-6 2xl:gap-5 xl:gap-4 lg:gap-3" : "lg:grid-cols-[minmax(0,1fr)_0rem] gap-0"
       )}>
         <div className="flex flex-col flex-1 h-full gap-1 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-4 overflow-hidden min-h-0">
           <ProfileInfoDesktop />
@@ -68,7 +68,7 @@ const UserProfileDesktop = () => {
               "transition-all duration-500 ease-in-out h-full overflow-hidden",
               isSidebarExpanded ? "flex flex-col w-full" : "w-0"
             )}>
-              <div className="lg:min-w-[14rem] xl:min-w-[18rem] 2xl:min-w-[21rem] 3xl:min-w-[27rem] flex-1 flex flex-col min-h-0 ">
+              <div className="md:min-w-[9rem] lg:min-w-[14rem] xl:min-w-[18rem] 2xl:min-w-[21rem] 3xl:min-w-[27rem] flex-1 flex flex-col min-h-0 ">
                 <ProjectsDesktop />
               </div>
             </div>
