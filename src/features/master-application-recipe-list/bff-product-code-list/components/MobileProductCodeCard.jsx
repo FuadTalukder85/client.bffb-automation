@@ -31,7 +31,7 @@ export default function MobileProductCodeCard({
     className,
 }) {
     const isActive = productCode.isActive;
-    const cost = productCode.standardPrice ?? productCode.cost ?? 0;
+    const cost = productCode.standardPrice ?? 0;
     const displayCode = getProductDisplayCode(productCode, "");
     const displayName = getProductDisplayName(productCode, "");
     const displaySegment = getTaxonomyLabel(productCode.segment, "");

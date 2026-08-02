@@ -94,7 +94,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
         const parsedRawCost = Number(String(selectedItem?.cost || "0").replace(/,/g, ""));
         const sourceCost =
           ingredientSourceType === "bffProductCode"
-            ? Number(selectedItem?.standardPrice ?? selectedItem?.cost ?? 0)
+            ? Number(selectedItem?.standardPrice ?? 0)
             : Number.isFinite(parsedRawCost)
               ? parsedRawCost
               : 0;
@@ -122,7 +122,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
     const parsedRawCost = Number(String(selectedItem?.cost || "0").replace(/,/g, ""));
     const sourceCost =
       ingredientSourceType === "bffProductCode"
-        ? Number(selectedItem?.standardPrice ?? selectedItem?.cost ?? 0)
+        ? Number(selectedItem?.standardPrice ?? 0)
         : Number.isFinite(parsedRawCost)
           ? parsedRawCost
           : 0;

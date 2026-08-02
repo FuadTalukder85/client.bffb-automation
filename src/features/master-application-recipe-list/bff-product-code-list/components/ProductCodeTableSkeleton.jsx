@@ -50,11 +50,11 @@ export function ProductCodeTableSkeleton({
       size: columnSizing["type"] || 100,
     },
     {
-      id: "cost",
-      header: "Cost",
+      id: "standardPrice",
+      header: "Standard Price",
       headerClassName: "table-head-cell",
       cell: () => <Skeleton className="w-24 h-5" />,
-      size: columnSizing["cost"] || 150,
+      size: columnSizing["standardPrice"] || 150,
     },
     {
       id: "actions",

@@ -174,7 +174,7 @@ export function ProductCodeModal({
                 productAdvantage: productCode.productAdvantage || "",
                 applicationAreas: toIdList(productCode.applicationAreas),
                 type: productCode.type || "solid",
-                cost: productCode.standardPrice ?? productCode.cost ?? "",
+                standardPrice: productCode.standardPrice ?? "",
                 remarks: productCode.remarks || "",
             });
         } else {
@@ -211,7 +211,7 @@ export function ProductCodeModal({
                 productAdvantage: "",
                 applicationAreas: [],
                 type: "solid",
-                cost: "",
+                standardPrice: "",
                 remarks: "",
             });
         }
@@ -277,8 +277,7 @@ export function ProductCodeModal({
                 productAdvantage: data.productAdvantage || "",
                 applicationAreas: data.applicationAreas || [],
                 type: data.type,
-                standardPrice: parseFloat(data.cost),
-                cost: parseFloat(data.cost),
+                standardPrice: parseFloat(data.standardPrice),
                 remarks: data.remarks || "",
             };
 
@@ -610,7 +609,7 @@ export function ProductCodeModal({
                         <div className="relative">
                             <span className="absolute text-sm font-medium -translate-y-1/2 left-3 top-1/2">৳</span>
                             <Input
-                                {...register("cost", {
+                                {...register("standardPrice", {
                                     required: "Standard price is required",
                                     min: { value: 0, message: "Must be positive" },
                                     validate: (value) => !isNaN(parseFloat(value)) || "Must be a number",
@@ -626,7 +625,7 @@ export function ProductCodeModal({
                                 / Kg
                             </span>
                         </div>
-                        {errors.cost && <p className="text-xs text-red-500">{errors.cost.message}</p>}
+                        {errors.standardPrice && <p className="text-xs text-red-500">{errors.standardPrice.message}</p>}
                     </div>
 
                     <div className="space-y-1">

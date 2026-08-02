@@ -75,9 +75,7 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
           clientRate:
             selectedIngredient?.standardPrice !== undefined && selectedIngredient?.standardPrice !== null
               ? String(selectedIngredient.standardPrice)
-              : selectedIngredient?.cost !== undefined && selectedIngredient?.cost !== null
-                ? String(selectedIngredient.cost)
-                : prev.clientRate,
+              : prev.clientRate,
         };
       }
       return { ...prev, [id]: value };
@@ -101,7 +99,7 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
         sourceId: formData.ingredient,
         sourceName: selectedIngredient?.name || "",
         sourceCode: getPreferredProductCode(selectedIngredient),
-        bffRateAtCreation: selectedIngredient?.standardPrice ?? selectedIngredient?.cost ?? 0,
+        bffRateAtCreation: selectedIngredient?.standardPrice ?? 0,
         clientRateAtCreation: Number(formData.clientRate),
       });
       handleClose();

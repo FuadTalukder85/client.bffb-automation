@@ -269,7 +269,8 @@ export function useAllBFFProductCodes(searchTerm = "") {
         label,
         name: productName,
         productCode,
-        cost: item.cost,
+        standardPrice: item.standardPrice,
+        cost: item.standardPrice,
         searchText: String(`${productName} ${productCode}`).toLowerCase(),
       };
     });
