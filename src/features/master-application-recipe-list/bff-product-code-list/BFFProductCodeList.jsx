@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
 } from "react";
+import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
@@ -75,6 +76,7 @@ const getResponseMessage = (response, fallback) =>
   response?.message || response?.data?.message || fallback;
 
 export default function BFFProductCodeList() {
+  const navigate = useNavigate();
   // State management
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("all");
@@ -340,13 +342,17 @@ export default function BFFProductCodeList() {
   const handleAddProductCode = () => {
     setSelectedProductCode(null);
     setProductCodeModalMode("create");
-    setIsProductCodeModalOpen(true);
+    navigate("/bff-product/add", {
+      state: { defaultSegment: isSpecificSegment ? selectedSegment : "" },
+    });
   };
 
   const handleEditProductCode = (productCode) => {
     setSelectedProductCode(productCode);
     setProductCodeModalMode("update");
-    setIsProductCodeModalOpen(true);
+    navigate(`/bff-product/${productCode._id || productCode.id}`, {
+      state: { productCode, isReadOnly: false },
+    });
   };
 
   const handleArchiveProductCode = (productCode) => {
@@ -361,7 +367,9 @@ export default function BFFProductCodeList() {
 
   const handleViewProductCode = (productCode) => {
     setSelectedProductCode(productCode);
-    setIsRemarksModalOpen(true);
+    navigate(`/bff-product/${productCode._id || productCode.id}`, {
+      state: { productCode, isReadOnly: true },
+    });
   };
 
   const handleProductCodeConfirm = async (formData) => {
@@ -818,6 +826,7 @@ export default function BFFProductCodeList() {
       />
 
       {/* Modals */}
+      {/* ProductCodeModal commented out for future reference:
       <ProductCodeModal
         open={isProductCodeModalOpen}
         onOpenChange={setIsProductCodeModalOpen}
@@ -826,6 +835,7 @@ export default function BFFProductCodeList() {
         defaultSegment={getDefaultSegmentForModal()}
         onConfirm={handleProductCodeConfirm}
       />
+      */}
 
       <ArchiveProductCodeModal
         open={isArchiveModalOpen}
