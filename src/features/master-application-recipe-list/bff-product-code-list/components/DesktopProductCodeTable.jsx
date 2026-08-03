@@ -4,10 +4,13 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
 import { TbMessage2Search } from "react-icons/tb";
 import StatusBadge from "@/components/ui/StatusBadge";
+import CollapsiblePills from "@/components/ui/CollapsiblePills";
 import {
     getProductDisplayCode,
     getProductDisplayName,
     getTaxonomyLabel,
+    getTaxonomyLabels,
+    formatDate,
 } from "../utils/productDisplay";
 
 // Type display mapping
@@ -15,6 +18,32 @@ const typeDisplayMap = {
     solid: "Solid",
     liquid: "Liquid",
 };
+
+function TaxonomyBadgeList({ rawValue }) {
+  const labels = getTaxonomyLabels(rawValue);
+  if (!labels.length) return <span className="text-muted-foreground">—</span>;
+
+  return (
+    <CollapsiblePills
+      items={labels}
+      renderItem={(label, idx) => (
+        <span
+          key={idx}
+          className="font-medium rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap"
+        >
+          {label}
+        </span>
+      )}
+      renderMore={(countStr) => (
+        <span
+          className="font-bold rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap cursor-default"
+        >
+          <span data-more-count>{countStr}</span>
+        </span>
+      )}
+    />
+  );
+}
 
 export default function DesktopProductCodeTable({
     productCodes,
@@ -58,8 +87,8 @@ export default function DesktopProductCodeTable({
             headerClassName: "text-start",
             className: " ",
             cell: ({ row }) => (
-                <div className="flex items-center justify-center  size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
-                    <span className="text-nav-highlight">{serialOffset + row.index + 1}</span>
+                <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
+                    <span className="text-nav-highlight font-medium">{serialOffset + row.index + 1}</span>
                 </div>
             ),
             size: getResponsiveSize({ lg: 32, xl: 43, '2xl': 48, '3xl': 60 }),
@@ -68,90 +97,136 @@ export default function DesktopProductCodeTable({
             enablePinning: true,
         },
         {
-            accessorKey: "productCode",
-            header: "Product Code",
-            headerClassName: "",
-            className: " ",
-            cell: ({ row }) => (
-                <span className="font-medium text-nav-highlight">
-                    {getProductDisplayCode(row.original)}
-                </span>
-            ),
-            size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
-        },
-        {
             accessorKey: "name",
             header: "Product Name",
             headerClassName: "",
             className: " ",
             cell: ({ row }) => (
-                <span className="font-semibold">
+                <span className="font-semibold text-base-color whitespace-nowrap">
                     {getProductDisplayName(row.original)}
                 </span>
             ),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
         {
-            accessorKey: "segment",
-            header: "Product Segment",
+            accessorKey: "bffBrandName",
+            header: "BFF Brand Name",
             headerClassName: "",
             className: " ",
-            cell: ({ getValue }) => (
-                <span className="font-medium rounded-full bg-primary-shade-2 px-2  text-nav-highlight">
-                    {getTaxonomyLabel(getValue())}
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.bffBrandNames || row.original?.bffBrandName}
+                />
+            ),
+            size: getResponsiveSize({ lg: 100, xl: 130, '2xl': 150, '3xl': 180 }),
+        },
+        {
+            accessorKey: "xpCode",
+            header: "XP Code",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => {
+                const code = row.original?.xpCode || row.original?.productCode || "—";
+                return <span className="font-medium text-base-color whitespace-nowrap">{code}</span>;
+            },
+            size: getResponsiveSize({ lg: 75, xl: 100, '2xl': 115, '3xl': 140 }),
+        },
+        {
+            accessorKey: "xpIssueDate",
+            header: "XP Issue Date",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => (
+                <span className="font-medium text-base-color whitespace-nowrap">
+                    {formatDate(row.original?.xpIssueDate)}
                 </span>
+            ),
+            size: getResponsiveSize({ lg: 85, xl: 110, '2xl': 125, '3xl': 150 }),
+        },
+        {
+            accessorKey: "commercialCode",
+            header: "Commercial Code",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => {
+                const code = row.original?.commercialCode || row.original?.commercializedProductCode || "—";
+                return <span className="font-medium text-base-color whitespace-nowrap">{code}</span>;
+            },
+            size: getResponsiveSize({ lg: 90, xl: 120, '2xl': 135, '3xl': 160 }),
+        },
+        {
+            accessorKey: "commercialCodeIssueDate",
+            header: "Commercial Code Issue Date",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => (
+                <span className="font-medium text-base-color whitespace-nowrap">
+                    {formatDate(row.original?.commercialCodeIssueDate)}
+                </span>
+            ),
+            size: getResponsiveSize({ lg: 110, xl: 140, '2xl': 160, '3xl': 190 }),
+        },
+        {
+            accessorKey: "segment",
+            header: "Segment",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.segment}
+                />
             ),
             size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
         {
-            id: "status",
-            header: "Status",
+            accessorKey: "category",
+            header: "Category",
             headerClassName: "",
             className: " ",
-            cell: ({ row }) => {
-                const isCommercialized = Boolean(
-                    row.original?.commercialCode || row.original?.commercializedProductCode
-                );
-                return (
-                    <StatusBadge
-                        status={isCommercialized ? "Commercialized" : "Experimental"}
-                        className="items-start"
-                    />
-                );
-            },
-            size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.category}
+                />
+            ),
+            size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
         {
-            accessorKey: "type",
-            header: "Type",
+            accessorKey: "market",
+            header: "Market",
             headerClassName: "",
             className: " ",
-            cell: ({ getValue }) => {
-                const type = getValue();
-                return (
-                    <span className="font-medium">
-                        {typeDisplayMap[type] || type || "N/A"}
-                    </span>
-                );
-            },
-            size: getResponsiveSize({ lg: 53, xl: 71, '2xl': 80, '3xl': 100 }),
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.market}
+                />
+            ),
+            size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
         {
-            accessorKey: "formattedCost",
-            header: "Standard Price",
+            accessorKey: "brand",
+            header: "Brand",
             headerClassName: "",
-            className: "  ",
-            cell: ({ row }) => {
-                const productCode = row.original;
-                const cost = productCode.standardPrice ?? 0;
-                return (
-                    <span className="font-medium">
-                        ৳{cost.toLocaleString()}/kg
-                    </span>
-                );
-            },
-            size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
+            className: " ",
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.brand}
+                />
+            ),
+            size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
+        {
+            accessorKey: "productType",
+            header: "Product Type",
+            headerClassName: "",
+            className: " ",
+            cell: ({ row }) => (
+                <TaxonomyBadgeList
+                    rawValue={row.original?.productType || row.original?.type}
+                />
+            ),
+            size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
+        },
+
         {
             id: "actions",
             header: "Actions",

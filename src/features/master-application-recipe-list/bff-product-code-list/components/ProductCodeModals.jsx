@@ -24,6 +24,7 @@ import { useBFFProductCodes } from "@/hooks/useBFFProductCodes";
 import { usePackagingTypes } from "@/hooks/usePackagingTypes";
 import { BFF_PRODUCT_SEGMENT_KINDS as BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductSegment";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
+import { bffProductSegmentService } from "@/services/bffProductSegmentService";
 import { useCreateBFFProductSegmentItem as useCreateBFFProductTaxonomyItem } from "@/hooks/mutations/useBFFProductSegmentMutations";
 
 const toId = (value) => {
@@ -233,6 +234,47 @@ export function ProductCodeModal({
         return normalized;
     };
 
+    const isValidObjectId = (val) =>
+        typeof val === "string" && /^[0-9a-fA-F]{24}$/.test(val.trim());
+
+    const createdTaxonomyCacheRef = React.useRef({});
+
+    const resolveSingleTaxonomyId = async (kind, val) => {
+        if (!val) return null;
+        const strVal = String(val).trim();
+        if (!strVal) return null;
+        if (isValidObjectId(strVal)) return strVal;
+
+        const cacheKey = `${kind}:${strVal.toLowerCase()}`;
+        if (createdTaxonomyCacheRef.current[cacheKey]) {
+            return createdTaxonomyCacheRef.current[cacheKey];
+        }
+        try {
+            const response = await bffProductSegmentService.createItem(kind, { name: strVal });
+            const newId = response?.data?._id || response?._id || response?.data?.data?._id;
+            if (newId) {
+                createdTaxonomyCacheRef.current[cacheKey] = newId;
+                return newId;
+            }
+        } catch (err) {
+            console.error(`Failed to create taxonomy item "${strVal}" for kind "${kind}":`, err);
+        }
+        return null;
+    };
+
+    const resolveMultipleTaxonomyIds = async (kind, rawValue) => {
+        const arr = Array.isArray(rawValue) ? rawValue : rawValue ? [rawValue] : [];
+        const resolvedIds = [];
+        for (const item of arr) {
+            const idVal = typeof item === "object" ? item?._id || item?.id : item;
+            const resolvedId = await resolveSingleTaxonomyId(kind, idVal);
+            if (resolvedId && isValidObjectId(resolvedId)) {
+                resolvedIds.push(resolvedId);
+            }
+        }
+        return resolvedIds;
+    };
+
     const onSubmit = async (data) => {
         setIsLoading(true);
         setError(null);
@@ -242,40 +284,85 @@ export function ProductCodeModal({
                 : null;
             const xpCode = normalizeCode(data.productCode);
 
+            const bffBrandNames = await resolveMultipleTaxonomyIds(
+                BFF_PRODUCT_TAXONOMY_KINDS.BFF_BRAND_NAME,
+                data.bffBrandNames
+            );
+            const segment = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT,
+                data.segment
+            );
+            const category = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.CATEGORY,
+                data.category
+            );
+            const market = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.MARKET,
+                data.market
+            );
+            const brand = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.BRAND,
+                data.brand
+            );
+            const productType = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.PRODUCT_TYPE,
+                data.productType
+            );
+            const regulatoryStatuses = await resolveMultipleTaxonomyIds(
+                BFF_PRODUCT_TAXONOMY_KINDS.REGULATORY_STATUS,
+                data.regulatoryStatuses
+            );
+            const certifications = await resolveMultipleTaxonomyIds(
+                BFF_PRODUCT_TAXONOMY_KINDS.CERTIFICATION,
+                data.certifications
+            );
+            const solubility = await resolveSingleTaxonomyId(
+                BFF_PRODUCT_TAXONOMY_KINDS.SOLUBILITY,
+                data.solubility
+            );
+            const performStabilities = await resolveMultipleTaxonomyIds(
+                BFF_PRODUCT_TAXONOMY_KINDS.PERFORM_STABILITY,
+                data.performStabilities
+            );
+            const applicationAreas = await resolveMultipleTaxonomyIds(
+                BFF_PRODUCT_TAXONOMY_KINDS.APPLICATION_AREA,
+                data.applicationAreas
+            );
+
             const submitData = {
                 productName: data.name,
                 name: data.name,
-                bffBrandNames: data.bffBrandNames || [],
+                bffBrandNames,
                 xpCode,
                 productCode: xpCode,
                 xpIssueDate: data.xpIssueDate || null,
                 commercialCode,
                 commercializedProductCode: commercialCode,
                 commercialCodeIssueDate: data.commercialCodeIssueDate || null,
-                segment: data.segment || null,
-                category: data.category || null,
-                market: data.market || null,
-                brand: data.brand || null,
-                productType: data.productType || null,
+                segment,
+                category,
+                market,
+                brand,
+                productType,
                 direction: data.direction || "",
                 aromaTasteDescription: data.aromaTasteDescription || "",
                 benchmark: data.benchmark || "",
                 recommendedHeatStability: data.recommendedHeatStability || "",
-                regulatoryStatuses: data.regulatoryStatuses || [],
-                certifications: data.certifications || [],
+                regulatoryStatuses,
+                certifications,
                 alternateProducts: data.alternateProducts || [],
                 customerLeadTime: data.customerLeadTime || "",
                 availableForm: data.availableForm || null,
-                solubility: data.solubility || null,
+                solubility,
                 shelfLifeValue: data.shelfLifeValue !== "" ? Number(data.shelfLifeValue) : null,
                 shelfLifeUnit: data.shelfLifeUnit || null,
                 storageCondition: data.storageCondition || "",
                 packagingAvailable: data.packagingAvailable || [],
                 countriesOfOrigin: data.countriesOfOrigin || [],
                 recommendedDosing: data.recommendedDosing || "",
-                performStabilities: data.performStabilities || [],
+                performStabilities,
                 productAdvantage: data.productAdvantage || "",
-                applicationAreas: data.applicationAreas || [],
+                applicationAreas,
                 type: data.type,
                 standardPrice: parseFloat(data.standardPrice),
                 remarks: data.remarks || "",
@@ -304,9 +391,10 @@ export function ProductCodeModal({
             <AccordionSelect
                 id={id}
                 value={watch(id) || ""}
-                onChange={(e) => setValue(id, e.target.value)}
+                onChange={(e) => setValue(id, e.target.value, { shouldValidate: true, shouldDirty: true })}
                 options={options}
                 placeholder={`Select ${label.toLowerCase()}`}
+                creatable={true}
                 className="text-base-color"
             />
             <input
@@ -319,12 +407,12 @@ export function ProductCodeModal({
         </div>
     );
 
-    const multiSelect = (id, label, options, { allowCreate = false, onCreate, isCreating = false } = {}) => (
+    const multiSelect = (id, label, options, { allowCreate = true, onCreate, isCreating = false } = {}) => (
         <div className="space-y-1" key={id}>
             <FieldLabel>{label}</FieldLabel>
             <MultiSelectWithSearch
                 value={watch(id) || []}
-                onChange={(next) => setValue(id, next)}
+                onChange={(next) => setValue(id, next, { shouldValidate: true, shouldDirty: true })}
                 options={options}
                 placeholder={`Select ${label.toLowerCase()}`}
                 allowCreate={allowCreate}

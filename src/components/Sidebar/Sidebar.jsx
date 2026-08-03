@@ -292,12 +292,21 @@ export function Sidebar() {
         return;
       }
 
-      // 2. Check sub-items
-      const matchingSubItem = group.subItems.find(
-        (subItem) =>
-          currentPath === subItem.path ||
-          currentPath.startsWith(`${subItem.path}/`)
+      // 2. Check sub-items: first try exact path match
+      let matchingSubItem = group.subItems.find(
+        (subItem) => currentPath === subItem.path
       );
+
+      // If no exact match, find longest matching path prefix
+      if (!matchingSubItem) {
+        const sortedSubItems = [...group.subItems]
+          .filter((subItem) => subItem.path)
+          .sort((a, b) => (b.path?.length || 0) - (a.path?.length || 0));
+
+        matchingSubItem = sortedSubItems.find((subItem) =>
+          currentPath.startsWith(`${subItem.path}/`)
+        );
+      }
 
       if (matchingSubItem) {
         setActiveGroup(group.id);

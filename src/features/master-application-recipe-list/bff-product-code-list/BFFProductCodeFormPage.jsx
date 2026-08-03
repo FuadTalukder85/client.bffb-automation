@@ -28,6 +28,7 @@ import { useBFFProductCodes } from "@/hooks/useBFFProductCodes";
 import { usePackagingTypes } from "@/hooks/usePackagingTypes";
 import { BFF_PRODUCT_SEGMENT_KINDS as BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductSegment";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
+import { bffProductSegmentService } from "@/services/bffProductSegmentService";
 import { useCreateBFFProductSegmentItem as useCreateBFFProductTaxonomyItem } from "@/hooks/mutations/useBFFProductSegmentMutations";
 
 const toId = (value) => {
@@ -70,22 +71,23 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   const defaultSegmentFromState = location.state?.defaultSegment || "";
   const passedProductCode = location.state?.productCode || null;
 
-  // Fetch product data for edit mode
+  // Fetch product data for edit/view mode
   const { data: fetchedProductData, isLoading: isFetchingProduct } = useQuery({
     queryKey: ["bff-product-code-detail", id],
     queryFn: () => bffProductCodeService.getProductCode(id),
-    enabled: Boolean(id) && !passedProductCode,
+    enabled: Boolean(id),
+    placeholderData: passedProductCode ? { data: passedProductCode } : undefined,
   });
 
   const productCode = useMemo(() => {
     if (mode === "create") return null;
     return (
-      passedProductCode ||
       fetchedProductData?.data ||
       fetchedProductData ||
+      passedProductCode ||
       null
     );
-  }, [mode, passedProductCode, fetchedProductData]);
+  }, [mode, fetchedProductData, passedProductCode]);
 
   const {
     register,
@@ -162,22 +164,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
     staleTime: Infinity,
   });
 
-  // Taxonomy mutations
-  const createBrand = useCreateBFFProductTaxonomyItem(
-    BFF_PRODUCT_TAXONOMY_KINDS.BFF_BRAND_NAME
-  );
-  const createRegulatory = useCreateBFFProductTaxonomyItem(
-    BFF_PRODUCT_TAXONOMY_KINDS.REGULATORY_STATUS
-  );
-  const createCertification = useCreateBFFProductTaxonomyItem(
-    BFF_PRODUCT_TAXONOMY_KINDS.CERTIFICATION
-  );
-  const createPerformStability = useCreateBFFProductTaxonomyItem(
-    BFF_PRODUCT_TAXONOMY_KINDS.PERFORM_STABILITY
-  );
-  const createApplicationArea = useCreateBFFProductTaxonomyItem(
-    BFF_PRODUCT_TAXONOMY_KINDS.APPLICATION_AREA
-  );
+  const createdTaxonomyCacheRef = React.useRef({});
 
   const toOptions = (payload) =>
     (payload?.data || []).map((item) => ({
@@ -242,6 +229,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         aromaTasteDescription: productCode.aromaTasteDescription || "",
         benchmark: productCode.benchmark || "",
         recommendedHeatStability: productCode.recommendedHeatStability || "",
+        coaFile: productCode.coaFile || "",
         regulatoryStatuses: toIdList(productCode.regulatoryStatuses),
         certifications: toIdList(productCode.certifications),
         alternateProducts: toIdList(productCode.alternateProducts),
@@ -263,6 +251,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         standardPrice: productCode.standardPrice ?? "",
         remarks: productCode.remarks || "",
       });
+      setSelectedFileName(productCode.coaFile || "");
     } else if (mode === "create") {
       reset({
         name: "",
@@ -281,6 +270,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         aromaTasteDescription: "",
         benchmark: "",
         recommendedHeatStability: "",
+        coaFile: "",
         regulatoryStatuses: [],
         certifications: [],
         alternateProducts: [],
@@ -294,12 +284,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         countriesOfOrigin: [],
         recommendedDosing: "",
         performStabilities: [],
-        productAdvantage: "",
+        productAdvantage: [],
         applicationAreas: [],
         type: "solid",
         standardPrice: "",
         remarks: "",
       });
+      setSelectedFileName("");
     }
     setServerError(null);
   }, [productCode, mode, reset, defaultSegmentFromState]);
@@ -323,6 +314,42 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
       .filter((item) => /^[0-9a-fA-F]{24}$/.test(item));
   };
 
+  const resolveSingleTaxonomyId = async (kind, val) => {
+    if (!val) return null;
+    const strVal = String(val).trim();
+    if (!strVal) return null;
+    if (isValidObjectId(strVal)) return strVal;
+
+    const cacheKey = `${kind}:${strVal.toLowerCase()}`;
+    if (createdTaxonomyCacheRef.current[cacheKey]) {
+      return createdTaxonomyCacheRef.current[cacheKey];
+    }
+    try {
+      const response = await bffProductSegmentService.createItem(kind, { name: strVal });
+      const newId = response?.data?._id || response?._id || response?.data?.data?._id;
+      if (newId) {
+        createdTaxonomyCacheRef.current[cacheKey] = newId;
+        return newId;
+      }
+    } catch (err) {
+      console.error(`Failed to create taxonomy item "${strVal}" for kind "${kind}":`, err);
+    }
+    return null;
+  };
+
+  const resolveMultipleTaxonomyIds = async (kind, rawValue) => {
+    const arr = Array.isArray(rawValue) ? rawValue : rawValue ? [rawValue] : [];
+    const resolvedIds = [];
+    for (const item of arr) {
+      const idVal = typeof item === "object" ? item?._id || item?.id : item;
+      const resolvedId = await resolveSingleTaxonomyId(kind, idVal);
+      if (resolvedId && isValidObjectId(resolvedId)) {
+        resolvedIds.push(resolvedId);
+      }
+    }
+    return resolvedIds;
+  };
+
   const onSubmit = async (formData) => {
     setIsLoading(true);
     setServerError(null);
@@ -333,31 +360,78 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           : null;
       const xpCode = normalizeCode(formData.productCode);
 
+      // Resolve taxonomy items (creating any newly typed entries in the database on Confirm click)
+      const bffBrandNames = await resolveMultipleTaxonomyIds(
+        BFF_PRODUCT_TAXONOMY_KINDS.BFF_BRAND_NAME,
+        formData.bffBrandNames
+      );
+      const segment = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT,
+        formData.segment
+      );
+      const category = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.CATEGORY,
+        formData.category
+      );
+      const market = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.MARKET,
+        formData.market
+      );
+      const brand = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.BRAND,
+        formData.brand
+      );
+      const productType = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.PRODUCT_TYPE,
+        formData.productType
+      );
+      const regulatoryStatuses = await resolveMultipleTaxonomyIds(
+        BFF_PRODUCT_TAXONOMY_KINDS.REGULATORY_STATUS,
+        formData.regulatoryStatuses
+      );
+      const certifications = await resolveMultipleTaxonomyIds(
+        BFF_PRODUCT_TAXONOMY_KINDS.CERTIFICATION,
+        formData.certifications
+      );
+      const solubility = await resolveSingleTaxonomyId(
+        BFF_PRODUCT_TAXONOMY_KINDS.SOLUBILITY,
+        formData.solubility
+      );
+      const performStabilities = await resolveMultipleTaxonomyIds(
+        BFF_PRODUCT_TAXONOMY_KINDS.PERFORM_STABILITY,
+        formData.performStabilities
+      );
+      const applicationAreas = await resolveMultipleTaxonomyIds(
+        BFF_PRODUCT_TAXONOMY_KINDS.APPLICATION_AREA,
+        formData.applicationAreas
+      );
+
       const submitData = {
         productName: formData.name,
         name: formData.name,
-        bffBrandNames: ensureArrayOfObjectIds(formData.bffBrandNames),
+        bffBrandNames,
         xpCode,
         productCode: xpCode,
         xpIssueDate: formData.xpIssueDate || null,
         commercialCode,
         commercializedProductCode: commercialCode,
         commercialCodeIssueDate: formData.commercialCodeIssueDate || null,
-        segment: isValidObjectId(formData.segment) ? formData.segment : null,
-        category: isValidObjectId(formData.category) ? formData.category : null,
-        market: isValidObjectId(formData.market) ? formData.market : null,
-        brand: isValidObjectId(formData.brand) ? formData.brand : null,
-        productType: isValidObjectId(formData.productType) ? formData.productType : null,
+        segment,
+        category,
+        market,
+        brand,
+        productType,
         direction: formData.direction || "",
         aromaTasteDescription: formData.aromaTasteDescription || "",
         benchmark: formData.benchmark || "",
         recommendedHeatStability: formData.recommendedHeatStability || "",
-        regulatoryStatuses: ensureArrayOfObjectIds(formData.regulatoryStatuses),
-        certifications: ensureArrayOfObjectIds(formData.certifications),
+        coaFile: typeof formData.coaFile === "string" ? formData.coaFile : selectedFileName || null,
+        regulatoryStatuses,
+        certifications,
         alternateProducts: ensureArrayOfObjectIds(formData.alternateProducts),
         customerLeadTime: formData.customerLeadTime || "",
         availableForm: isValidObjectId(formData.availableForm) ? formData.availableForm : null,
-        solubility: isValidObjectId(formData.solubility) ? formData.solubility : null,
+        solubility,
         shelfLifeValue:
           formData.shelfLifeValue !== "" && formData.shelfLifeValue !== null
             ? Number(formData.shelfLifeValue)
@@ -371,9 +445,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
             ? [formData.countriesOfOrigin.trim()]
             : [],
         recommendedDosing: formData.recommendedDosing || "",
-        performStabilities: ensureArrayOfObjectIds(formData.performStabilities),
+        performStabilities,
         productAdvantage: formData.productAdvantage || "",
-        applicationAreas: ensureArrayOfObjectIds(formData.applicationAreas),
+        applicationAreas,
         type: formData.type || "solid",
         standardPrice: parseFloat(formData.standardPrice),
         remarks: formData.remarks || "",
@@ -395,6 +469,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         );
       }
 
+      queryClient.invalidateQueries({ queryKey: ["bff-product-segment"] });
       queryClient.invalidateQueries({ queryKey: ["bff-product-codes"] });
       navigate("/bff-product/list");
     } catch (err) {
@@ -456,11 +531,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   }
 
   const commonInputClass = cn(
-    "bg-white dark:bg-background border border-[#DFD5F5] dark:border-border 3xl:h-11 transition-colors",
+    "bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border 3xl:h-11 transition-colors",
     isReadOnly && "pointer-events-none"
   );
   const commonInnerClass = cn(
-    "text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-transparent focus:outline-none h-full"
+    "text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-[#FBFBFD] focus:outline-none h-full"
   );
 
   const selectClassName = cn(
@@ -547,7 +622,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
       <div className="h-full bg-white dark:bg-background rounded-3xl p-5 lg:p-6 m-3 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="w-full overflow-x-auto pb-1">
-            <div className="min-w-[940px] grid grid-cols-5 gap-x-4 gap-y-8">
+            <div className="min-w-[940px] grid grid-cols-5 gap-x-5 gap-y-8">
               {/* ROW 1 */}
               {/* 1. Product Name */}
               <div className="space-y-1.5">
@@ -579,10 +654,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="bffBrandNames"
                   disabled={isReadOnly}
                   value={watch("bffBrandNames") || []}
-                  onChange={(e) => setValue("bffBrandNames", e.target.value)}
+                  onChange={(e) => setValue("bffBrandNames", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(bffBrandData)}
                   placeholder="Select brand name"
                   multiple={true}
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("BFF Brand Name", "Select brand name", "bffBrandNames") &&
@@ -705,9 +781,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="segment"
                   disabled={isReadOnly}
                   value={watch("segment") || ""}
-                  onChange={(e) => setValue("segment", e.target.value)}
+                  onChange={(e) => setValue("segment", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(segmentData)}
                   placeholder="Select segment"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Segment", "Select segment", "segment") &&
@@ -732,9 +809,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="category"
                   disabled={isReadOnly}
                   value={watch("category") || ""}
-                  onChange={(e) => setValue("category", e.target.value)}
+                  onChange={(e) => setValue("category", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(categoryData)}
                   placeholder="Select category"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Category", "Select category", "category") &&
@@ -759,9 +837,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="market"
                   disabled={isReadOnly}
                   value={watch("market") || ""}
-                  onChange={(e) => setValue("market", e.target.value)}
+                  onChange={(e) => setValue("market", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(marketData)}
                   placeholder="Select market"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Market", "Select market", "market") &&
@@ -786,9 +865,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="brand"
                   disabled={isReadOnly}
                   value={watch("brand") || ""}
-                  onChange={(e) => setValue("brand", e.target.value)}
+                  onChange={(e) => setValue("brand", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(brandData)}
                   placeholder="Select brand"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Brand", "Select brand", "brand") &&
@@ -814,9 +894,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="productType"
                   disabled={isReadOnly}
                   value={watch("productType") || ""}
-                  onChange={(e) => setValue("productType", e.target.value)}
+                  onChange={(e) => setValue("productType", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(productTypeData)}
                   placeholder="Select type"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Product Type", "Select type", "productType") &&
@@ -843,12 +924,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("direction")}
                   placeholder="Describe flavour direction"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-xl",
+                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Direction", "Describe flavour direction", "direction") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
                   )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-transparent focus:outline-none resize-none h-full p-3"
+                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
                 />
               </div>
 
@@ -863,12 +944,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("aromaTasteDescription")}
                   placeholder="Describe aroma and taste"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-xl",
+                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Aroma & Taste Description", "Describe aroma and taste", "aromaTasteDescription") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
                   )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-transparent focus:outline-none resize-none h-full p-3"
+                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
                 />
               </div>
 
@@ -897,8 +978,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </label>
                 <div
                   className={cn(
-                    "w-full h-9.5 px-3 bg-[#F9F6FE] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
-                    isHighlighted("Certificate Of Analysis", "Upload file", "certificateOfAnalysis") &&
+                    "w-full h-10.5 px-3 bg-[#FBFBFD] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
+                    isHighlighted("Certificate Of Analysis", "Upload file", "coaFile") &&
                     "ring-2 ring-[#6B46C1]",
                     isReadOnly && "pointer-events-none"
                   )}
@@ -913,10 +994,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                       <input
                         type="file"
                         className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) setSelectedFileName(file.name);
-                        }}
+                        {...register("coaFile", {
+                          onChange: (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setSelectedFileName(file.name);
+                          },
+                        })}
                       />
                     </label>
                   )}
@@ -970,10 +1053,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="regulatoryStatuses"
                   disabled={isReadOnly}
                   value={watch("regulatoryStatuses") || []}
-                  onChange={(e) => setValue("regulatoryStatuses", e.target.value)}
+                  onChange={(e) => setValue("regulatoryStatuses", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(regulatoryData)}
                   placeholder="Select regulatory status"
                   multiple={true}
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Regulatory Status", "Select regulatory status", "regulatoryStatuses") &&
@@ -992,10 +1076,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="certifications"
                   disabled={isReadOnly}
                   value={watch("certifications") || []}
-                  onChange={(e) => setValue("certifications", e.target.value)}
+                  onChange={(e) => setValue("certifications", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(certificationData)}
                   placeholder="Select certifications"
                   multiple={true}
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Certifications", "Select certifications", "certifications") &&
@@ -1053,12 +1138,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("storageCondition")}
                   placeholder="Describe storage conditions"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-xl",
+                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Storage Condition", "Describe storage conditions", "storageCondition") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
                   )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-transparent focus:outline-none resize-none h-full p-3"
+                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5]  focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
                 />
               </div>
 
@@ -1110,9 +1195,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="solubility"
                   disabled={isReadOnly}
                   value={watch("solubility") || ""}
-                  onChange={(e) => setValue("solubility", e.target.value)}
+                  onChange={(e) => setValue("solubility", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(solubilityData)}
                   placeholder="Select solubility"
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Solubility", "Select solubility", "solubility") &&
@@ -1213,10 +1299,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="performStabilities"
                   disabled={isReadOnly}
                   value={watch("performStabilities") || []}
-                  onChange={(e) => setValue("performStabilities", e.target.value)}
+                  onChange={(e) => setValue("performStabilities", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(performStabilityData)}
                   placeholder="Select stability type"
                   multiple={true}
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Perform Stability", "Select stability type", "performStabilities") &&
@@ -1234,10 +1321,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="applicationAreas"
                   disabled={isReadOnly}
                   value={watch("applicationAreas") || []}
-                  onChange={(e) => setValue("applicationAreas", e.target.value)}
+                  onChange={(e) => setValue("applicationAreas", e.target.value, { shouldValidate: true, shouldDirty: true })}
                   options={toOptions(applicationAreaData)}
                   placeholder="Select application areas"
                   multiple={true}
+                  creatable={true}
                   className={cn(
                     selectClassName,
                     isHighlighted("Application Area", "Select application areas", "applicationAreas") &&

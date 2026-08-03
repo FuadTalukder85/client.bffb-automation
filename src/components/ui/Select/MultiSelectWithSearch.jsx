@@ -211,6 +211,10 @@ export const MultiSelectWithSearch = ({
     }
   };
 
+  const isCreatable = Boolean(allowCreate || onCreateOption);
+  const effectiveSearchPlaceholder =
+    searchPlaceholder || (isCreatable ? "Search or type new..." : "Search...");
+
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
@@ -272,7 +276,7 @@ export const MultiSelectWithSearch = ({
                   setSearchTerm(e.target.value);
                   handleSearchChange(e.target.value);
                 }}
-                placeholder={searchPlaceholder}
+                placeholder={effectiveSearchPlaceholder}
                 className="w-full pl-9 pr-3 py-2 text-sm bg-muted/50 border-0 rounded-md outline-none placeholder:text-muted-foreground"
                 autoFocus
                 onKeyDown={handleInputKeyDown}
