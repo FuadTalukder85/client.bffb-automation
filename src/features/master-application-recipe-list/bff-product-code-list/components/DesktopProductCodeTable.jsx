@@ -20,29 +20,30 @@ const typeDisplayMap = {
 };
 
 function TaxonomyBadgeList({ rawValue }) {
-  const labels = getTaxonomyLabels(rawValue);
-  if (!labels.length) return <span className="text-muted-foreground">—</span>;
+    const labels = getTaxonomyLabels(rawValue);
+    if (!labels.length) return <div className="flex justify-center w-full"><span className="text-muted-foreground">—</span></div>;
 
-  return (
-    <CollapsiblePills
-      items={labels}
-      renderItem={(label, idx) => (
-        <span
-          key={idx}
-          className="font-medium rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap"
-        >
-          {label}
-        </span>
-      )}
-      renderMore={(countStr) => (
-        <span
-          className="font-bold rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap cursor-default"
-        >
-          <span data-more-count>{countStr}</span>
-        </span>
-      )}
-    />
-  );
+    return (
+        <CollapsiblePills
+            className="justify-center"
+            items={labels}
+            renderItem={(label, idx) => (
+                <span
+                    key={idx}
+                    className="font-medium rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap"
+                >
+                    {label}
+                </span>
+            )}
+            renderMore={(countStr) => (
+                <span
+                    className="font-bold rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap cursor-default"
+                >
+                    <span data-more-count>{countStr}</span>
+                </span>
+            )}
+        />
+    );
 }
 
 export default function DesktopProductCodeTable({
@@ -84,10 +85,10 @@ export default function DesktopProductCodeTable({
         {
             id: "serial",
             header: "SL",
-            headerClassName: "text-start",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
-                <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full">
+                <div className="flex items-center justify-center size-5.5 p-2 2xl:size-6.5 2xl:p-3 3xl:size-10 3xl:p-4 bg-primary/10 rounded-full mx-auto">
                     <span className="text-nav-highlight font-medium">{serialOffset + row.index + 1}</span>
                 </div>
             ),
@@ -99,20 +100,22 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "name",
             header: "Product Name",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
-                <span className="font-semibold text-base-color whitespace-nowrap">
-                    {getProductDisplayName(row.original)}
-                </span>
+                <div className="flex items-center justify-center w-full">
+                    <span className="font-semibold text-base-color whitespace-nowrap text-center">
+                        {getProductDisplayName(row.original)}
+                    </span>
+                </div>
             ),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
         {
             accessorKey: "bffBrandName",
             header: "BFF Brand Name",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.bffBrandNames || row.original?.bffBrandName}
@@ -123,54 +126,66 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "xpCode",
             header: "XP Code",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => {
                 const code = row.original?.xpCode || row.original?.productCode || "—";
-                return <span className="font-medium text-base-color whitespace-nowrap">{code}</span>;
+                return (
+                    <div className="flex items-center justify-center w-full">
+                        <span className="font-medium text-base-color whitespace-nowrap text-center">{code}</span>
+                    </div>
+                );
             },
             size: getResponsiveSize({ lg: 75, xl: 100, '2xl': 115, '3xl': 140 }),
         },
         {
             accessorKey: "xpIssueDate",
             header: "XP Issue Date",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
-                <span className="font-medium text-base-color whitespace-nowrap">
-                    {formatDate(row.original?.xpIssueDate)}
-                </span>
+                <div className="flex items-center justify-center w-full">
+                    <span className="font-medium text-base-color whitespace-nowrap text-center">
+                        {formatDate(row.original?.xpIssueDate)}
+                    </span>
+                </div>
             ),
             size: getResponsiveSize({ lg: 85, xl: 110, '2xl': 125, '3xl': 150 }),
         },
         {
             accessorKey: "commercialCode",
             header: "Commercial Code",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => {
                 const code = row.original?.commercialCode || row.original?.commercializedProductCode || "—";
-                return <span className="font-medium text-base-color whitespace-nowrap">{code}</span>;
+                return (
+                    <div className="flex items-center justify-center w-full">
+                        <span className="font-medium text-base-color whitespace-nowrap text-center">{code}</span>
+                    </div>
+                );
             },
             size: getResponsiveSize({ lg: 90, xl: 120, '2xl': 135, '3xl': 160 }),
         },
         {
             accessorKey: "commercialCodeIssueDate",
             header: "Commercial Code Issue Date",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
-                <span className="font-medium text-base-color whitespace-nowrap">
-                    {formatDate(row.original?.commercialCodeIssueDate)}
-                </span>
+                <div className="flex items-center justify-center w-full">
+                    <span className="font-medium text-base-color whitespace-nowrap text-center">
+                        {formatDate(row.original?.commercialCodeIssueDate)}
+                    </span>
+                </div>
             ),
             size: getResponsiveSize({ lg: 110, xl: 140, '2xl': 160, '3xl': 190 }),
         },
         {
             accessorKey: "segment",
             header: "Segment",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.segment}
@@ -181,8 +196,8 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "category",
             header: "Category",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.category}
@@ -193,8 +208,8 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "market",
             header: "Market",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.market}
@@ -205,8 +220,8 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "brand",
             header: "Brand",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.brand}
@@ -217,8 +232,8 @@ export default function DesktopProductCodeTable({
         {
             accessorKey: "productType",
             header: "Product Type",
-            headerClassName: "",
-            className: " ",
+            headerClassName: "text-center",
+            className: "text-center",
             cell: ({ row }) => (
                 <TaxonomyBadgeList
                     rawValue={row.original?.productType || row.original?.type}
@@ -241,7 +256,7 @@ export default function DesktopProductCodeTable({
                 const canRestore = typeof onRestore === "function" && (canRestoreRecord ? canRestoreRecord(productCode) : true);
 
                 return (
-                    <div className="flex items-center justify-end gap-0 py-1 3xl:py-2.5">
+                    <div className="flex items-center justify-center gap-0 py-1 3xl:py-2.5">
                         {isActive ? (
                             <>
                                 <button

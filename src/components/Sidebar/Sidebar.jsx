@@ -102,15 +102,15 @@ export function Sidebar() {
       }] : [];
     })(),
 
-   ...(hasPermission(PERMISSIONS.SENSORY_FORM.READ) || hasPermission(PERMISSIONS.SENSORY_TOP_SHEET.READ) ? [{
-        id: "sensory-testing",
-        label: "Sensory Testing",
-        iconName: "sensory-testing",
-        subItems: [
-          ...(hasPermission(PERMISSIONS.SENSORY_FORM.READ) ? [{ id: "sensory-forms", label: "Sensory Forms", path: "/sensory-testing/sensory-forms" }] : []),
-          ...(hasPermission(PERMISSIONS.SENSORY_TOP_SHEET.READ) ? [{ id: "sensory-top-sheet", label: "Sensory Top-Sheet", path: "/sensory-testing/sensory-top-sheet" }] : []),
-        ]
-      }] : []),
+    ...(hasPermission(PERMISSIONS.SENSORY_FORM.READ) || hasPermission(PERMISSIONS.SENSORY_TOP_SHEET.READ) ? [{
+      id: "sensory-testing",
+      label: "Sensory Testing",
+      iconName: "sensory-testing",
+      subItems: [
+        ...(hasPermission(PERMISSIONS.SENSORY_FORM.READ) ? [{ id: "sensory-forms", label: "Sensory Forms", path: "/sensory-testing/sensory-forms" }] : []),
+        ...(hasPermission(PERMISSIONS.SENSORY_TOP_SHEET.READ) ? [{ id: "sensory-top-sheet", label: "Sensory Top-Sheet", path: "/sensory-testing/sensory-top-sheet" }] : []),
+      ]
+    }] : []),
 
     ...(hasPermission(PERMISSIONS.SHELF_LIFE_TESTING.READ) ? [{
       id: "shelf-life-testing",
@@ -190,11 +190,11 @@ export function Sidebar() {
       ];
       return subItems.length > 0
         ? [{
-            id: "bff-product",
-            label: "BFF Product",
-            iconName: "master-application-recipe-list",
-            subItems,
-          }]
+          id: "bff-product",
+          label: "BFF Product Code List",
+          iconName: "bff-product-code-list",
+          subItems,
+        }]
         : [];
     })(),
 
@@ -354,51 +354,51 @@ export function Sidebar() {
                     className="absolute left-0 right-0 z-0 pointer-events-none 3xl:h-[58px] 2xl:h-[46px] xl:h-[41px] lg:h-[31px] h-[26px] top-1/2 -translate-y-1/2"
                   >
                     <div className="absolute inset-y-0 right-0 rounded-l-full left-4 bg-[#EEEBF4] dark:bg-primary-shade-2">
-                        <div
-                          className={`absolute -top-5 right-0 w-5 h-5 bg-transparent rounded-br-full z-10 pointer-events-none ${theme === "dark"
-                            ? "shadow-[5px_5px_0_5px_#2c213d]"
-                            : "shadow-[5px_5px_0_5px_#EEEBF4]"
-                            }`}
-                        />
-                        <div
-                          className={`absolute -bottom-5 right-0 w-5 h-5 bg-transparent rounded-tr-full z-10 pointer-events-none ${theme === "dark"
-                            ? "shadow-[5px_-5px_0_5px_#2c213d]"
-                            : "shadow-[5px_-5px_0_5px_#EEEBF4]"
-                            }`}
-                        />
-                      </div>
+                      <div
+                        className={`absolute -top-5 right-0 w-5 h-5 bg-transparent rounded-br-full z-10 pointer-events-none ${theme === "dark"
+                          ? "shadow-[5px_5px_0_5px_#2c213d]"
+                          : "shadow-[5px_5px_0_5px_#EEEBF4]"
+                          }`}
+                      />
+                      <div
+                        className={`absolute -bottom-5 right-0 w-5 h-5 bg-transparent rounded-tr-full z-10 pointer-events-none ${theme === "dark"
+                          ? "shadow-[5px_-5px_0_5px_#2c213d]"
+                          : "shadow-[5px_-5px_0_5px_#EEEBF4]"
+                          }`}
+                      />
+                    </div>
                   </motion.div>
                 )}
                 <button
                   onClick={() => {
-                  setActiveGroup(group.id);
-                  if (group.path) {
-                    navigate(group.path);
-                    setActiveSubItem(group.id);
-                  }
-                }}
-                className={`w-full flex items-center 3xl:gap-4 2xl:gap-3.5 xl:gap-3 lg:gap-2 gap-1 3xl:mx-8 2xl:mx-6.5 xl:mx-6 lg:mx-5.5 mx-3 3xl:py-4 2xl:py-3.2 xl:py-2.8 lg:py-2 py-1 transition-all duration-200 relative z-10 cursor-pointer ${isActive
-                  ? "text-nav-highlight font-semibold"
-                  : "text-gray-900 dark:text-foreground"
-                  }`}
-              >
-                <NavIcon
-                  name={group.iconName}
-                  className={`3xl:w-6 2xl:w-4.5 xl:w-4.5 lg:w-3.5 w-3 3xl:h-6 2xl:h-4.5 xl:h-4.5 lg:h-3.5 h-3 transition-colors ${isActive
-                    ? "text-nav-highlight"
-                    : "text-gray-600 dark:text-foreground"
-                    } hover:text-nav-highlight`}
-                />
-                <span
-                  className={`3xl:text-base 2xl:text-xs xl:text-[11.5px] lg:text-[8.5px] text-[8px] font-medium tracking-tight whitespace-nowrap transition-opacity duration-200 ${isExpanded
-                    ? "opacity-100 delay-100"
-                    : "opacity-0 w-0 overflow-hidden"
+                    setActiveGroup(group.id);
+                    if (group.path) {
+                      navigate(group.path);
+                      setActiveSubItem(group.id);
+                    }
+                  }}
+                  className={`w-full flex items-center 3xl:gap-4 2xl:gap-3.5 xl:gap-3 lg:gap-2 gap-1 3xl:mx-8 2xl:mx-6.5 xl:mx-6 lg:mx-5.5 mx-3 3xl:py-4 2xl:py-3.2 xl:py-2.8 lg:py-2 py-1 transition-all duration-200 relative z-10 cursor-pointer ${isActive
+                    ? "text-nav-highlight font-semibold"
+                    : "text-gray-900 dark:text-foreground"
                     }`}
                 >
-                  {group.label}
-                </span>
-              </button>
-            </div>
+                  <NavIcon
+                    name={group.iconName}
+                    className={`3xl:w-6 2xl:w-4.5 xl:w-4.5 lg:w-3.5 w-3 3xl:h-6 2xl:h-4.5 xl:h-4.5 lg:h-3.5 h-3 transition-colors ${isActive
+                      ? "text-nav-highlight"
+                      : "text-gray-600 dark:text-foreground"
+                      } hover:text-nav-highlight`}
+                  />
+                  <span
+                    className={`3xl:text-base 2xl:text-xs xl:text-[11.5px] lg:text-[8.5px] text-[8px] font-medium tracking-tight whitespace-nowrap transition-opacity duration-200 ${isExpanded
+                      ? "opacity-100 delay-100"
+                      : "opacity-0 w-0 overflow-hidden"
+                      }`}
+                  >
+                    {group.label}
+                  </span>
+                </button>
+              </div>
 
               {/* Sub menu */}
               <div
@@ -478,11 +478,11 @@ export function Sidebar() {
           {isExpanded && (
             <div className="">
               <button
-              onClick={handleLogout}
-              className="text-center rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
-            >
-              <LogOut className="3xl:w-6 2xl:w-5 xl:w-4 lg:w-3 3xl:h-6 2xl:h-5 xl:h-4 lg:h-3" />
-            </button>
+                onClick={handleLogout}
+                className="text-center rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <LogOut className="3xl:w-6 2xl:w-5 xl:w-4 lg:w-3 3xl:h-6 2xl:h-5 xl:h-4 lg:h-3" />
+              </button>
             </div>
           )}
         </div>

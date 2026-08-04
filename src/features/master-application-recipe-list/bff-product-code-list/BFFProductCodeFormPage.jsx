@@ -95,8 +95,28 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
     reset,
     watch,
     setValue,
+    clearErrors,
     formState: { errors },
   } = useForm();
+
+  const xpIssueDateRef = React.useRef(null);
+  const commercialCodeIssueDateRef = React.useRef(null);
+
+  const handleOpenDatePicker = (inputEl) => {
+    if (isReadOnly || !inputEl) return;
+    if (inputEl.type !== "date") {
+      inputEl.type = "date";
+    }
+    try {
+      if (typeof inputEl.showPicker === "function") {
+        inputEl.showPicker();
+      } else {
+        inputEl.focus();
+      }
+    } catch (err) {
+      inputEl.focus();
+    }
+  };
 
   // Taxonomy queries
   const { data: bffBrandData } = useBFFProductTaxonomy(
@@ -200,6 +220,28 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   }, [productsData, productCode, id]);
 
   const productNameWatch = watch("name");
+  const productCodeWatch = watch("productCode");
+  const commercializedProductCodeWatch = watch("commercializedProductCode");
+
+  const isXpCodeEntered = Boolean(
+    productCodeWatch && String(productCodeWatch).trim()
+  );
+  const isCommercialCodeEntered = Boolean(
+    commercializedProductCodeWatch &&
+    String(commercializedProductCodeWatch).trim()
+  );
+
+  useEffect(() => {
+    if (isXpCodeEntered) {
+      clearErrors(["commercializedProductCode", "commercialCodeIssueDate"]);
+    }
+  }, [isXpCodeEntered, clearErrors]);
+
+  useEffect(() => {
+    if (isCommercialCodeEntered) {
+      clearErrors(["productCode", "xpIssueDate"]);
+    }
+  }, [isCommercialCodeEntered, clearErrors]);
 
   // Populate form values
   useEffect(() => {
@@ -670,10 +712,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               {/* 3. XP Code */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  XP Code <span className="text-red-500">*</span>
+                  XP Code {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
                 </label>
                 <Input
-                  {...register("productCode", { required: "XP Code is required" })}
+                  {...register("productCode", {
+                    required: !isCommercialCodeEntered ? "XP Code is required" : false,
+                  })}
                   readOnly={isReadOnly}
                   placeholder="e.g. XP-0000"
                   className={cn(
@@ -691,7 +735,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               {/* 4. XP Issue Date */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  XP Issue Date <span className="text-red-500">*</span>
+                  XP Issue Date {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
                 </label>
                 <Input
                   type="text"
@@ -700,15 +744,32 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   onBlur={(e) => {
                     if (!e.target.value) e.target.type = "text";
                   }}
-                  {...register("xpIssueDate", { required: "XP Issue Date is required" })}
+                  {...register("xpIssueDate", {
+                    required: !isCommercialCodeEntered ? "XP Issue Date is required" : false,
+                  })}
+                  ref={(e) => {
+                    register("xpIssueDate").ref(e);
+                    xpIssueDateRef.current = e;
+                  }}
                   placeholder="DD/MM/YYYY"
-                  leftIcon={<CalendarIcon className="w-3.5 h-3.5 text-red-500" />}
+                  leftIcon={
+                    <CalendarIcon
+                      className="w-3.5 h-3.5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDatePicker(xpIssueDateRef.current);
+                      }}
+                    />
+                  }
                   className={cn(
                     commonInputClass,
                     isHighlighted("XP Issue Date", "DD/MM/YYYY", "xpIssueDate") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
-                  inputClassName={commonInnerClass}
+                  inputClassName={cn(
+                    commonInnerClass,
+                    "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-inner-spin-button]:hidden"
+                  )}
                 />
                 {errors.xpIssueDate && (
                   <p className="text-[11px] text-red-500">{errors.xpIssueDate.message}</p>
@@ -718,11 +779,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               {/* 5. Commercial Code */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Commercial Code <span className="text-red-500">*</span>
+                  Commercial Code {!isXpCodeEntered && <span className="text-red-500">*</span>}
                 </label>
                 <Input
                   {...register("commercializedProductCode", {
-                    required: "Commercial code is required",
+                    required: !isXpCodeEntered ? "Commercial code is required" : false,
                   })}
                   readOnly={isReadOnly}
                   placeholder="e.g. 000 000"
@@ -744,7 +805,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               {/* 6. Commercial Code Issue Date */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Commercial Code Issue Date <span className="text-red-500">*</span>
+                  Commercial Code Issue Date {!isXpCodeEntered && <span className="text-red-500">*</span>}
                 </label>
                 <Input
                   type="text"
@@ -754,16 +815,31 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     if (!e.target.value) e.target.type = "text";
                   }}
                   {...register("commercialCodeIssueDate", {
-                    required: "Commercial code issue date is required",
+                    required: !isXpCodeEntered ? "Commercial code issue date is required" : false,
                   })}
+                  ref={(e) => {
+                    register("commercialCodeIssueDate").ref(e);
+                    commercialCodeIssueDateRef.current = e;
+                  }}
                   placeholder="DD/MM/YYYY"
-                  leftIcon={<CalendarIcon className="w-3.5 h-3.5 text-red-500" />}
+                  leftIcon={
+                    <CalendarIcon
+                      className="w-3.5 h-3.5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDatePicker(commercialCodeIssueDateRef.current);
+                      }}
+                    />
+                  }
                   className={cn(
                     commonInputClass,
                     isHighlighted("Commercial Code Issue Date", "DD/MM/YYYY", "commercialCodeIssueDate") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
-                  inputClassName={commonInnerClass}
+                  inputClassName={cn(
+                    commonInnerClass,
+                    "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-inner-spin-button]:hidden"
+                  )}
                 />
                 {errors.commercialCodeIssueDate && (
                   <p className="text-[11px] text-red-500">

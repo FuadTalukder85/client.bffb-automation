@@ -7,6 +7,8 @@ const typeDisplayMap = {
 export function getTaxonomyLabel(value, fallback = "N/A") {
   if (value == null || value === "") return fallback;
   if (typeof value === "object" && value !== null) {
+    // Skip archived taxonomy items
+    if (value.isActive === false) return fallback;
     return value.name || value.label || value.title || fallback;
   }
   if (typeof value === "string") {
