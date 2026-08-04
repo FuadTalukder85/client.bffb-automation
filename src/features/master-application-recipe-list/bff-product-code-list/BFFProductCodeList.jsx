@@ -586,12 +586,12 @@ export default function BFFProductCodeList() {
 
       {/* Desktop: Segment Tabs */}
       <div className="hidden md:flex justify-between ms-5 my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4">
-        <div className="flex items-center gap-2 border-b border-border">
+        <div className="flex items-center gap-2 border-b border-border w-[300px] lg:w-[480px] xl:w-[640px] 2xl:w-[720px] 3xl:w-[900px] overflow-hidden overflow-x-scroll custom-scrollbar">
           {segmentTabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => handleSegmentChange(tab.value)}
-              className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${selectedSegment === tab.value
+              className={`whitespace-nowrap shrink-0 px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${selectedSegment === tab.value
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
