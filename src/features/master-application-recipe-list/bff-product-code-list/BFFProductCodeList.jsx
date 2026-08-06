@@ -5,15 +5,15 @@ import React, {
   useEffect,
   useRef,
 } from "react";
+import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import {
-  useBFFProductCodes,
-  PRODUCT_SEGMENTS,
-} from "@/hooks/useBFFProductCodes";
+import { useBFFProductCodes } from "@/hooks/useBFFProductCodes";
+import { useBFFProductSegment as useBFFProductTaxonomy } from "@/hooks/useBFFProductSegment";
+import { BFF_PRODUCT_SEGMENT_KINDS as BFF_PRODUCT_TAXONOMY_KINDS } from "@/constants/bffProductSegment";
 import { useDebounce } from "@/hooks/useDebounce";
 import { bffProductCodeService } from "@/services/bffProductCodeService";
 import { Button } from "@/components/ui/Button";
@@ -65,15 +65,6 @@ const setStoredValue = (key, value) => {
   }
 };
 
-// Segment tabs
-const segmentTabs = [
-  { label: "All", value: "all" },
-  { label: "Flavours", value: PRODUCT_SEGMENTS.FLAVOURS },
-  { label: "Colours", value: PRODUCT_SEGMENTS.COLOURS },
-  { label: "Ingredients", value: PRODUCT_SEGMENTS.INGREDIENTS },
-  { label: "Seasonings", value: PRODUCT_SEGMENTS.SEASONINGS },
-];
-
 // State filter options
 const stateOptions = [
   { label: "Active", value: "true" },
@@ -85,6 +76,7 @@ const getResponseMessage = (response, fallback) =>
   response?.message || response?.data?.message || fallback;
 
 export default function BFFProductCodeList() {
+  const navigate = useNavigate();
   // State management
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("all");
@@ -105,11 +97,36 @@ export default function BFFProductCodeList() {
   const fileInputRef = useRef(null);
   const { permissions, loading: permissionsLoading } = useUserPermissions();
 
+  const { data: segmentTaxonomy } = useBFFProductTaxonomy(BFF_PRODUCT_TAXONOMY_KINDS.SEGMENT, {
+    status: "active",
+    page: 1,
+    limit: 200,
+  });
+
+  const segmentTabs = useMemo(() => {
+    const items = (segmentTaxonomy?.data || []).map((item) => ({
+      label: item.name,
+      value: item.id || item._id,
+    }));
+    return [{ label: "All", value: "all" }, ...items];
+  }, [segmentTaxonomy]);
+
+  // Drop stale legacy enum filters (e.g. "colours") once taxonomy tabs have loaded
+  useEffect(() => {
+    if (selectedSegment === "all") return;
+    if (!segmentTaxonomy?.data) return;
+    const exists = segmentTabs.some((tab) => tab.value === selectedSegment);
+    if (!exists) setSelectedSegment("all");
+  }, [selectedSegment, segmentTabs, segmentTaxonomy]);
+
+  const selectedSegmentLabel =
+    segmentTabs.find((tab) => tab.value === selectedSegment)?.label || selectedSegment;
+
   const noDataMessage = "No Records Found";
   const noDataDescription = searchTerm
     ? `No product codes match "${searchTerm}". Try adjusting your search.`
     : selectedSegment !== "all"
-      ? `No product codes in the ${selectedSegment} segment.`
+      ? `No product codes in the ${selectedSegmentLabel} segment.`
       : "No product codes available yet.";
 
 
@@ -325,13 +342,17 @@ export default function BFFProductCodeList() {
   const handleAddProductCode = () => {
     setSelectedProductCode(null);
     setProductCodeModalMode("create");
-    setIsProductCodeModalOpen(true);
+    navigate("/bff-product/add", {
+      state: { defaultSegment: isSpecificSegment ? selectedSegment : "" },
+    });
   };
 
   const handleEditProductCode = (productCode) => {
     setSelectedProductCode(productCode);
     setProductCodeModalMode("update");
-    setIsProductCodeModalOpen(true);
+    navigate(`/bff-product/${productCode._id || productCode.id}`, {
+      state: { productCode, isReadOnly: false },
+    });
   };
 
   const handleArchiveProductCode = (productCode) => {
@@ -346,7 +367,9 @@ export default function BFFProductCodeList() {
 
   const handleViewProductCode = (productCode) => {
     setSelectedProductCode(productCode);
-    setIsRemarksModalOpen(true);
+    navigate(`/bff-product/${productCode._id || productCode.id}`, {
+      state: { productCode, isReadOnly: true },
+    });
   };
 
   const handleProductCodeConfirm = async (formData) => {
@@ -444,19 +467,22 @@ export default function BFFProductCodeList() {
   // Check if we're on a specific segment tab (not "all")
   const isSpecificSegment = selectedSegment !== "all";
 
-  const canImport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.IMPORT);
-  const canExport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.EXPORT);
-  const canCreate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.CREATE);
-  const canUpdate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.UPDATE);
-  const canArchive = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.DELETE);
-  const canManageCommercialized = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT_CODE.MANAGE_COMMERCIALIZED);
+  const canImport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.IMPORT);
+  const canExport = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.EXPORT);
+  const canCreate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.CREATE);
+  const canUpdate = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.UPDATE);
+  const canArchive = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.DELETE);
+  const canManageCommercialized = !permissionsLoading && hasPermission(permissions, PERMISSIONS.BFF_PRODUCT.MANAGE_COMMERCIALIZED);
 
   const canRestore = canUpdate;
 
   const canEditRecord = useCallback(
     (record) => {
       if (!canUpdate) return false;
-      return record?.commercializedProductCode ? canManageCommercialized : true;
+      const isCommercialized = Boolean(
+        record?.commercialCode || record?.commercializedProductCode
+      );
+      return isCommercialized ? canManageCommercialized : true;
     },
     [canManageCommercialized, canUpdate],
   );
@@ -464,7 +490,10 @@ export default function BFFProductCodeList() {
   const canArchiveRecord = useCallback(
     (record) => {
       if (!canArchive) return false;
-      return record?.commercializedProductCode ? canManageCommercialized : true;
+      const isCommercialized = Boolean(
+        record?.commercialCode || record?.commercializedProductCode
+      );
+      return isCommercialized ? canManageCommercialized : true;
     },
     [canArchive, canManageCommercialized],
   );
@@ -525,7 +554,7 @@ export default function BFFProductCodeList() {
       {/* Page Header & Search & Theme Toggle (Desktop Only) */}
       <div className="flex items-center justify-between flex-none ms-0 lg:ms-5">
         <PageHeader
-          title="BFF Product Code List"
+          title="BFF Product List"
           className="py-4 pb-6 text-heading md:p-0 md:m-0"
         />
 
@@ -557,12 +586,12 @@ export default function BFFProductCodeList() {
 
       {/* Desktop: Segment Tabs */}
       <div className="hidden md:flex justify-between ms-5 my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4">
-        <div className="flex items-center gap-2 border-b border-border">
+        <div className="flex items-center gap-2 border-b border-border w-[300px] lg:w-[480px] xl:w-[640px] 2xl:w-[720px] 3xl:w-[900px] overflow-hidden overflow-x-scroll custom-scrollbar">
           {segmentTabs.map((tab) => (
             <button
               key={tab.value}
               onClick={() => handleSegmentChange(tab.value)}
-              className={`px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${selectedSegment === tab.value
+              className={`whitespace-nowrap shrink-0 px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-1 lg:py-1 xl:py-[5px] 2xl:py-1.5 3xl:py-2 text-body font-medium transition-colors border-b-2 -mb-px ${selectedSegment === tab.value
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
@@ -797,6 +826,7 @@ export default function BFFProductCodeList() {
       />
 
       {/* Modals */}
+      {/* ProductCodeModal commented out for future reference:
       <ProductCodeModal
         open={isProductCodeModalOpen}
         onOpenChange={setIsProductCodeModalOpen}
@@ -805,6 +835,7 @@ export default function BFFProductCodeList() {
         defaultSegment={getDefaultSegmentForModal()}
         onConfirm={handleProductCodeConfirm}
       />
+      */}
 
       <ArchiveProductCodeModal
         open={isArchiveModalOpen}

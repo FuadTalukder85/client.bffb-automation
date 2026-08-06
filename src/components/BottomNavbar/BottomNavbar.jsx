@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { hasPermission as checkPermission } from "@/lib/utils";
 import { PERMISSIONS } from "@/constants/permissions";
+import { getBFFProductSegmentNavItems as getBFFProductTaxonomyNavItems } from "@/constants/bffProductSegment";
 
 export function BottomNavbar() {
   const navigate = useNavigate();
@@ -145,10 +146,20 @@ export function BottomNavbar() {
       ...(() => {
         const items = [
           ...(hasPermission(PERMISSIONS.RECIPE.READ) ? [{ label: "Application Recipes", to: "/application-recipes" }] : []),
-          ...(hasPermission(PERMISSIONS.BFF_PRODUCT_CODE.READ) ? [{ label: "BFF Product Code List", to: "/bff-product-code-list" }] : []),
           ...(hasPermission(PERMISSIONS.CATEGORY.READ) ? [{ label: "Application Categories", to: "/application-categories" }] : []),
         ];
         return items.length > 0 ? [{ title: "Master Application Recipe List", items }] : [];
+      })(),
+      ...(() => {
+        const items = [
+          ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
+            ? [{ label: "Product List", to: "/bff-product/list" }]
+            : []),
+          ...(hasPermission(PERMISSIONS.BFF_PRODUCT_SEGMENT.READ)
+            ? getBFFProductTaxonomyNavItems().map(({ label, path }) => ({ label, to: path }))
+            : []),
+        ];
+        return items.length > 0 ? [{ title: "BFF Product", items }] : [];
       })(),
     ];
 

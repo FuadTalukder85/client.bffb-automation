@@ -108,13 +108,15 @@ export function UploadProductCodesModal({
         "product name": "name",
         segment: "segment",
         type: "type",
-        cost: "cost",
-        price: "cost",
+        cost: "standardPrice",
+        price: "standardPrice",
+        standardprice: "standardPrice",
+        "standard price": "standardPrice",
         isactive: "isActive",
         "is active": "isActive",
         status: "isActive",
     };
-    const REQUIRED = ["name", "segment", "type", "cost"];
+    const REQUIRED = ["name", "segment", "type", "standardPrice"];
 
     const getDisplayHeader = (header) => {
         const path = extractPathFromHeader(header);

@@ -50,6 +50,9 @@ const ApplicationSubcategories = lazy(() => import("./features/master-applicatio
 const ApplicationSubSubcategories = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationSubSubcategories.jsx"));
 const ApplicationTags = lazy(() => import("./features/master-application-recipe-list/application-categories/ApplicationTags.jsx"));
 const BFFProductCodeList = lazy(() => import("./features/master-application-recipe-list/bff-product-code-list/BFFProductCodeList.jsx"));
+const AddBFFProductCodePage = lazy(() => import("./features/master-application-recipe-list/bff-product-code-list/AddBFFProductCodePage.jsx"));
+const EditBFFProductCodePage = lazy(() => import("./features/master-application-recipe-list/bff-product-code-list/EditBFFProductCodePage.jsx"));
+const BFFProductSegmentPage = lazy(() => import("./features/bff-product/segment/BFFProductSegmentPage.jsx"));
 const DispatchPage = lazy(() => import("./features/dispatch/DispatchListPage.jsx"));
 const MasterProjects = lazy(() => import("./features/project-overview/master-project/MasterProjects.jsx"));
 const MasterProjectDetails = lazy(() => import("./features/project-overview/master-project/MasterProjectDetails.jsx"));
@@ -137,8 +140,51 @@ const masterApplicationRecipeRoutes = [
   },
   {
     path: "bff-product-code-list",
-    element: <LazyWrapper><BFFProductCodeList /></LazyWrapper>,
+    element: <Navigate to="/bff-product/list" replace />,
   }
+];
+
+const bffProductRoutes = [
+  {
+    path: "bff-product/list",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT.READ}>
+        <LazyWrapper><BFFProductCodeList /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
+    path: "bff-product/add",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT.CREATE}>
+        <LazyWrapper><AddBFFProductCodePage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
+    path: "bff-product/:id",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT.UPDATE}>
+        <LazyWrapper><EditBFFProductCodePage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
+    path: "bff-product/segment",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_SEGMENT.READ}>
+        <LazyWrapper><BFFProductSegmentPage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
+  {
+    path: "bff-product/segment/:kind",
+    element: (
+      <PermissionRoute requiredPermission={PERMISSIONS.BFF_PRODUCT_SEGMENT.READ}>
+        <LazyWrapper><BFFProductSegmentPage /></LazyWrapper>
+      </PermissionRoute>
+    ),
+  },
 ];
 
 
@@ -333,6 +379,7 @@ export const router = createBrowserRouter([
           { path: "profile", element: <LazyWrapper><UserProfilePage /></LazyWrapper> },
           ...invitesAndAccessRoutes,
           ...masterApplicationRecipeRoutes,
+          ...bffProductRoutes,
           ...projectOverviewRoutes,
           ...applicationLabRoutes,
           ...sensoryTestingRoutes,

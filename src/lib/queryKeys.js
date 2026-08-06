@@ -194,6 +194,14 @@ export const queryKeys = {
     bySegment: (segment, params) => ['bffProductCodes', 'bySegment', segment, params],
   },
 
+  // BFF Product Taxonomy
+  bffProductTaxonomy: {
+    all: ['bffProductTaxonomy'],
+    kinds: () => ['bffProductTaxonomy', 'kinds'],
+    list: (kind, params) => ['bffProductTaxonomy', kind, 'list', params],
+    detail: (kind, id) => ['bffProductTaxonomy', kind, 'detail', id],
+  },
+
   // Dispatch Records
   dispatch: {
     all: ['dispatch'],

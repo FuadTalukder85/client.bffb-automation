@@ -38,6 +38,7 @@ export function hasPermission(permissions, requiredPermission) {
     return true;
   }
 
+
   const parts = requiredPermission.split(':');
   const resource = parts[0];
   const action = parts[1];
@@ -73,20 +74,20 @@ export function hasPermission(permissions, requiredPermission) {
  */
 export function getDaysSince(date) {
   if (!date) return null;
-  
+
   try {
     const pastDate = new Date(date);
     const now = new Date();
-    
+
     // Check if date is valid
     if (isNaN(pastDate.getTime())) return null;
-    
+
     // Calculate difference in milliseconds
     const diffInMs = now - pastDate;
-    
+
     // Convert to days and round down
     const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
+
     return days >= 0 ? days : null;
   } catch (error) {
     return null;

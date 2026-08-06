@@ -5,14 +5,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ButtonGroup } from "@/components/ui/ButtonGroup";
 import StatusBadge from "@/components/ui/StatusBadge";
-
-// Segment display mapping
-const segmentDisplayMap = {
-    flavours: "Flavours",
-    colours: "Colours",
-    ingredients: "Ingredients",
-    seasonings: "Seasonings",
-};
+import {
+    getProductDisplayCode,
+    getProductDisplayName,
+    getTaxonomyLabel,
+} from "../utils/productDisplay";
 
 // Type display mapping
 const typeDisplayMap = {
@@ -34,9 +31,13 @@ export default function MobileProductCodeCard({
     className,
 }) {
     const isActive = productCode.isActive;
-    const cost = productCode.cost || 0;
-    const displayCode =
-        productCode.commercializedProductCode || productCode.displayProductCode || productCode.productCode;
+    const cost = productCode.standardPrice ?? 0;
+    const displayCode = getProductDisplayCode(productCode, "");
+    const displayName = getProductDisplayName(productCode, "");
+    const displaySegment = getTaxonomyLabel(productCode.segment, "");
+    const isCommercialized = Boolean(
+        productCode.commercialCode || productCode.commercializedProductCode
+    );
 
     const timerRef = React.useRef(null);
     const isLongPressRef = React.useRef(false);
@@ -223,17 +224,17 @@ export default function MobileProductCodeCard({
                 <div className="flex items-center justify-between gap-3">
                     <span
                         className="text-base font-semibold text-foreground"
-                        title={productCode.name}
+                        title={displayName}
                     >
-                        {productCode.name?.length > 20 ? `${productCode.name.slice(0, 20)}...` : productCode.name}
+                        {displayName?.length > 20 ? `${displayName.slice(0, 20)}...` : displayName}
                     </span>
                     <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary-shade-2 text-nav-highlight">
-                        {segmentDisplayMap[productCode.segment] || productCode.segment}
+                        {displaySegment}
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
                     <StatusBadge
-                        status={productCode.commercializedProductCode ? "Commercialized" : "Experimental"}
+                        status={isCommercialized ? "Commercialized" : "Experimental"}
                         className="px-3! py-1!"
                     />
                 </div>

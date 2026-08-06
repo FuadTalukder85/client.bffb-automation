@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
+import { getBFFProductSegmentNavItems as getBFFProductTaxonomyNavItems } from "@/constants/bffProductSegment";
 import { resolveAvatarUrl } from "@/utils/avatarUrl";
 import { NavIcon } from "@/components/Sidebar/NavIcon";
 import { hasPermission as checkPermission } from "@/lib/utils";
@@ -143,7 +144,6 @@ export function Sidebar({
     ...(() => {
       const subItems = [
         ...(hasPermission(PERMISSIONS.RECIPE.READ) ? [{ id: "application-recipes", label: "Application Recipes", path: "/application-recipes" }] : []),
-        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_CODE.READ) ? [{ id: "bff-product-code-list", label: "BFF Product Code List", path: "/bff-product-code-list" }] : []),
         ...(hasPermission(PERMISSIONS.CATEGORY.READ) ? [{ id: "application-categories", label: "Application Categories", path: "/application-categories" }] : []),
       ];
       return subItems.length > 0 ? [{
@@ -153,6 +153,25 @@ export function Sidebar({
         iconDark: MasterRecipesIconWhite,
         subItems
       }] : [];
+    })(),
+    ...(() => {
+      const subItems = [
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
+          ? [{ id: "bff-product-list", label: "BFF Product Code List", path: "/bff-product/list" }]
+          : []),
+        ...(hasPermission(PERMISSIONS.BFF_PRODUCT_SEGMENT.READ)
+          ? getBFFProductTaxonomyNavItems()
+          : []),
+      ];
+      return subItems.length > 0
+        ? [{
+          id: "bff-product-code-list",
+          label: "BFF Product Code List",
+          icon: (props) => <NavIcon name="bff-product-code-list" {...props} />,
+          iconDark: (props) => <NavIcon name="bff-product-code-list" {...props} />,
+          subItems,
+        }]
+        : [];
     })(),
     ...(hasPermission(PERMISSIONS.DISPATCH.READ) ? [{
       id: "sample-dispatch",
@@ -238,8 +257,7 @@ export function Sidebar({
     M ${cornerRadius} 0
     L ${sidebarWidth} 0
     L ${sidebarWidth} ${sidebarHeight - cornerRadius}
-    Q ${sidebarWidth} ${sidebarHeight}, ${
-      sidebarWidth - cornerRadius
+    Q ${sidebarWidth} ${sidebarHeight}, ${sidebarWidth - cornerRadius
     } ${sidebarHeight}
     L ${curvePositionInSidebar + curveWidth / 2} ${sidebarHeight}
     C ${curvePositionInSidebar + curveWidth / 4} ${sidebarHeight},
@@ -299,8 +317,7 @@ export function Sidebar({
                     M 16 0
                     L ${sidebarWidth} 0
                     L ${sidebarWidth} ${sidebarHeight - 16}
-                    Q ${sidebarWidth} ${sidebarHeight} ${
-                      sidebarWidth - 16
+                    Q ${sidebarWidth} ${sidebarHeight} ${sidebarWidth - 16
                     } ${sidebarHeight}
                     L 16 ${sidebarHeight}
                     Q 0 ${sidebarHeight} 0 ${sidebarHeight - 16}
@@ -462,24 +479,21 @@ export function SidebarItem({
         {DisplayIcon && (
           <div className="flex items-center justify-center w-6 h-6">
             <DisplayIcon
-              className={`w-6 h-6 ${
-                theme === "dark" ? "text-white" : "text-[#2c213d]"
-              }`}
+              className={`w-6 h-6 ${theme === "dark" ? "text-white" : "text-[#2c213d]"
+                }`}
             />
           </div>
         )}
         <span
-          className={`text-lg font-semibold flex-1 ${
-            theme === "dark" ? "text-white" : "text-[#2c213d]"
-          }`}
+          className={`text-lg font-semibold flex-1 ${theme === "dark" ? "text-white" : "text-[#2c213d]"
+            }`}
         >
           {label}
         </span>
         {hasSubItems && (
           <ChevronDown
-            className={`w-5 h-5 transition-transform duration-200 ${
-              isExpanded ? "rotate-180" : ""
-            } ${theme === "dark" ? "text-white" : "text-[#2c213d]"}`}
+            className={`w-5 h-5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""
+              } ${theme === "dark" ? "text-white" : "text-[#2c213d]"}`}
           />
         )}
       </button>
@@ -487,18 +501,16 @@ export function SidebarItem({
       {/* Sub-items */}
       {hasSubItems && (
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${
-            isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            }`}
         >
           <div className="pl-12 pr-3 space-y-1">
             {subItems.map((subItem) => (
               <button
                 key={subItem.id}
                 onClick={() => handleSubItemClick(subItem.path)}
-                className={`w-full text-left px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
-                  theme === "dark" ? "text-white/80" : "text-[#2c213d]/80"
-                }`}
+                className={`w-full text-left px-3 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${theme === "dark" ? "text-white/80" : "text-[#2c213d]/80"
+                  }`}
               >
                 {subItem.label}
               </button>
