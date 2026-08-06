@@ -41,11 +41,12 @@ export const isValidSegmentKind = (kind) =>
   BFF_PRODUCT_SEGMENT_KIND_VALUES.includes(kind);
 export const isValidTaxonomyKind = isValidSegmentKind;
 
-/** Sidebar / nav items for segment kinds */
 export const getBFFProductSegmentNavItems = () =>
-  BFF_PRODUCT_SEGMENT_KIND_VALUES.map((kind) => ({
-    id: `bff-product-segment-${kind}`,
-    label: BFF_PRODUCT_SEGMENT_LABELS[kind],
-    path: kind === BFF_PRODUCT_SEGMENT_KINDS.SEGMENT ? "/bff-product/segment" : `/bff-product/segment/${kind}`,
-  }));
+  BFF_PRODUCT_SEGMENT_KIND_VALUES
+    .filter((kind) => Boolean(BFF_PRODUCT_SEGMENT_LABELS[kind]))
+    .map((kind) => ({
+      id: `bff-product-segment-${kind}`,
+      label: BFF_PRODUCT_SEGMENT_LABELS[kind],
+      path: kind === BFF_PRODUCT_SEGMENT_KINDS.SEGMENT ? "/bff-product/segment" : `/bff-product/segment/${kind}`,
+    }));
 export const getBFFProductTaxonomyNavItems = getBFFProductSegmentNavItems;

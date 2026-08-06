@@ -601,8 +601,10 @@ export function ProductCodeModal({
                         />
                     </div>
 
-                    <p className="text-xs font-semibold text-base-color pt-2">C. Form & specifications</p>
-                    {singleSelect("availableForm", "Available Forms", toOptions(availableFormData))}
+                    {singleSelect("availableForm", "Available Forms", [
+                      { value: "Liquid", label: "Liquid" },
+                      { value: "Solid", label: "Solid" },
+                    ])}
                     {singleSelect("solubility", "Solubility", toOptions(solubilityData))}
 
                     <div className="grid grid-cols-2 gap-3">
