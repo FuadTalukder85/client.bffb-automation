@@ -33,9 +33,14 @@ import { useCreateBFFProductSegmentItem as useCreateBFFProductTaxonomyItem } fro
 
 const toId = (value) => {
   if (!value) return "";
-  if (typeof value === "object") return value._id || value.id || "";
+  if (typeof value === "object") return value.name || value._id || value.id || "";
   return String(value);
 };
+
+const AVAILABLE_FORM_OPTIONS = [
+  { value: "Liquid", label: "Liquid" },
+  { value: "Solid", label: "Solid" },
+];
 
 const toIdList = (value) => {
   if (!Array.isArray(value)) return [];
@@ -472,7 +477,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         certifications,
         alternateProducts: ensureArrayOfObjectIds(formData.alternateProducts),
         customerLeadTime: formData.customerLeadTime || "",
-        availableForm: isValidObjectId(formData.availableForm) ? formData.availableForm : null,
+        availableForm: formData.availableForm || null,
         solubility,
         shelfLifeValue:
           formData.shelfLifeValue !== "" && formData.shelfLifeValue !== null
@@ -1175,7 +1180,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   disabled={isReadOnly}
                   value={watch("availableForm") || ""}
                   onChange={(e) => setValue("availableForm", e.target.value)}
-                  options={toOptions(availableFormData)}
+                  options={AVAILABLE_FORM_OPTIONS}
                   placeholder="Select form"
                   className={cn(
                     selectClassName,

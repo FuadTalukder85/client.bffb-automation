@@ -402,7 +402,7 @@ export function Sidebar() {
 
               {/* Sub menu */}
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${showSubItems ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                className={`overflow-hidden transition-all duration-300 ease-in-out ${showSubItems ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
                   }`}
               >
                 <div
