@@ -97,7 +97,7 @@ const icons = {
       />
     )
   },
-  'bff-product-code-list': {
+  'bff-product-list': {
     viewBox: '0 0 24 24',
     content: (
       <>

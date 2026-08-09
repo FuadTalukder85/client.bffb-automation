@@ -191,8 +191,8 @@ export function Sidebar() {
       return subItems.length > 0
         ? [{
           id: "bff-product",
-          label: "BFF Product Code List",
-          iconName: "bff-product-code-list",
+          label: "BFF Product List",
+          iconName: "bff-product-list",
           subItems,
         }]
         : [];

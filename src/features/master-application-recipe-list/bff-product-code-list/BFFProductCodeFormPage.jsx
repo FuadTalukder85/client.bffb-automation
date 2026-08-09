@@ -562,9 +562,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
   const breadcrumbItems =
     mode === "create"
-      ? [{ label: "BFF Product Code List", link: "/bff-product/list" }]
+      ? [{ label: "BFF Product List", link: "/bff-product/list" }]
       : [
-        { label: "BFF Product Code List", link: "/bff-product/list" },
+        { label: "BFF Product List", link: "/bff-product/list" },
         ...(breadcrumbTitle ? [{ label: breadcrumbTitle }] : []),
       ];
 
