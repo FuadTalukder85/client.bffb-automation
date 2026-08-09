@@ -157,7 +157,7 @@ export function Sidebar({
     ...(() => {
       const subItems = [
         ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
-          ? [{ id: "bff-product-list", label: "BFF Product Code List", path: "/bff-product/list" }]
+          ? [{ id: "bff-product-list", label: "BFF Product List", path: "/bff-product/list" }]
           : []),
         ...(hasPermission(PERMISSIONS.BFF_PRODUCT_SEGMENT.READ)
           ? getBFFProductTaxonomyNavItems()
@@ -165,10 +165,10 @@ export function Sidebar({
       ];
       return subItems.length > 0
         ? [{
-          id: "bff-product-code-list",
-          label: "BFF Product Code List",
-          icon: (props) => <NavIcon name="bff-product-code-list" {...props} />,
-          iconDark: (props) => <NavIcon name="bff-product-code-list" {...props} />,
+          id: "bff-product-list",
+          label: "BFF Product List",
+          icon: (props) => <NavIcon name="bff-product-list" {...props} />,
+          iconDark: (props) => <NavIcon name="bff-product-list" {...props} />,
           subItems,
         }]
         : [];
