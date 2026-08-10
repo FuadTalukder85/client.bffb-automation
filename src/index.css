@@ -368,7 +368,7 @@
   }
 
   .page-section-spacing {
-    @apply md:pb-0 !;
+    @apply md:!pb-0;
   }
 
   /* Action Button - Responsive sizing across desktop breakpoints */
