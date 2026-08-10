@@ -62,8 +62,6 @@ export default function CleanlinessItemsListPage() {
     confirmArchiveItem,
     confirmRestoreItem,
     handleExport,
-    hasCleaningPermission,
-    permissionMessage,
   } = useCleanlinessItemsLogic();
 
   // getErrorMessage was removed in favor of getApiErrorMessage
@@ -98,17 +96,10 @@ export default function CleanlinessItemsListPage() {
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
       <div className="flex items-center justify-between flex-none ms-0 lg:ms-5">
-        <div className="flex items-center gap-3">
-          <PageHeader
-            title="Cleanliness Items List"
-            className="py-4 text-heading md:p-0 md:m-0"
-          />
-          {hasCleaningPermission && (
-            <span className="px-2.5 py-1 text-xs xl:text-sm font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded-full dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800">
-              {permissionMessage || "Permission available"}
-            </span>
-          )}
-        </div>
+        <PageHeader
+          title="Cleanliness Items List"
+          className="py-4 text-heading md:p-0 md:m-0"
+        />
 
         <div className="flex items-center gap-2 md:hidden">
           <ActionButtonsGroup actions={actionButtons} />
