@@ -41,6 +41,10 @@ export const useCleanlinessItemsLogic = () => {
     const canManage = hasPermission(permissions, PERMISSIONS.CLEANING.MANAGE) || 
                       hasPermission(permissions, PERMISSIONS.CLEANING.UPDATE);
     const canCreate = hasPermission(permissions, PERMISSIONS.CLEANING.CREATE);
+    const hasCleaningPermission = hasPermission(permissions, PERMISSIONS.CLEANING.READ) ||
+                                  hasPermission(permissions, PERMISSIONS.CLEANING.MANAGE) ||
+                                  hasPermission(permissions, "*") ||
+                                  Boolean(itemsData?.permissionMessage);
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -241,5 +245,7 @@ export const useCleanlinessItemsLogic = () => {
         canExport,
         canManage,
         canCreate,
+        hasCleaningPermission,
+        permissionMessage: itemsData?.permissionMessage || "Permission available",
     };
 };
