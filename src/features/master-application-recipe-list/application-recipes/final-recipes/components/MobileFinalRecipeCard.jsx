@@ -146,9 +146,20 @@ const MobileFinalRecipeCard = ({
                 <span className="p-1 rounded-3xl border">
                   {recipe.subCategory?.name || "N/A"}
                 </span>
-                <span className="p-1 rounded-3xl border">
-                  {recipe.subSubCategory?.name || "N/A"}
-                </span>
+                {(() => {
+                  const sscs = Array.isArray(recipe.subSubCategories) && recipe.subSubCategories.length > 0
+                    ? recipe.subSubCategories
+                    : (recipe.subSubCategory ? [recipe.subSubCategory] : []);
+                  return sscs.length > 0 ? (
+                    sscs.map((ssc, idx) => (
+                      <span key={idx} className="p-1 rounded-3xl border">
+                        {ssc.name}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="p-1 rounded-3xl border">N/A</span>
+                  );
+                })()}
               </div>
             </InfoTable.Row>
 

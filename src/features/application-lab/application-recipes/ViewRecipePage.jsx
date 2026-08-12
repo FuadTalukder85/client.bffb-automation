@@ -76,7 +76,7 @@ const normalizeProjectForView = (project = {}, fallbackRecipe = {}) => {
     applicationSubCategory:
       project?.applicationSubCategory || applicationLab?.subcategory || null,
     applicationSubSubCategory:
-      project?.applicationSubSubCategory || applicationLab?.subSubcategory || null,
+      project?.applicationSubSubCategories || project?.applicationSubSubCategory || applicationLab?.subSubcategory || null,
     applicationTags: project?.applicationTags || applicationLab?.tags || [],
     targetCost:
       project?.targetCost ||
@@ -298,7 +298,13 @@ export default function ViewRecipePage() {
       subCategory:
         recipeProject?.subCategory ?? editableProject?.applicationSubCategory ?? null,
       subSubCategory:
-        recipeProject?.subSubCategory ?? editableProject?.applicationSubSubCategory ?? null,
+        recipeProject?.subSubCategory ?? (Array.isArray(editableProject?.applicationSubSubCategory) ? editableProject.applicationSubSubCategory[0] : editableProject?.applicationSubSubCategory) ?? null,
+      subSubCategories:
+        Array.isArray(recipeProject?.subSubCategories) && recipeProject.subSubCategories.length > 0
+          ? recipeProject.subSubCategories
+          : (Array.isArray(editableProject?.applicationSubSubCategory)
+              ? editableProject.applicationSubSubCategory
+              : (recipeProject?.subSubCategory ? [recipeProject.subSubCategory] : (editableProject?.applicationSubSubCategory ? [editableProject.applicationSubSubCategory] : []))),
       tags:
         Array.isArray(recipeProject?.tags) && recipeProject.tags.length > 0
           ? recipeProject.tags

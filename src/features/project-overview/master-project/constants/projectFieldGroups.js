@@ -93,7 +93,7 @@ export const projectFieldGroups = [
     [
         { id: "applicationCategory", label: "Application Category", type: "asyncselect", asyncType: "category", path: "applicationLab.category", canEdit: true, placeholder: "Search and select category..." },
         { id: "applicationSubcategory", label: "Application Subcategory", type: "asyncselect", asyncType: "subcategory", path: "applicationLab.subcategory", canEdit: true, placeholder: "Search and select subcategory..." },
-        { id: "applicationSubSubcategory", label: "Application Sub-Subcategory", type: "asyncselect", asyncType: "subsubcategory", path: "applicationLab.subSubcategory", canEdit: true, placeholder: "Search and select sub-subcategory..." },
+        { id: "applicationSubSubcategory", label: "Application Sub-Subcategory", type: "multiselectwithsearch", asyncType: "subsubcategory", path: "applicationLab.subSubcategory", canEdit: true, placeholder: "Search and select sub-subcategories..." },
 
     ],
 

@@ -57,7 +57,7 @@ export const DetailsHeader = ({
                     <Breadcrumb items={breadcrumbItems} />
                 </div>
 
-                    {searchBar && <div className="hidden md:block min-w-[200px] lg:min-w-[204px] xl:min-w-[273px] 2xl:min-w-xs 3xl:min-w-sm">{searchBar}</div>}
+                {searchBar && <div className="hidden md:block min-w-[200px] lg:min-w-[204px] xl:min-w-[273px] 2xl:min-w-xs 3xl:min-w-sm">{searchBar}</div>}
 
                 <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex ">
 

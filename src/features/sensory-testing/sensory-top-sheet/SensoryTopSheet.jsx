@@ -119,7 +119,9 @@ export default function SensoryTopSheet() {
       objectiveDetails: proj.masterProject?.objectiveDetails || "—",
       category: proj.applicationLab?.category?.name || "—",
       subcategory: proj.applicationLab?.subcategory?.name || "—",
-      subSubcategory: proj.applicationLab?.subSubcategory?.name || "—",
+      subSubcategory: Array.isArray(proj.applicationLab?.subSubcategory)
+        ? proj.applicationLab.subSubcategory.map(s => s?.name || s).filter(Boolean).join(", ") || "—"
+        : (proj.applicationLab?.subSubcategory?.name || "—"),
       tags: proj.applicationLab?.tags?.map((tag) => tag.name) || [],
       ...proj,
     }));
