@@ -75,7 +75,9 @@ export const DetailsFieldGroups = ({
         ...prev,
         category: appLab.category?._id || appLab.category || null,
         subcategory: appLab.subcategory?._id || appLab.subcategory || null,
-        subsubcategory: appLab.subSubcategory?._id || appLab.subSubcategory || null,
+        subsubcategory: Array.isArray(appLab.subSubcategory)
+          ? appLab.subSubcategory.map(t => t._id || t.id || t)
+          : (appLab.subSubcategory ? [appLab.subSubcategory._id || appLab.subSubcategory] : []),
         tags: Array.isArray(appLab.tags) ? appLab.tags.map(t => t._id || t.id || t) : [],
       }));
     }
@@ -164,7 +166,7 @@ export const DetailsFieldGroups = ({
       ...prev,
       category: value,
       subcategory: null,
-      subsubcategory: null,
+      subsubcategory: [],
       tags: [],
     }));
     if (onCategoryChange) onCategoryChange(value);
@@ -174,7 +176,7 @@ export const DetailsFieldGroups = ({
     setLocalValues(prev => ({
       ...prev,
       subcategory: value,
-      subsubcategory: null,
+      subsubcategory: [],
       tags: [],
     }));
     if (onSubCategoryChange) onSubCategoryChange(value);
@@ -183,7 +185,7 @@ export const DetailsFieldGroups = ({
   const handleSubSubCategoryChangeLocal = (value) => {
     setLocalValues(prev => ({
       ...prev,
-      subsubcategory: value,
+      subsubcategory: Array.isArray(value) ? value : [value],
       tags: [],
     }));
     if (onSubSubCategoryChange) onSubSubCategoryChange(value);
@@ -267,10 +269,16 @@ export const DetailsFieldGroups = ({
         ? localValues.subcategory 
         : (value && typeof value === "object" ? value._id || value.id || value : value);
     } else if (config.path === "applicationLab.subSubcategory") {
-      // Use local value if set, otherwise use server value
-      value = localValues.subsubcategory !== null && localValues.subsubcategory !== undefined 
-        ? localValues.subsubcategory 
-        : (value && typeof value === "object" ? value._id || value.id || value : value);
+      if (Array.isArray(value)) {
+        const sscIds = value.map((item) => {
+          if (typeof item === "object" && item !== null) {
+            return item._id || item.id || item;
+          }
+          return item;
+        });
+        const sscObjects = value.filter((item) => typeof item === "object" && item !== null);
+        value = sscObjects.length > 0 ? sscObjects : sscIds;
+      }
     }
 
     let canEdit = false;

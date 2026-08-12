@@ -264,7 +264,9 @@ export function useProjectsForApplicationLabRecords(filters = {}) {
             objectiveDetails: proj.objectiveDetails || proj.masterProject?.objectiveDetails || null,
             category: proj.category?.name || proj.applicationLab?.category?.name || null,
             subcategory: proj.subcategory?.name || proj.applicationLab?.subcategory?.name || null,
-            subSubcategory: proj.subSubcategory?.name || proj.applicationLab?.subSubcategory?.name || null,
+            subSubcategory: Array.isArray(proj.applicationLab?.subSubcategory)
+              ? proj.applicationLab.subSubcategory.map(s => s?.name || s).filter(Boolean).join(", ")
+              : (proj.subSubcategory?.name || proj.applicationLab?.subSubcategory?.name || null),
             tags: proj.tags?.map(tag => tag.name) || proj.applicationLab?.tags?.map(tag => tag.name) || [],
 
             // Status fields - these might need to be calculated or come from statusChanges
@@ -354,7 +356,9 @@ export function useProjectsForShelfLifeTestRecords(filters = {}) {
             objectiveDetails: proj.objectiveDetails || proj.masterProject?.objectiveDetails || null,
             category: proj.category?.name || proj.applicationLab?.category?.name || null,
             subcategory: proj.subcategory?.name || proj.applicationLab?.subcategory?.name || null,
-            subSubcategory: proj.subSubcategory?.name || proj.applicationLab?.subSubcategory?.name || null,
+            subSubcategory: Array.isArray(proj.applicationLab?.subSubcategory)
+              ? proj.applicationLab.subSubcategory.map(s => s?.name || s).filter(Boolean).join(", ")
+              : (proj.subSubcategory?.name || proj.applicationLab?.subSubcategory?.name || null),
             tags: proj.tags?.map((tag) => tag.name) || proj.applicationLab?.tags?.map((tag) => tag.name) || [],
             pdStatus: proj.productDevelopment?.status || null,
             pdDays: proj.statusChangedAt?.productDevelopmentStatus ? Math.floor((new Date() - new Date(proj.statusChangedAt.productDevelopmentStatus)) / (1000 * 60 * 60 * 24)) : null,

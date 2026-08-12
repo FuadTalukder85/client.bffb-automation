@@ -20,7 +20,12 @@ const normalizeRecipe = (recipe = {}) => {
   const project = recipe.project || {};
   const category = recipe.category ?? project.category ?? null;
   const subCategory = recipe.subCategory ?? project.subCategory ?? null;
-  const subSubCategory = recipe.subSubCategory ?? project.subSubCategory ?? null;
+  const subSubCategories = Array.isArray(recipe.subSubCategories)
+    ? recipe.subSubCategories
+    : Array.isArray(project.subSubCategories)
+      ? project.subSubCategories
+      : (recipe.subSubCategory ? [recipe.subSubCategory] : (project.subSubCategory ? [project.subSubCategory] : []));
+  const subSubCategory = recipe.subSubCategory ?? project.subSubCategory ?? subSubCategories[0] ?? null;
   const tags = Array.isArray(recipe.tags)
     ? recipe.tags
     : Array.isArray(project.tags)
@@ -41,6 +46,7 @@ const normalizeRecipe = (recipe = {}) => {
     category,
     subCategory,
     subSubCategory,
+    subSubCategories,
     tags,
   };
 };
@@ -101,7 +107,7 @@ const prepareRecipeParams = ({
   }
 
   if (subSubCategory && subSubCategory !== "all") {
-    params.subSubCategory = subSubCategory;
+    params.subSubCategory = Array.isArray(subSubCategory) ? subSubCategory.join(",") : subSubCategory;
   }
 
   if (recipeType && recipeType !== "all") {

@@ -144,9 +144,13 @@ export default function DesktopFinalRecipeTable({
       headerClassName: "table-head-cell",
       className: " ",
       size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
-      cell: ({ row }) => (
-        <span className="">{row.original.subSubCategory?.name || "N/A"}</span>
-      ),
+      cell: ({ row }) => {
+        const sscs = Array.isArray(row.original.subSubCategories) && row.original.subSubCategories.length > 0
+          ? row.original.subSubCategories
+          : (row.original.subSubCategory ? [row.original.subSubCategory] : []);
+        const text = sscs.map(s => s?.name).filter(Boolean).join(", ");
+        return <span className="">{text || "N/A"}</span>;
+      },
     },
     {
       accessorKey: "tags",

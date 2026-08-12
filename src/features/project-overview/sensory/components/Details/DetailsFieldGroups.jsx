@@ -72,7 +72,9 @@ export const DetailsFieldGroups = ({
         ...prev,
         category: appLab.category?._id || appLab.category || null,
         subcategory: appLab.subcategory?._id || appLab.subcategory || null,
-        subsubcategory: appLab.subSubcategory?._id || appLab.subSubcategory || null,
+        subsubcategory: Array.isArray(appLab.subSubcategory)
+          ? appLab.subSubcategory.map(t => t._id || t.id || t)
+          : (appLab.subSubcategory ? [appLab.subSubcategory._id || appLab.subSubcategory] : []),
         tags: Array.isArray(appLab.tags) ? appLab.tags.map(t => t._id || t.id || t) : [],
       }));
     }
@@ -127,27 +129,27 @@ export const DetailsFieldGroups = ({
         ...prev,
         category: value,
         subcategory: null,
-        subsubcategory: null,
+        subsubcategory: [],
         tags: [],
       }));
       handleSave("applicationLab.category")(value);
       handleSave("applicationLab.subcategory")(null);
-      handleSave("applicationLab.subSubcategory")(null);
+      handleSave("applicationLab.subSubcategory")([]);
       handleSave("applicationLab.tags")([]);
     } else if (config.asyncType === "subcategory") {
       setLocalValues(prev => ({
         ...prev,
         subcategory: value,
-        subsubcategory: null,
+        subsubcategory: [],
         tags: [],
       }));
       handleSave("applicationLab.subcategory")(value);
-      handleSave("applicationLab.subSubcategory")(null);
+      handleSave("applicationLab.subSubcategory")([]);
       handleSave("applicationLab.tags")([]);
     } else if (config.asyncType === "subsubcategory") {
       setLocalValues(prev => ({
         ...prev,
-        subsubcategory: value,
+        subsubcategory: Array.isArray(value) ? value : [value],
       }));
       handleSave("applicationLab.subSubcategory")(value);
     } else if (config.asyncType === "tags") {
@@ -219,9 +221,16 @@ export const DetailsFieldGroups = ({
         ? localValues.subcategory
         : (value && typeof value === "object" ? value._id || value.id || value : value);
     } else if (config.path === "applicationLab.subSubcategory") {
-      value = localValues.subsubcategory !== null && localValues.subsubcategory !== undefined
-        ? localValues.subsubcategory
-        : (value && typeof value === "object" ? value._id || value.id || value : value);
+      if (Array.isArray(value)) {
+        const sscIds = value.map((item) => {
+          if (typeof item === "object" && item !== null) {
+            return item._id || item.id || item;
+          }
+          return item;
+        });
+        const sscObjects = value.filter((item) => typeof item === "object" && item !== null);
+        value = sscObjects.length > 0 ? sscObjects : sscIds;
+      }
     } else if (config.path === "applicationLab.tags") {
       if (Array.isArray(value)) {
         const tagIds = value.map((item) => {

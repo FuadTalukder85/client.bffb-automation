@@ -153,9 +153,13 @@ export default function DesktopInDevelopmentRecipeTable({
       headerClassName: "table-head-cell",
       size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
       className: " ",
-      cell: ({ row }) => (
-        <span className="">{row.original.subSubCategory?.name || "N/A"}</span>
-      ),
+      cell: ({ row }) => {
+        const sscs = Array.isArray(row.original.subSubCategories) && row.original.subSubCategories.length > 0
+          ? row.original.subSubCategories
+          : (row.original.subSubCategory ? [row.original.subSubCategory] : []);
+        const text = sscs.map(s => s?.name).filter(Boolean).join(", ");
+        return <span className="">{text || "N/A"}</span>;
+      },
     },
     {
       accessorKey: "tags",

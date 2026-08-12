@@ -136,7 +136,9 @@ export default function SensoryFormProjectListPage() {
       objectiveDetails: proj.masterProject?.objectiveDetails || null,
       applicationCategory: proj.applicationLab?.category?.name || null,
       applicationSubcategory: proj.applicationLab?.subcategory?.name || null,
-      applicationSubSubcategory: proj.applicationLab?.subSubcategory?.name || null,
+      applicationSubSubcategory: Array.isArray(proj.applicationLab?.subSubcategory)
+        ? proj.applicationLab.subSubcategory.map(s => s?.name || s).filter(Boolean).join(", ")
+        : (proj.applicationLab?.subSubcategory?.name || null),
       applicationTags: proj.applicationLab?.tags?.map(tag => tag.name) || [],
       status: proj.sensoryLab?.status || "Not Started",
       ...proj,

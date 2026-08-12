@@ -81,7 +81,9 @@ export const DetailsFieldGroups = ({
         ...prev,
         category: appLab.category?._id || appLab.category || null,
         subcategory: appLab.subcategory?._id || appLab.subcategory || null,
-        subsubcategory: appLab.subSubcategory?._id || appLab.subSubcategory || null,
+        subsubcategory: Array.isArray(appLab.subSubcategory)
+          ? appLab.subSubcategory.map(t => t._id || t.id || t)
+          : (appLab.subSubcategory ? [appLab.subSubcategory._id || appLab.subSubcategory] : []),
         tags: Array.isArray(appLab.tags) ? appLab.tags.map(t => t._id || t.id || t) : [],
       }));
     }
@@ -90,29 +92,29 @@ export const DetailsFieldGroups = ({
       const parsedCoatingValues =
         Array.isArray(common.coatingUpperLayer)
           ? common.coatingUpperLayer.map((item) =>
-              typeof item === "object" && item !== null
-                ? item._id || item.id || item
-                : item
-            )
+            typeof item === "object" && item !== null
+              ? item._id || item.id || item
+              : item
+          )
           : common.coatingUpperLayer
             ? String(common.coatingUpperLayer)
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean)
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
             : [];
 
       const parsedFillingValues =
         Array.isArray(common.filling)
           ? common.filling.map((item) =>
-              typeof item === "object" && item !== null
-                ? item._id || item.id || item
-                : item
-            )
+            typeof item === "object" && item !== null
+              ? item._id || item.id || item
+              : item
+          )
           : common.filling
             ? String(common.filling)
-                .split(",")
-                .map((item) => item.trim())
-                .filter(Boolean)
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean)
             : [];
 
       setLocalValues((prev) => ({
@@ -142,7 +144,7 @@ export const DetailsFieldGroups = ({
       asyncType,
       timestamp: new Date().toISOString()
     });
-    
+
     let result;
     switch (asyncType) {
       case "category":
@@ -175,14 +177,14 @@ export const DetailsFieldGroups = ({
       default:
         result = [];
     }
-    
+
     console.log("🔍 DetailsFieldGroups - getAsyncOptions result:", {
       asyncType,
       optionsCount: result.length,
       firstFew: result.slice(0, 3),
       timestamp: new Date().toISOString()
     });
-    
+
     const inlineCreated = createdOptions[asyncType] || [];
     if (inlineCreated.length === 0) {
       return result;
@@ -218,12 +220,12 @@ export const DetailsFieldGroups = ({
       ...prev,
       category: value,
       subcategory: null,
-      subsubcategory: null,
+      subsubcategory: [],
       tags: [],
     }));
     handleSave("applicationLab.category")(value);
     handleSave("applicationLab.subcategory")(null);
-    handleSave("applicationLab.subSubcategory")(null);
+    handleSave("applicationLab.subSubcategory")([]);
     handleSave("applicationLab.tags")([]);
   }, [handleSave]);
 
@@ -231,18 +233,18 @@ export const DetailsFieldGroups = ({
     setLocalValues(prev => ({
       ...prev,
       subcategory: value,
-      subsubcategory: null,
+      subsubcategory: [],
       tags: [],
     }));
     handleSave("applicationLab.subcategory")(value);
-    handleSave("applicationLab.subSubcategory")(null);
+    handleSave("applicationLab.subSubcategory")([]);
     handleSave("applicationLab.tags")([]);
   }, [handleSave]);
 
   const handleSubSubCategoryChange = useCallback((value) => {
     setLocalValues(prev => ({
       ...prev,
-      subsubcategory: value,
+      subsubcategory: Array.isArray(value) ? value : [value],
     }));
     handleSave("applicationLab.subSubcategory")(value);
   }, [handleSave]);
@@ -415,11 +417,15 @@ export const DetailsFieldGroups = ({
         value = value.name || value.label || value.title || value._id || value.id || "";
       }
     } else if (config.path === "applicationLab.subSubcategory") {
-      value = localValues.subsubcategory !== null && localValues.subsubcategory !== undefined
-        ? localValues.subsubcategory
-        : value;
-      if (value && typeof value === "object") {
-        value = value.name || value.label || value.title || value._id || value.id || "";
+      if (Array.isArray(value)) {
+        const sscIds = value.map((item) => {
+          if (typeof item === "object" && item !== null) {
+            return item._id || item.id || item;
+          }
+          return item;
+        });
+        const sscObjects = value.filter((item) => typeof item === "object" && item !== null);
+        value = sscObjects.length > 0 ? sscObjects : sscIds;
       }
     } else if (config.path === "applicationLab.tags") {
       if (Array.isArray(value)) {
@@ -535,11 +541,11 @@ export const DetailsFieldGroups = ({
     const resolvedOptions =
       config.path === "common.productsUsed"
         ? options.map((option) => ({
-            ...option,
-            label: option.productCode
-              ? `${option.name || option.label} (${option.productCode}, ${formatRate(option.cost)})`
-              : `${option.name || option.label} (${formatRate(option.cost)})`,
-          }))
+          ...option,
+          label: option.productCode
+            ? `${option.name || option.label} (${option.productCode}, ${formatRate(option.cost)})`
+            : `${option.name || option.label} (${formatRate(option.cost)})`,
+        }))
         : options;
     const isLoading = updatingFields.has(config.path) || (config.asyncType ? isAsyncLoading(config.asyncType) : false);
 
@@ -606,7 +612,7 @@ export const DetailsFieldGroups = ({
   };
 
   return (
-    <div className="grow overflow-y-auto custom-scrollbar max-h-[90dvh] 3xl:max-h-[90dvh] ms-0 lg:ms-2 xl:ms-3 2xl:ms-4 3xl:ms-5 bg-background pt-2 md:pt-0 rounded-2xl px-6 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 md:pb-12">
+    <div className="grow overflow-y-auto custom-scrollbar max-h-[90dvh] 3xl:max-h-[90dvh] ms-0 lg:ms-2 xl:ms-3 2xl:ms-4 3xl:ms-5 bg-background pt-2 md:pt-0 rounded-2xl px-0 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 md:pb-12">
       {fieldGroups.map(renderGroup)}
     </div>
   );

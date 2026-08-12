@@ -40,7 +40,10 @@ export default function MobileApplicationRecipesCard({
             return subcat || "N/A";
         })(),
         subSubcategory: (() => {
-            const subsubcat = project.applicationSubSubCategory;
+            const subsubcat = project.applicationSubSubCategories || project.applicationSubSubCategory;
+            if (Array.isArray(subsubcat)) {
+              return subsubcat.map(s => (typeof s === 'object' && s !== null ? s.name : s)).filter(Boolean).join(", ") || "N/A";
+            }
             if (typeof subsubcat === 'object' && subsubcat !== null) {
                 return subsubcat.name || "N/A";
             }
