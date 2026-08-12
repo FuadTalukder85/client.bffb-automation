@@ -229,14 +229,14 @@ function ManagementReports() {
   };
 
   return (
-    <div className="px-4 pb-6 rounded-b-xl md:rounded-b-4xl md:overflow-y-auto custom-scrollbar min-h-full">
+    <div className="px-0 pb-6 rounded-b-xl md:rounded-b-4xl md:overflow-y-auto custom-scrollbar min-h-full">
       {/* Mobile Header */}
       <div className="md:hidden bg-background dark:bg-[#0B0B0F] pt-2 -mt-2">
         <h1 className="text-xl font-bold tracking-tight text-foreground">
           Main Dashboard
         </h1>
       </div>
-      
+
       {/* Mobile Sticky Picker */}
       <div className="md:hidden sticky -top-5 z-30 bg-background dark:bg-[#0B0B0F] pt-4 pb-2">
         <div className="flex justify-center w-full">
