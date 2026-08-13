@@ -157,7 +157,7 @@ export function Sidebar({
     ...(() => {
       const subItems = [
         ...(hasPermission(PERMISSIONS.BFF_PRODUCT.READ)
-          ? [{ id: "bff-product-list", label: "BFF Product List", path: "/bff-product/list" }]
+          ? [{ id: "bff-product-list", label: "Product List", path: "/bff-product/list" }]
           : []),
         ...(hasPermission(PERMISSIONS.BFF_PRODUCT_SEGMENT.READ)
           ? getBFFProductTaxonomyNavItems()
@@ -501,7 +501,7 @@ export function SidebarItem({
       {/* Sub-items */}
       {hasSubItems && (
         <div
-          className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
             }`}
         >
           <div className="pl-12 pr-3 space-y-1">
