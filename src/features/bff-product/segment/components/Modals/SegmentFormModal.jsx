@@ -72,7 +72,7 @@ export function SegmentFormModal({
     <Modal open={open} onOpenChange={handleClose}>
       <ModalContent
         className={cn(
-          "max-w-[380px] lg:max-w-[309px] xl:max-w-[413px] 2xl:max-w-[464px] 3xl:max-w-[580px] gap-0 px-10 py-14 lg:px-8 lg:py-7 xl:px-9 2xl:py-11 3xl:py-14 rounded-2xl! shadow-2xl dark:border dark:border-nav-highlight/30 max-h-[85vh] overflow-y-auto",
+          "max-w-[320px] lg:max-w-[309px] xl:max-w-[413px] 2xl:max-w-[464px] 3xl:max-w-[580px] gap-0 px-6 py-8 lg:px-8 lg:py-7 xl:px-9 2xl:py-11 3xl:py-14 rounded-2xl! shadow-2xl dark:border dark:border-nav-highlight/30 max-h-[85vh] overflow-y-auto",
           className
         )}
       >
