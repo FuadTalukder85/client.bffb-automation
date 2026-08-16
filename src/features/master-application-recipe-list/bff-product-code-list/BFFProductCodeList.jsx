@@ -175,7 +175,8 @@ export default function BFFProductCodeList() {
       link.href = url;
 
       const d = new Date();
-      const fallback = `product-codes-${selectedSegment}-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.xlsx`;
+      const segmentSlug = isSpecificSegment ? selectedSegmentLabel.toLowerCase().replace(/\s+/g, "-") : "all-segments";
+      const fallback = `product-codes-${segmentSlug}-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.xlsx`;
 
       link.setAttribute("download", getFilenameFromResponse(response, fallback));
       document.body.appendChild(link);
@@ -569,7 +570,7 @@ export default function BFFProductCodeList() {
               <RefreshCw className="w-5 h-5" />
             </Button>
           )}
-          {isSpecificSegment && (
+          {actions.length > 0 && (
             <ActionButtonsGroup actions={mobileActions} />
           )}
         </div>
@@ -622,8 +623,8 @@ export default function BFFProductCodeList() {
                   <RefreshCw className="desktop-page-btn" />
                 </Button>
               )}
-              {/* Show Create and Download buttons only on specific segment tabs */}
-              {isSpecificSegment && actions.length > 0 && (
+              {/* Show Create and Download buttons for all segment tabs */}
+              {actions.length > 0 && (
                 <div className="bg-primary flex desktop-page-btn-wrapper w-fit rounded-full! items-center shadow-sm">
                   {actions.map((action, index) => {
                     const Icon = action.icon;
@@ -716,7 +717,7 @@ export default function BFFProductCodeList() {
                     message={noDataMessage}
                     description={noDataDescription}
                   />
-                  {isSpecificSegment && (
+                  {canCreate && (
                     <Button
                       onClick={handleAddProductCode}
                       className="mt-4 text-white bg-primary hover:bg-primary/90"

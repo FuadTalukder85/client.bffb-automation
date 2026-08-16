@@ -1,21 +1,39 @@
 import React from "react";
-import { Trash2, Pencil, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { AiFillThunderbolt } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { ButtonGroup } from "@/components/ui/ButtonGroup";
-import StatusBadge from "@/components/ui/StatusBadge";
+import { ExpandableCard } from "@/components/ui/ExpandableCard";
+import { InfoTable } from "@/features/invites-and-access/components/InfoTable";
+
 import {
     getProductDisplayCode,
     getProductDisplayName,
     getTaxonomyLabel,
+    getTaxonomyLabels,
+    formatDate,
 } from "../utils/productDisplay";
 
-// Type display mapping
-const typeDisplayMap = {
-    solid: "Solid",
-    liquid: "Liquid",
-};
+
+
+/** Renders a row of taxonomy badge pills, or a dash if empty. */
+function TaxonomyPills({ rawValue }) {
+    const labels = getTaxonomyLabels(rawValue);
+    if (!labels.length) return <span className="text-muted-foreground">—</span>;
+    return (
+        <div className="flex flex-wrap gap-1.5 py-1.5 justify-end">
+            {labels.map((label, idx) => (
+                <span
+                    key={idx}
+                    className="font-medium rounded-full bg-primary-shade-2 px-2.5 py-0.5 text-[11px] text-nav-highlight whitespace-nowrap"
+                >
+                    {label}
+                </span>
+            ))}
+        </div>
+    );
+}
 
 export default function MobileProductCodeCard({
     productCode,
@@ -31,13 +49,15 @@ export default function MobileProductCodeCard({
     className,
 }) {
     const isActive = productCode.isActive;
-    const cost = productCode.standardPrice ?? 0;
     const displayCode = getProductDisplayCode(productCode, "");
     const displayName = getProductDisplayName(productCode, "");
     const displaySegment = getTaxonomyLabel(productCode.segment, "");
-    const isCommercialized = Boolean(
-        productCode.commercialCode || productCode.commercializedProductCode
-    );
+
+    // Fields for the expandable section (matching desktop table columns)
+    const xpCode = productCode?.xpCode || productCode?.productCode || "—";
+    const xpIssueDate = formatDate(productCode?.xpIssueDate);
+    const commercialCode = productCode?.commercialCode || productCode?.commercializedProductCode || "—";
+    const commercialCodeIssueDate = formatDate(productCode?.commercialCodeIssueDate);
 
     const timerRef = React.useRef(null);
     const isLongPressRef = React.useRef(false);
@@ -150,7 +170,7 @@ export default function MobileProductCodeCard({
             ? [
                 {
                     key: "edit",
-                    icon: (props) => <svg {...props} className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd" /></svg>,
+                    icon: (props) => <svg {...props} className="action-button-icon" xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd" /></svg>,
                     onClick: () => onEdit?.(productCode),
                     title: "Edit",
                     className:
@@ -190,98 +210,131 @@ export default function MobileProductCodeCard({
             {isSelected && (
                 <div className="absolute inset-0 rounded-xl pointer-events-none border-primary bg-primary/[0.06] z-10 animate-in fade-in duration-200" />
             )}
-            {/* Header - Serial Number and Product Code */}
-            <div className="flex items-center justify-between p-4 pb-2">
-                {/* Left side - Serial */}
-                <div className="flex items-center gap-3">
-                    {isSelectionMode ? (
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
-                            <input
-                                type="checkbox"
-                                checked={isSelected}
-                                readOnly
-                                className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
-                            />
+
+            <ExpandableCard className="p-0">
+                {/* Expandable Content */}
+                <ExpandableCard.Content initialHeight={240}>
+                    {/* Header - Serial Number and Product Code */}
+                    <div className="flex items-center justify-between p-4 pb-2">
+                        {/* Left side - Serial */}
+                        <div className="flex items-center gap-3">
+                            {isSelectionMode ? (
+                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        readOnly
+                                        className="w-4 h-4 rounded border-border text-primary focus:ring-primary cursor-pointer"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
+                                    <span className="text-sm font-semibold">{serialNumber}</span>
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-shade-2 text-nav-highlight shrink-0">
-                            <span className="text-sm font-semibold">{serialNumber}</span>
-                        </div>
-                    )}
-                </div>
 
-                {/* Right side - Product Code */}
-                <span
-                    className="text-sm font-semibold text-foreground"
-                    title={displayCode}
-                >
-                    {displayCode?.length > 25 ? `${displayCode.slice(0, 25)}...` : displayCode}
-                </span>
-            </div>
+                        {/* Right side - Product Code */}
+                        <span
+                            className="text-sm font-semibold text-foreground"
+                            title={displayCode}
+                        >
+                            {displayCode?.length > 25 ? `${displayCode.slice(0, 25)}...` : displayCode}
+                        </span>
+                    </div>
 
-            {/* Product Name, Status and Segment */}
-            <div className="px-4 py-2 space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                    <span
-                        className="text-base font-semibold text-foreground"
-                        title={displayName}
-                    >
-                        {displayName?.length > 20 ? `${displayName.slice(0, 20)}...` : displayName}
-                    </span>
-                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary-shade-2 text-nav-highlight">
-                        {displaySegment}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <StatusBadge
-                        status={isCommercialized ? "Commercialized" : "Experimental"}
-                        className="px-3! py-1!"
-                    />
-                </div>
-            </div>
-
-            {/* Type and Cost */}
-            <div className="flex items-center justify-between px-4 py-2">
-                <span className="text-sm text-muted-foreground">
-                    {typeDisplayMap[productCode.type] || productCode.type}
-                </span>
-                <span className="text-sm font-semibold text-nav-highlight">
-                    ৳{cost.toLocaleString()}/kg
-                </span>
-            </div>
-
-            {/* Footer with action buttons - for active product codes */}
-            {!isSelectionMode && (
-                <>
-                    {isActive && <div className="h-[0.1px] bg-table-stroke mx-4 mb-2 mt-1"></div>}
-                    {isActive ? (
-                        <ButtonGroup
-                            buttons={activeProductCodeButtons}
-                            className="px-4 pt-2 pb-4 w-30"
-                            fullWidth
-                            gap="gap-0"
-                        />
-                    ) : (typeof onRestore === "function" ? (
-                        /* Restore button for archived items */
-                        <div className="px-4 pb-4">
-                            <Button
-                                variant="ghost"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRestore?.(productCode);
-                                }}
-                                className="w-full border rounded-md text-nav-highlight h-9 border-primary-shade-2 bg-primary-shade-2 hover:bg-primary-shade-2/80"
-                                title="Restore Product Code"
+                    {/* Product Name and Segment */}
+                    <div className="px-4 py-2">
+                        <div className="flex items-center justify-between gap-3">
+                            <span
+                                className="text-base font-semibold text-foreground"
+                                title={displayName}
                             >
-                                <AiFillThunderbolt className="action-button-icon mr-2" />
-                                Restore
-                            </Button>
+                                {displayName?.length > 20 ? `${displayName.slice(0, 20)}...` : displayName}
+                            </span>
+                            <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary-shade-2 text-nav-highlight">
+                                {displaySegment}
+                            </span>
                         </div>
-                    ) : null)}
-                </>
-            )}
+                    </div>
+
+                    {/* Expanded Details - matching desktop table columns */}
+                    <div className="px-4 pt-1 pb-2">
+                        <InfoTable>
+                            <InfoTable.Row label="BFF Brand Name">
+                                <TaxonomyPills rawValue={productCode?.bffBrandNames || productCode?.bffBrandName} />
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="XP Code">
+                                <span className="font-semibold text-base-color">{xpCode}</span>
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="XP Issue Date">
+                                <span className="font-semibold text-base-color">{xpIssueDate}</span>
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Commercial Code">
+                                <span className="font-semibold text-base-color">{commercialCode}</span>
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Commercial Issue Date">
+                                <span className="font-semibold text-base-color">{commercialCodeIssueDate}</span>
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Category">
+                                <TaxonomyPills rawValue={productCode?.category} />
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Market">
+                                <TaxonomyPills rawValue={productCode?.market} />
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Brand">
+                                <TaxonomyPills rawValue={productCode?.brand} />
+                            </InfoTable.Row>
+
+                            <InfoTable.Row label="Product Type">
+                                <TaxonomyPills rawValue={productCode?.productType || productCode?.type} />
+                            </InfoTable.Row>
+                        </InfoTable>
+                    </div>
+                </ExpandableCard.Content>
+
+                {/* Footer with action buttons + toggle */}
+                <ExpandableCard.Footer className="px-4 pt-2 pb-3">
+                    <ExpandableCard.FooterLeft className="flex">
+                        {!isSelectionMode && (
+                            <>
+                                {isActive ? (
+                                    <ButtonGroup
+                                        buttons={activeProductCodeButtons}
+                                        className="w-full"
+                                        fullWidth
+                                        gap="gap-0"
+                                    />
+                                ) : (typeof onRestore === "function" ? (
+                                    <Button
+                                        variant="ghost"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onRestore?.(productCode);
+                                        }}
+                                        className="w-full border rounded-md text-nav-highlight h-9 border-primary-shade-2 bg-primary-shade-2 hover:bg-primary-shade-2/80"
+                                        title="Restore Product Code"
+                                    >
+                                        <AiFillThunderbolt className="action-button-icon mr-2" />
+                                        Restore
+                                    </Button>
+                                ) : null)}
+                            </>
+                        )}
+                    </ExpandableCard.FooterLeft>
+
+                    <ExpandableCard.FooterRight>
+                        <ExpandableCard.ToggleButton />
+                    </ExpandableCard.FooterRight>
+                </ExpandableCard.Footer>
+            </ExpandableCard>
         </div>
     );
 }
-
-
