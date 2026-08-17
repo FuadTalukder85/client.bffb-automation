@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useNavigate, useParams, useLocation } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BackButton } from "@/components/ui/BackButton";
@@ -47,11 +47,129 @@ const toIdList = (value) => {
   return value.map(toId).filter(Boolean);
 };
 
-const toDateInput = (value) => {
+const formatToDDMMYYYY = (value) => {
   if (!value) return "";
+  if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value.trim())) {
+    return value.trim();
+  }
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    const [year, month, day] = value.trim().split("-");
+    return `${day}/${month}/${year}`;
+  }
+  if (typeof value === "string" && value.includes("T")) {
+    const datePortion = value.split("T")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePortion)) {
+      const [year, month, day] = datePortion.split("-");
+      return `${day}/${month}/${year}`;
+    }
+  }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+const formatToYYYYMMDD = (value) => {
+  if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    return value.trim();
+  }
+  if (typeof value === "string" && /^\d{2}\/\d{2}\/\d{4}$/.test(value.trim())) {
+    const [day, month, year] = value.trim().split("/");
+    return `${year}-${month}-${day}`;
+  }
+  if (typeof value === "string" && value.includes("T")) {
+    const datePortion = value.split("T")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePortion)) {
+      return datePortion;
+    }
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const toDateInput = (value) => {
+  if (!value) return "";
+  return formatToYYYYMMDD(value);
+};
+
+const FormDateField = ({
+  label,
+  required,
+  value,
+  onChange,
+  onBlur,
+  error,
+  isReadOnly,
+  isHighlighted,
+  commonInputClass,
+  placeholder = "DD/MM/YYYY",
+}) => {
+  const inputRef = React.useRef(null);
+  const displayValue = formatToDDMMYYYY(value);
+  const nativeValue = formatToYYYYMMDD(value);
+
+  const handleOpenPicker = () => {
+    if (isReadOnly || !inputRef.current) return;
+    try {
+      if (typeof inputRef.current.showPicker === "function") {
+        inputRef.current.showPicker();
+        return;
+      }
+    } catch (err) {
+      // Fallback
+    }
+    inputRef.current.focus();
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <div
+        onClick={handleOpenPicker}
+        className={cn(
+          "relative flex items-center w-full rounded-md px-3 text-xs transition-colors h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8",
+          commonInputClass,
+          !isReadOnly && "cursor-pointer hover:border-[#B89CF5]",
+          isHighlighted && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
+          isReadOnly && "cursor-default"
+        )}
+      >
+        <CalendarIcon className="w-3.5 h-3.5 mr-2 text-muted-foreground shrink-0 flex-none" />
+        <span
+          className={cn(
+            "flex-1 text-xs truncate select-none",
+            displayValue
+              ? "text-[#1E1B2E] dark:text-foreground font-normal"
+              : "text-[#948FA5]"
+          )}
+        >
+          {displayValue || placeholder}
+        </span>
+        <input
+          type="date"
+          ref={inputRef}
+          value={nativeValue}
+          onChange={(e) => {
+            if (onChange) onChange(e.target.value);
+          }}
+          onBlur={onBlur}
+          disabled={isReadOnly}
+          tabIndex={-1}
+          className="sr-only opacity-0 absolute pointer-events-none"
+        />
+      </div>
+      {error && <p className="text-[11px] text-red-500">{error}</p>}
+    </div>
+  );
 };
 
 const taxonomyHookArgs = { status: "active", page: 1, limit: 200 };
@@ -101,27 +219,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
     watch,
     setValue,
     clearErrors,
+    control,
     formState: { errors },
   } = useForm();
-
-  const xpIssueDateRef = React.useRef(null);
-  const commercialCodeIssueDateRef = React.useRef(null);
-
-  const handleOpenDatePicker = (inputEl) => {
-    if (isReadOnly || !inputEl) return;
-    if (inputEl.type !== "date") {
-      inputEl.type = "date";
-    }
-    try {
-      if (typeof inputEl.showPicker === "function") {
-        inputEl.showPicker();
-      } else {
-        inputEl.focus();
-      }
-    } catch (err) {
-      inputEl.focus();
-    }
-  };
 
   // Taxonomy queries
   const { data: bffBrandData } = useBFFProductTaxonomy(
@@ -602,21 +702,26 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   return (
     <section className="min-h-[calc(100vh-6rem)]">
       {/* Top Header Bar - EXACT MATCH TO IMAGE */}
-      <div className="flex items-center justify-between mb-5 gap-3 ms-0 lg:ms-5">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4 md:mb-5 gap-2 sm:gap-3 ms-0 lg:ms-5">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <BackButton
             onClick={() => navigate("/bff-product/list")}
-            className="w-9 h-9 rounded-xl bg-[#F2EAFA] text-[#6B46C1] hover:bg-[#E7DAF7]"
+            className="w-9 h-9 rounded-xl bg-[#F2EAFA] text-[#6B46C1] hover:bg-[#E7DAF7] flex-none"
           />
           <DesktopBreadcrumb items={breadcrumbItems} />
+          <div className="md:hidden truncate">
+            <span className="text-base sm:text-lg font-bold text-primary truncate block">
+              {breadcrumbTitle || (mode === "create" ? "Add BFF Product" : "Product Details")}
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-none">
           {isReadOnly ? (
             <button
               type="button"
               onClick={() => setIsReadOnly(false)}
-              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-2 px-5 py-1.5 rounded-full text-[14px] font-semibold shadow-md transition-all cursor-pointer"
+              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 rounded-full text-xs sm:text-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
               <SquarePen className="w-4 h-4 text-white" />
               Edit Details
@@ -628,12 +733,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 onClick={handleSubmit(onSubmit)}
                 disabled={isLoading}
                 title="Confirm"
-                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors disabled:opacity-50 text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-1.5 md:py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors disabled:opacity-50 text-xs md:text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 animate-spin" />
                 ) : (
-                  <Save className="desktop-page-btn m-0!" />
+                  <Save className="desktop-page-btn m-0! w-3.5 h-3.5 sm:w-auto sm:h-auto" />
                 )}
                 {isLoading ? "Saving..." : "Confirm"}
               </Button>
@@ -644,14 +749,16 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 type="button"
                 onClick={handleCancel}
                 title="Cancel"
-                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-1.5 md:py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-xs md:text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
               >
-                <X className="desktop-page-btn m-0!" />
+                <X className="desktop-page-btn m-0! w-3.5 h-3.5 sm:w-auto sm:h-auto" />
                 Cancel
               </Button>
             </div>
           )}
-          <ThemeToggle />
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
@@ -665,11 +772,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         </div>
       )}
 
-      {/* Main Form Container Card - STRICT 5-COLUMN GRID */}
-      <div className="h-full bg-white dark:bg-background rounded-3xl p-5 lg:p-6 m-3 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
+      {/* Main Form Container Card - 1-COLUMN ON MOBILE, 5-COLUMN ON DESKTOP */}
+      <div className="h-full bg-white dark:bg-background rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="w-full overflow-x-auto pb-1">
-            <div className="min-w-[940px] grid grid-cols-5 gap-x-5 gap-y-8">
+          <div className="w-full md:overflow-x-auto pb-1">
+            <div className="w-full min-w-0 md:min-w-[940px] grid grid-cols-1 md:grid-cols-5 gap-x-5 gap-y-5 md:gap-y-8">
               {/* ROW 1 */}
               {/* 1. Product Name */}
               <div className="space-y-1.5">
@@ -738,48 +845,26 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 4. XP Issue Date */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  XP Issue Date {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
-                </label>
-                <Input
-                  type="text"
-                  readOnly={isReadOnly}
-                  onFocus={(e) => !isReadOnly && (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
-                  {...register("xpIssueDate", {
-                    required: !isCommercialCodeEntered ? "XP Issue Date is required" : false,
-                  })}
-                  ref={(e) => {
-                    register("xpIssueDate").ref(e);
-                    xpIssueDateRef.current = e;
-                  }}
-                  placeholder="DD/MM/YYYY"
-                  leftIcon={
-                    <CalendarIcon
-                      className="w-3.5 h-3.5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenDatePicker(xpIssueDateRef.current);
-                      }}
-                    />
-                  }
-                  className={cn(
-                    commonInputClass,
-                    isHighlighted("XP Issue Date", "DD/MM/YYYY", "xpIssueDate") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                  inputClassName={cn(
-                    commonInnerClass,
-                    "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-inner-spin-button]:hidden"
-                  )}
-                />
-                {errors.xpIssueDate && (
-                  <p className="text-[11px] text-red-500">{errors.xpIssueDate.message}</p>
+              <Controller
+                name="xpIssueDate"
+                control={control}
+                rules={{
+                  required: !isCommercialCodeEntered ? "XP Issue Date is required" : false,
+                }}
+                render={({ field }) => (
+                  <FormDateField
+                    label="XP Issue Date"
+                    required={!isCommercialCodeEntered}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    error={errors.xpIssueDate?.message}
+                    isReadOnly={isReadOnly}
+                    isHighlighted={isHighlighted("XP Issue Date", "DD/MM/YYYY", "xpIssueDate")}
+                    commonInputClass={commonInputClass}
+                  />
                 )}
-              </div>
+              />
 
               {/* 5. Commercial Code */}
               <div className="space-y-1.5">
@@ -808,50 +893,26 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
               {/* ROW 2 */}
               {/* 6. Commercial Code Issue Date */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Commercial Code Issue Date {!isXpCodeEntered && <span className="text-red-500">*</span>}
-                </label>
-                <Input
-                  type="text"
-                  readOnly={isReadOnly}
-                  onFocus={(e) => !isReadOnly && (e.target.type = "date")}
-                  onBlur={(e) => {
-                    if (!e.target.value) e.target.type = "text";
-                  }}
-                  {...register("commercialCodeIssueDate", {
-                    required: !isXpCodeEntered ? "Commercial code issue date is required" : false,
-                  })}
-                  ref={(e) => {
-                    register("commercialCodeIssueDate").ref(e);
-                    commercialCodeIssueDateRef.current = e;
-                  }}
-                  placeholder="DD/MM/YYYY"
-                  leftIcon={
-                    <CalendarIcon
-                      className="w-3.5 h-3.5 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenDatePicker(commercialCodeIssueDateRef.current);
-                      }}
-                    />
-                  }
-                  className={cn(
-                    commonInputClass,
-                    isHighlighted("Commercial Code Issue Date", "DD/MM/YYYY", "commercialCodeIssueDate") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                  inputClassName={cn(
-                    commonInnerClass,
-                    "[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none [&::-webkit-inner-spin-button]:hidden"
-                  )}
-                />
-                {errors.commercialCodeIssueDate && (
-                  <p className="text-[11px] text-red-500">
-                    {errors.commercialCodeIssueDate.message}
-                  </p>
+              <Controller
+                name="commercialCodeIssueDate"
+                control={control}
+                rules={{
+                  required: !isXpCodeEntered ? "Commercial code issue date is required" : false,
+                }}
+                render={({ field }) => (
+                  <FormDateField
+                    label="Commercial Code Issue Date"
+                    required={!isXpCodeEntered}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    error={errors.commercialCodeIssueDate?.message}
+                    isReadOnly={isReadOnly}
+                    isHighlighted={isHighlighted("Commercial Code Issue Date", "DD/MM/YYYY", "commercialCodeIssueDate")}
+                    commonInputClass={commonInputClass}
+                  />
                 )}
-              </div>
+              />
 
               {/* 7. Segment */}
               <div className="space-y-1.5">
@@ -994,8 +1055,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 )}
               </div>
 
-              {/* 12. Direction (Spans 2 Rows vertically) */}
-              <div className="space-y-1.5 row-span-2 flex flex-col">
+              {/* 12. Direction (Spans 2 Rows vertically on Desktop) */}
+              <div className="space-y-1.5 md:row-span-2 flex flex-col">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Direction
                 </label>
@@ -1005,7 +1066,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("direction")}
                   placeholder="Describe flavour direction"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Direction", "Describe flavour direction", "direction") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
@@ -1014,8 +1075,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 />
               </div>
 
-              {/* 13. Aroma & Taste Description (Spans 2 Rows vertically) */}
-              <div className="space-y-1.5 row-span-2 flex flex-col">
+              {/* 13. Aroma & Taste Description (Spans 2 Rows vertically on Desktop) */}
+              <div className="space-y-1.5 md:row-span-2 flex flex-col">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Aroma & Taste Description
                 </label>
@@ -1025,7 +1086,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("aromaTasteDescription")}
                   placeholder="Describe aroma and taste"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Aroma & Taste Description", "Describe aroma and taste", "aromaTasteDescription") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
@@ -1208,8 +1269,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 />
               </div>
 
-              {/* 22. Storage Condition (Spans 2 Rows vertically) */}
-              <div className="space-y-1.5 row-span-2 flex flex-col">
+              {/* 22. Storage Condition (Spans 2 Rows vertically on Desktop) */}
+              <div className="space-y-1.5 md:row-span-2 flex flex-col">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Storage Condition
                 </label>
@@ -1219,7 +1280,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("storageCondition")}
                   placeholder="Describe storage conditions"
                   className={cn(
-                    "flex-1 min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Storage Condition", "Describe storage conditions", "storageCondition") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
