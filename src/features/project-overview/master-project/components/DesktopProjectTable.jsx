@@ -5,8 +5,9 @@ import { AiFillThunderbolt } from "react-icons/ai";
 import { StatusBadge, hasSection } from "./ProjectShared";
 import { TruncatedCell } from "./TruncatedCell";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
+import { useLocation } from "react-router";
 import PERMISSIONS from "@/constants/permissions";
-import { hasPermission } from "@/lib/utils";
+import { hasPermission, cn } from "@/lib/utils";
 import { ProjectTaskStatsButton } from "../../components/ProjectTaskStatsButton";
 
 export default function DesktopProjectTable({
@@ -35,6 +36,8 @@ export default function DesktopProjectTable({
   onSelectChange,
   onBulkArchiveClick,
 }) {
+  const location = useLocation();
+  const isMasterProject = Boolean(location?.pathname?.startsWith("/project-overview/master-projects"));
   const { permissions } = useUserPermissions();
   const canArchive = hasPermission(permissions, PERMISSIONS.PROJECT.DELETE);
   const canRestore = hasPermission(permissions, PERMISSIONS.PROJECT.UPDATE);
@@ -250,11 +253,19 @@ export default function DesktopProjectTable({
                   onClick={() => onViewDetails?.(project)}
                   title="View Details"
                   aria-label="View Details"
-                  className="action-button flex items-center justify-center gap-1.5 rounded-l-md lg:rounded-l-sm 3xl:rounded-l-md rounded-r-none hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                  className={cn(
+                    "action-button flex items-center justify-center gap-1.5 rounded-l-md lg:rounded-l-sm 3xl:rounded-l-md rounded-r-none hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                    isMasterProject && "action-button-master"
+                  )}
                 >
-                  <Eye className="action-button-icon" />
+                  <Eye className={cn("action-button-icon", isMasterProject && "action-button-icon-master")} />
                 </button>
-                <ProjectTaskStatsButton projectId={project._id} />
+                <ProjectTaskStatsButton
+                  projectId={project._id}
+                  className={cn(
+                    isMasterProject && "action-button-master !w-auto lg:text-[8.4px]! xl:text-[9.6px]! 2xl:text-[12px]! 3xl:text-[14.4px]!"
+                  )}
+                />
                 {/* <button
                                        onClick={() => onEdit?.(project)}
                                        title="Edit"
@@ -268,10 +279,13 @@ export default function DesktopProjectTable({
                     onClick={() => onArchive?.(project)}
                     title="Archive"
                     aria-label="Archive"
-                    className="action-button flex items-center justify-center gap-1.5 rounded-r-md lg:rounded-r-sm 3xl:rounded-r-md rounded-l-none text-base-color hover:text-red-600 hover:bg-red-50 bg-primary-shade-2 border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    className={cn(
+                      "action-button flex items-center justify-center gap-1.5 rounded-r-md lg:rounded-r-sm 3xl:rounded-r-md rounded-l-none text-base-color hover:text-red-600 hover:bg-red-50 bg-primary-shade-2 border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
+                      isMasterProject && "action-button-master"
+                    )}
                   >
                     <svg
-                      className="action-button-icon"
+                      className={cn("action-button-icon", isMasterProject && "action-button-icon-master")}
                       xmlns="http://www.w3.org/2000/svg"
                       width="4"
                       height="4"
@@ -288,20 +302,27 @@ export default function DesktopProjectTable({
               </>
             ) : (
               canRestore && (
-                  <button
-                    onClick={() => onRestore?.(project)}
-                    title="Restore"
-                    aria-label="Restore"
-                    className="action-button flex items-center justify-center gap-1.5 rounded-md text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer p-1.5"
-                  >
-                    <AiFillThunderbolt className="action-button-icon" />
-                  </button>
+                <button
+                  onClick={() => onRestore?.(project)}
+                  title="Restore"
+                  aria-label="Restore"
+                  className={cn(
+                    "action-button flex items-center justify-center gap-1.5 rounded-md text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer p-1.5",
+                    isMasterProject && "action-button-master"
+                  )}
+                >
+                  <AiFillThunderbolt className={cn("action-button-icon", isMasterProject && "action-button-icon-master")} />
+                </button>
               )
             )}
           </div>
         );
       },
-      size: getResponsiveSize({ lg: 53, xl: 71, '2xl': 80, '3xl': 100 }),
+      size: getResponsiveSize(
+        isMasterProject
+          ? { lg: 64, xl: 85, '2xl': 96, '3xl': 120 }
+          : { lg: 53, xl: 71, '2xl': 80, '3xl': 100 }
+      ),
       enableSorting: false,
       enableHiding: false,
     },

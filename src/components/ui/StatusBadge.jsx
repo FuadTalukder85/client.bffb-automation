@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation } from "react-router";
 import { AlertCircle } from "lucide-react";
 import { cn, getDaysSince } from "@/lib/utils";
 import { getStatusColor } from "@/constants/statusColors";
@@ -12,15 +13,19 @@ import { getStatusColor } from "@/constants/statusColors";
  * 3. Access denied state
  * 4. Different sizes
  */
-export const StatusBadge = ({ 
-  status, 
-  size = "sm", 
-  isNotAvailable = false, 
+export const StatusBadge = ({
+  status,
+  size = "sm",
+  isNotAvailable = false,
   statusChangedAt = null,
   bgColor,
   textColor,
-  className
+  className,
+  isMasterProject: isMasterProjectProp
 }) => {
+  const location = useLocation();
+  const isMasterProject = isMasterProjectProp ?? Boolean(location?.pathname?.startsWith("/project-overview/master-projects"));
+
   // Access denied state
   if (isNotAvailable) {
     return (
@@ -53,14 +58,20 @@ export const StatusBadge = ({
     style = { backgroundColor: bgColor, color: textColor };
   } else {
     const paletteColors = getStatusColor(status);
-    style = { 
-      backgroundColor: paletteColors.backgroundColor, 
+    style = {
+      backgroundColor: paletteColors.backgroundColor,
       color: paletteColors.color,
       border: paletteColors.border
     };
   }
 
-  const sizeClasses = size === "lg" ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text" : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text";
+  const sizeClasses = isMasterProject
+    ? (size === "lg"
+        ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]"
+        : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]")
+    : (size === "lg"
+        ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text"
+        : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text");
 
   const daysSince = getDaysSince(statusChangedAt);
 
@@ -77,7 +88,13 @@ export const StatusBadge = ({
         {status}
       </span>
       {statusChangedAt && (
-        <span className="text-[10px] lg:text-[5.5px] xl:text-[7px] 2xl:text-[8px] 3xl:text-[10px] text-muted-foreground opacity-70">
+        <span
+          className={cn(
+            isMasterProject
+              ? "text-[10px] lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px] text-muted-foreground opacity-70"
+              : "text-[10px] lg:text-[5.5px] xl:text-[7px] 2xl:text-[8px] 3xl:text-[10px] text-muted-foreground opacity-70"
+          )}
+        >
           {daysSince !== null ? `${daysSince} days` : '0 days'}
         </span>
       )}
