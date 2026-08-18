@@ -27,6 +27,7 @@ import { ChevronDown } from "lucide-react";
 
 import { Pagination } from "@/components/ui/Pagination";
 import { NoData } from "@/components/ui/NoData";
+import { useLocation } from "react-router";
 
 const DEFAULT_DESKTOP_BREAKPOINTS = {
   lg: 1010,
@@ -177,7 +178,10 @@ export function PaginatedTable({
   onSelectionChange,
   canSelectRow,
   onBulkArchiveClick,
+  isMasterProject: isMasterProjectProp,
 }) {
+  const location = useLocation();
+  const isMasterProject = isMasterProjectProp ?? Boolean(location?.pathname?.startsWith("/project-overview/master-projects"));
   const windowWidth = useWindowWidth();
   const [internalSorting, setInternalSorting] = React.useState([]);
   const [internalVisibility, setInternalVisibility] = React.useState({});
@@ -579,7 +583,9 @@ export function PaginatedTable({
                             <td
                               key={cell.id}
                               className={cn(
-                                " font-medium text-center text-foreground/80 text-[6px] lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.5px] 3xl:text-[14px]",
+                                isMasterProject
+                                  ? " font-medium text-center text-foreground/80 text-[7px] lg:text-[9px] xl:text-[12px] 2xl:text-[13.5px] 3xl:text-[16.8px]"
+                                  : " font-medium text-center text-foreground/80 text-[6px] lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.5px] 3xl:text-[14px]",
                                 isPinned && "sticky z-10 bg-background",
                                 bodyCellClassName,
                                 cell.column.columnDef.className
