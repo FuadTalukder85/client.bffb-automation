@@ -30,14 +30,14 @@ function TaxonomyBadgeList({ rawValue }) {
             renderItem={(label, idx) => (
                 <span
                     key={idx}
-                    className="font-medium rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap"
+                    className="font-medium rounded-full bg-primary-shade-2 px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[6px] xl:text-[7.8px] 2xl:text-[8.8px] 3xl:text-[11px] text-nav-highlight whitespace-nowrap"
                 >
                     {label}
                 </span>
             )}
             renderMore={(countStr) => (
                 <span
-                    className="font-bold rounded-full bg-primary-shade-2 px-3 py-1 text-[11px] text-nav-highlight whitespace-nowrap cursor-default"
+                    className="font-bold rounded-full bg-primary-shade-2 px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[6px] xl:text-[7.8px] 2xl:text-[8.8px] 3xl:text-[11px] text-nav-highlight whitespace-nowrap cursor-default"
                 >
                     <span data-more-count>{countStr}</span>
                 </span>
@@ -301,7 +301,7 @@ export default function DesktopProductCodeTable({
                     </div>
                 );
             },
-            size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
+            size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
             enableSorting: false,
             enableHiding: false,
         },

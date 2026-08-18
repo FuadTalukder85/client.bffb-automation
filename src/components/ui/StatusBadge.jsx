@@ -67,11 +67,11 @@ export const StatusBadge = ({
 
   const sizeClasses = isMasterProject
     ? (size === "lg"
-        ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]"
-        : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]")
+      ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]"
+      : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]")
     : (size === "lg"
-        ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text"
-        : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 text-sub-text");
+      ? "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]"
+      : "px-5 lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1 lg:py-[2px] xl:py-[2px] 2xl:py-[3px] 3xl:py-1 lg:text-[7.5px] xl:text-[10px] 2xl:text-[11.2px] 3xl:text-[14px]");
 
   const daysSince = getDaysSince(statusChangedAt);
 
