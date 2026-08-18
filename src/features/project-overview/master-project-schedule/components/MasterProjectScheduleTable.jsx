@@ -33,7 +33,7 @@ export default function MasterProjectScheduleTable({
     const { permissions } = useUserPermissions();
     const canArchive = hasPermission(permissions, PERMISSIONS.PROJECT.DELETE);
     const canRestore = hasPermission(permissions, PERMISSIONS.PROJECT.UPDATE);
-    
+
     const serialOffset = (currentPage - 1) * itemsPerPage;
 
     const formatDate = (date) => {
@@ -51,7 +51,7 @@ export default function MasterProjectScheduleTable({
             return (
                 <StatusBadge
                     status={null}
-                    
+
                     isNotAvailable={true}
                 />
             );
@@ -60,7 +60,7 @@ export default function MasterProjectScheduleTable({
         return (
             <StatusBadge
                 status={value || null}
-                
+
                 isNotAvailable={false}
                 statusChangedAt={statusChangedAt}
             />
@@ -99,7 +99,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.code",
             header: "Project Code",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => {
                 const project = row.original;
                 const hasAccess = hasSection(project, "masterProject");
@@ -112,7 +112,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.title",
             header: "Project Name",
             headerClassName: "table-head-cell",
-            className: "table-body-cell text-start",
+            className: " ",
             cell: ({ getValue, row }) => {
                 const project = row.original;
                 const hasAccess = hasSection(project, "masterProject");
@@ -125,7 +125,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.raisedDate",
             header: "Raised",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "masterProject", getValue()),
             size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
         },
@@ -133,7 +133,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.startDate",
             header: "Project Start",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "masterProject", getValue()),
             size: getResponsiveSize({ lg: 91, xl: 121, '2xl': 136, '3xl': 170 }),
         },
@@ -141,7 +141,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.endDate",
             header: "Project End",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "masterProject", getValue()),
             size: getResponsiveSize({ lg: 91, xl: 121, '2xl': 136, '3xl': 170 }),
         },
@@ -149,7 +149,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "applicationLab.nextProductionDate",
             header: "Next Production",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "applicationLab", getValue()),
             size: getResponsiveSize({ lg: 112, xl: 149, '2xl': 168, '3xl': 210 }),
         },
@@ -157,7 +157,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "applicationLab.lastProductionDate",
             header: "Last Production",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "applicationLab", getValue()),
             size: getResponsiveSize({ lg: 112, xl: 149, '2xl': 168, '3xl': 210 }),
         },
@@ -165,7 +165,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "sensoryLab.latestDate",
             header: "Latest Sensory",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "sensoryLab", getValue()),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
@@ -173,7 +173,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "sensoryLab.nextDate",
             header: "Next Sensory",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "sensoryLab", getValue()),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
@@ -181,7 +181,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "businessDevelopment.approvalDate",
             header: "BD Approval",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "businessDevelopment", getValue()),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
@@ -189,7 +189,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "businessDevelopment.clientSampleDeliveryDate",
             header: "Sample Delivery",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderDate(row.original, "businessDevelopment", getValue()),
             size: getResponsiveSize({ lg: 112, xl: 149, '2xl': 168, '3xl': 210 }),
         },
@@ -197,7 +197,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "productDevelopment.status",
             header: "PD Status",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderStatus(row.original, "productDevelopment", getValue()),
             size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
         },
@@ -205,7 +205,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "applicationLab.developmentStatus",
             header: "AD Status",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderStatus(row.original, "applicationLab", getValue()),
             size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
         },
@@ -213,7 +213,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "sensoryLab.status",
             header: "Sensory Status",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderStatus(row.original, "sensoryLab", getValue()),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
@@ -221,7 +221,7 @@ export default function MasterProjectScheduleTable({
             accessorKey: "businessDevelopment.status",
             header: "BD Status",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderStatus(row.original, "businessDevelopment", getValue()),
             size: getResponsiveSize({ lg: 85, xl: 114, '2xl': 128, '3xl': 160 }),
         },
@@ -229,15 +229,15 @@ export default function MasterProjectScheduleTable({
             accessorKey: "masterProject.status",
             header: "Project Status",
             headerClassName: "table-head-cell",
-            className: "table-body-cell",
+            className: " ",
             cell: ({ getValue, row }) => renderStatus(row.original, "masterProject", getValue()),
             size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
         },
         {
             id: "actions",
-            header: "Action",
+            header: "Actions",
             headerClassName: "table-head-cell",
-            className: "table-body-cel",
+            className: " ",
             enablePinning: true,
             cell: ({ row }) => {
                 const project = row.original;
@@ -266,7 +266,7 @@ export default function MasterProjectScheduleTable({
                     </div>
                 );
             },
-            size: getResponsiveSize({ lg: 53, xl: 71, '2xl': 80, '3xl': 100 }),
+            size: getResponsiveSize({ lg: 74, xl: 85, '2xl': 96, '3xl': 120 }),
             enableSorting: false,
             enableHiding: false,
         },
@@ -277,7 +277,7 @@ export default function MasterProjectScheduleTable({
             <PaginatedTable
                 data={projects}
                 columns={columns}
-                className="scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0"
+                className={`scroll-smooth transition-all duration-300 md:flex-1 md:min-h-0`}
                 rowGap={{ '3xl': '16px', '2xl': '13px', xl: '11.5px', lg: '8.5px', normal: '8px' }}
                 enableSorting={true}
                 enableColumnResizing={true}
@@ -292,7 +292,7 @@ export default function MasterProjectScheduleTable({
                 columnSizing={columnSizing}
                 onColumnSizingChange={onColumnSizingChange}
                 bodyRowClassName="border-0"
-                bodyCellClassName="first:pl-6 last:pr-6 py-0.5"
+                bodyCellClassName=" first:pl-6 last:pr-6 py-0.5"
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={onPageChange}

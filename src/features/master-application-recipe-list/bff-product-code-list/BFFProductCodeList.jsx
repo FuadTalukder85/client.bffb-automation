@@ -587,7 +587,7 @@ export default function BFFProductCodeList() {
 
       {/* Desktop: Segment Tabs */}
       <div className="hidden md:flex justify-between ms-5 my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4">
-        <div className="flex items-center gap-2 border-b border-border w-[300px] lg:w-[480px] xl:w-[640px] 2xl:w-[720px] 3xl:w-[900px] overflow-hidden overflow-x-scroll custom-scrollbar">
+        <div className="flex items-center gap-2 border-b border-border w-[300px] lg:w-[500px] xl:w-[640px] 2xl:w-[720px] 3xl:w-[900px] overflow-hidden overflow-x-scroll custom-scrollbar">
           {segmentTabs.map((tab) => (
             <button
               key={tab.value}
