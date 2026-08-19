@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { ChevronLeft, X } from "lucide-react";
 import { useUserProfile } from "./UserProfileContext";
 import { getProjectTitle, getInitials, getCommentActorHandle, getCommentSnippet } from "./utils";
@@ -12,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { NoData } from "@/components/ui/NoData";
 
 const MobileProjectsSidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const {
     memberProjects,
     selectedProject,
@@ -51,8 +53,13 @@ const MobileProjectsSidebar = ({ isOpen, onClose }) => {
                  <ChevronLeft className="w-5 h-5" />
                </button>
                <div className="min-w-0">
-                 <p className="text-sm font-semibold text-foreground truncate">{getProjectTitle(selectedProject)}</p>
-                 <p className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-bold">Project Activity</p>
+                 <p className="text-sm font-semibold text-foreground truncate uppercase tracking-wider">{getProjectTitle(selectedProject)}</p>
+                 <button
+                   onClick={() => navigate(`/project-overview/product-development/${selectedProject._id}`)}
+                   className="text-[10px] text-nav-highlight hover:underline truncate font-medium cursor-pointer"
+                 >
+                   View Details
+                 </button>
                </div>
             </div>
             

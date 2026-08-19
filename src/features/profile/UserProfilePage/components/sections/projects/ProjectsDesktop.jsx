@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { ChevronLeft } from "lucide-react";
 import { useUserProfile } from "../../../UserProfileContext";
 import { getProjectTitle, getInitials, getCommentActorHandle, getCommentSnippet } from "../../../utils";
@@ -10,6 +11,7 @@ import MembersTab from "@/features/project-overview/project-activity-sidebar/com
 import { NoData } from "@/components/ui/NoData";
 
 const ProjectsDesktop = () => {
+  const navigate = useNavigate();
   const {
     memberProjects,
     selectedProject,
@@ -33,7 +35,7 @@ const ProjectsDesktop = () => {
     return (
       <div className="flex flex-col flex-1 min-h-0 bg-background 3xl:rounded-2xl 2xl:rounded-xl xl:rounded-lg lg:rounded-md rounded-sm overflow-hidden border border-table-stroke shadow-sm">
         <div className="flex items-center justify-between px-2 lg:px-2.5 xl:px-3 2xl:px-3.5 3xl:px-4 py-3 lg:py-1.5 xl:py-2 2xl:py-2.5 3xl:py-3 border-b border-table-stroke bg-background sticky top-0 z-20 shrink-0">
-          <div className="flex items-center gap-3 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3 min-w-0">
+          <div className="flex items-center gap-1 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3 min-w-0">
             <button
               onClick={handleCloseProjectChat}
               className="p-1.5 rounded-full hover:bg-primary/10 text-nav-highlight transition-all shrink-0 border border-primary/20"
@@ -41,9 +43,14 @@ const ProjectsDesktop = () => {
             >
               <ChevronLeft className="w-5 h-5 lg:h-2.5 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-2.5 xl:w-3.5 2xl:w-4 3xl:w-5" />
             </button>
-            <div className="min-w-0">
-              <p className="text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-bold text-foreground truncate uppercase tracking-wider">Project Activity</p>
-              <p className="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-muted-foreground truncate font-medium">{getProjectTitle(selectedProject)}</p>
+            <div className="min-w-0 flex flex-col lg:gap-0 xl:gap-0.5 2xl:gap-0.5 3xl:gap-1">
+              <p className="text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-bold text-foreground truncate uppercase tracking-wider leading-tight">{getProjectTitle(selectedProject)}</p>
+              <button
+                onClick={() => navigate(`/project-overview/product-development/${selectedProject._id}`)}
+                className="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-nav-highlight hover:underline truncate font-medium cursor-pointer leading-tight text-left"
+              >
+                View Details
+              </button>
             </div>
           </div>
         </div>
