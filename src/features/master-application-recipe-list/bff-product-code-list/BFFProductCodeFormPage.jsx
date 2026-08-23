@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AccordionSelect } from "@/components/ui/Select/AccordionSelect";
 import { cn } from "@/lib/utils";
+import { AppliedRecipesList } from "./components/AppliedRecipesList";
+import { AppliedClientsList } from "./components/AppliedClientsList";
+import { AppliedProspectsList } from "./components/AppliedProspectsList";
 import {
   Save,
   FileText,
@@ -721,9 +724,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
             <button
               type="button"
               onClick={() => setIsReadOnly(false)}
-              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 rounded-full text-xs sm:text-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 rpx-[14px] sm:px-5 py-1.5 rounded-full rtext-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
-              <SquarePen className="w-4 h-4 text-white" />
+              <SquarePen className="rw-[16px] rh-[16px] text-white" />
               Edit Details
             </button>
           ) : (
@@ -773,7 +776,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
       )}
 
       {/* Main Form Container Card - 1-COLUMN ON MOBILE, 5-COLUMN ON DESKTOP */}
-      <div className="h-full bg-white dark:bg-background rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
+      <div className="min-h-[calc(100vh-6rem)] bg-white dark:bg-background rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="w-full md:overflow-x-auto pb-1">
             <div className="w-full min-w-0 md:min-w-[940px] grid grid-cols-1 md:grid-cols-5 gap-x-5 gap-y-5 md:gap-y-8">
@@ -1506,7 +1509,32 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
             </div>
           </div>
         </form>
+        {/* Associated Entities Section - shown only in edit/view mode */}
+        {mode !== "create" && id && (
+          <div className="mt-6 pt-5 border-t border-[#ECE5F8] dark:border-border">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* 1. Applied Recipes */}
+              <AppliedRecipesList
+                productCodeId={id || productCode?._id || productCode?.id}
+                referenceRecipes={productCode?.referenceRecipes}
+              />
+
+              {/* 2. Clients */}
+              <AppliedClientsList
+                productCodeId={id || productCode?._id || productCode?.id}
+                referenceClients={productCode?.referenceClients}
+              />
+
+              {/* 3. Prospects */}
+              <AppliedProspectsList
+                productCodeId={id || productCode?._id || productCode?.id}
+                referenceProspects={productCode?.referenceProspects}
+              />
+            </div>
+          </div>
+        )}
       </div>
+
     </section>
   );
 }

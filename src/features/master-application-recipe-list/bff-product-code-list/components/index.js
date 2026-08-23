@@ -7,3 +7,7 @@ export {
     ArchiveProductCodeModal,
     RestoreProductCodeModal,
 } from "./ProductCodeModals";
+export { AppliedRecipesList } from "./AppliedRecipesList";
+export { AppliedClientsList } from "./AppliedClientsList";
+export { AppliedProspectsList } from "./AppliedProspectsList";
+
