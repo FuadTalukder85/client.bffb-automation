@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AccordionSelect } from "@/components/ui/Select/AccordionSelect";
 import { cn } from "@/lib/utils";
+import { AppliedRecipesList } from "./components/AppliedRecipesList";
+import { AppliedClientsList } from "./components/AppliedClientsList";
+import { AppliedProspectsList } from "./components/AppliedProspectsList";
 import {
   Save,
   FileText,
@@ -171,6 +174,32 @@ const FormDateField = ({
     </div>
   );
 };
+
+const CIRCLED_NUMBERS = {
+  1: "1",
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
+};
+
+const FormSectionHeader = ({ number, title, subtitle }) => (
+  <div className="flex items-center gap-2.5 sm:gap-3 mb-4 md:mb-5">
+    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F5EFFE] dark:bg-purple-950/50 flex items-center justify-center text-[#7E3AF2] dark:text-[#B89CF5] shrink-0 text-sm sm:text-base font-semibold">
+      {CIRCLED_NUMBERS[number] || number}
+    </div>
+    <div>
+      <h3 className="text-xs sm:text-sm md:text-base font-bold text-[#1E1B2E] dark:text-foreground leading-tight">
+        {title}
+      </h3>
+      {subtitle && (
+        <p className="text-[11px] sm:text-xs text-[#716A85] dark:text-muted-foreground mt-0.5">
+          {subtitle}
+        </p>
+      )}
+    </div>
+  </div>
+);
 
 const taxonomyHookArgs = { status: "active", page: 1, limit: 200 };
 
@@ -431,7 +460,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         countriesOfOrigin: [],
         recommendedDosing: "",
         performStabilities: [],
-        productAdvantage: [],
+        productAdvantage: "",
         applicationAreas: [],
         type: "solid",
         standardPrice: "",
@@ -700,9 +729,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   };
 
   return (
-    <section className="min-h-[calc(100vh-6rem)]">
-      {/* Top Header Bar - EXACT MATCH TO IMAGE */}
-      <div className="flex items-center justify-between mb-4 md:mb-5 gap-2 sm:gap-3 ms-0 lg:ms-5">
+    <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between mb-4 md:mb-5 gap-2 sm:gap-3 ms-0 lg:ms-5 flex-none">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <BackButton
             onClick={() => navigate("/bff-product/list")}
@@ -721,9 +750,9 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
             <button
               type="button"
               onClick={() => setIsReadOnly(false)}
-              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 rounded-full text-xs sm:text-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 rpx-[14px] sm:px-5 py-1.5 rounded-full rtext-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
-              <SquarePen className="w-4 h-4 text-white" />
+              <SquarePen className="w-[16px] h-[16px] text-white" />
               Edit Details
             </button>
           ) : (
@@ -764,7 +793,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
       {/* Server Error Alert */}
       {serverError && (
-        <div className="mb-4 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl text-red-600 dark:text-red-400 text-xs flex items-center justify-between">
+        <div className="mb-4 p-3.5 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-xl text-red-600 dark:text-red-400 text-xs flex items-center justify-between flex-none">
           <span>{serverError}</span>
           <button onClick={() => setServerError(null)} className="text-red-500 hover:text-red-700">
             <X className="w-4 h-4" />
@@ -772,12 +801,17 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
         </div>
       )}
 
-      {/* Main Form Container Card - 1-COLUMN ON MOBILE, 5-COLUMN ON DESKTOP */}
-      <div className="h-full bg-white dark:bg-background rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs overflow-hidden">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="w-full md:overflow-x-auto pb-1">
-            <div className="w-full min-w-0 md:min-w-[940px] grid grid-cols-1 md:grid-cols-5 gap-x-5 gap-y-5 md:gap-y-8">
-              {/* ROW 1 */}
+      {/* Section-Wise Form Container with Custom Scrollbar */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2 pb-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
+          {/* Section 1: Identification */}
+          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+            <FormSectionHeader
+              number="1"
+              title="Identification"
+              subtitle="Core naming and codes used to reference this product"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
               {/* 1. Product Name */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
@@ -808,7 +842,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="bffBrandNames"
                   disabled={isReadOnly}
                   value={watch("bffBrandNames") || []}
-                  onChange={(e) => setValue("bffBrandNames", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("bffBrandNames", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(bffBrandData)}
                   placeholder="Select brand name"
                   multiple={true}
@@ -823,8 +862,15 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
               {/* 3. XP Code */}
               <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  XP Code {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
+                <label className="flex items-center gap-1 text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                  <span>XP Code</span>
+                  {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
+                  <span
+                    className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#F2EAFA] text-[#6B46C1] text-[9px] font-bold cursor-help"
+                    title="Experimental / Pre-commercial code"
+                  >
+                    ?
+                  </span>
                 </label>
                 <Input
                   {...register("productCode", {
@@ -891,7 +937,6 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 )}
               </div>
 
-              {/* ROW 2 */}
               {/* 6. Commercial Code Issue Date */}
               <Controller
                 name="commercialCodeIssueDate"
@@ -908,12 +953,26 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     onBlur={field.onBlur}
                     error={errors.commercialCodeIssueDate?.message}
                     isReadOnly={isReadOnly}
-                    isHighlighted={isHighlighted("Commercial Code Issue Date", "DD/MM/YYYY", "commercialCodeIssueDate")}
+                    isHighlighted={isHighlighted(
+                      "Commercial Code Issue Date",
+                      "DD/MM/YYYY",
+                      "commercialCodeIssueDate"
+                    )}
                     commonInputClass={commonInputClass}
                   />
                 )}
               />
+            </div>
+          </div>
 
+          {/* Section 2: Classification */}
+          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+            <FormSectionHeader
+              number="2"
+              title="Classification"
+              subtitle="Where this product sits in the catalog"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
               {/* 7. Segment */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
@@ -923,7 +982,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="segment"
                   disabled={isReadOnly}
                   value={watch("segment") || ""}
-                  onChange={(e) => setValue("segment", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("segment", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(segmentData)}
                   placeholder="Select segment"
                   creatable={true}
@@ -951,7 +1015,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="category"
                   disabled={isReadOnly}
                   value={watch("category") || ""}
-                  onChange={(e) => setValue("category", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("category", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(categoryData)}
                   placeholder="Select category"
                   creatable={true}
@@ -979,7 +1048,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="market"
                   disabled={isReadOnly}
                   value={watch("market") || ""}
-                  onChange={(e) => setValue("market", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("market", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(marketData)}
                   placeholder="Select market"
                   creatable={true}
@@ -1007,7 +1081,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="brand"
                   disabled={isReadOnly}
                   value={watch("brand") || ""}
-                  onChange={(e) => setValue("brand", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("brand", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(brandData)}
                   placeholder="Select brand"
                   creatable={true}
@@ -1026,7 +1105,6 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 )}
               </div>
 
-              {/* ROW 3 & 4 */}
               {/* 11. Product Type */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
@@ -1036,7 +1114,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   id="productType"
                   disabled={isReadOnly}
                   value={watch("productType") || ""}
-                  onChange={(e) => setValue("productType", e.target.value, { shouldValidate: true, shouldDirty: true })}
+                  onChange={(e) =>
+                    setValue("productType", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
                   options={toOptions(productTypeData)}
                   placeholder="Select type"
                   creatable={true}
@@ -1055,100 +1138,220 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 )}
               </div>
 
-              {/* 12. Direction (Spans 2 Rows vertically on Desktop) */}
-              <div className="space-y-1.5 md:row-span-2 flex flex-col">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Direction
-                </label>
-                <Input
-                  type="textarea"
-                  readOnly={isReadOnly}
-                  {...register("direction")}
-                  placeholder="Describe flavour direction"
-                  className={cn(
-                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
-                    isHighlighted("Direction", "Describe flavour direction", "direction") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
-                    isReadOnly && "pointer-events-none"
-                  )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
-                />
-              </div>
-
-              {/* 13. Aroma & Taste Description (Spans 2 Rows vertically on Desktop) */}
-              <div className="space-y-1.5 md:row-span-2 flex flex-col">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Aroma & Taste Description
-                </label>
-                <Input
-                  type="textarea"
-                  readOnly={isReadOnly}
-                  {...register("aromaTasteDescription")}
-                  placeholder="Describe aroma and taste"
-                  className={cn(
-                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
-                    isHighlighted("Aroma & Taste Description", "Describe aroma and taste", "aromaTasteDescription") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
-                    isReadOnly && "pointer-events-none"
-                  )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
-                />
-              </div>
-
-              {/* 14. Benchmark */}
+              {/* 12. Application Area */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Benchmark
+                  Application Area
                 </label>
-                <Input
-                  {...register("benchmark")}
-                  readOnly={isReadOnly}
-                  placeholder="Enter benchmark product"
+                <AccordionSelect
+                  id="applicationAreas"
+                  disabled={isReadOnly}
+                  value={watch("applicationAreas") || []}
+                  onChange={(e) =>
+                    setValue("applicationAreas", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  options={toOptions(applicationAreaData)}
+                  placeholder="Select application areas"
+                  multiple={true}
+                  creatable={true}
                   className={cn(
-                    commonInputClass,
-                    isHighlighted("Benchmark", "Enter benchmark product", "benchmark") &&
+                    selectClassName,
+                    isHighlighted("Application Area", "Select application areas", "applicationAreas") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
-                  inputClassName={commonInnerClass}
                 />
               </div>
+            </div>
+          </div>
 
-              {/* 15. Certificate Of Analysis */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Certificate Of Analysis
-                </label>
-                <div
-                  className={cn(
-                    "w-full h-10.5 px-3 bg-[#FBFBFD] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
-                    isHighlighted("Certificate Of Analysis", "Upload file", "coaFile") &&
-                    "ring-2 ring-[#6B46C1]",
-                    isReadOnly && "pointer-events-none"
-                  )}
-                >
-                  <div className="flex items-center gap-2 text-xs text-[#0D111A] truncate">
-                    <Paperclip className="w-4 h-4 text-[#6B46C1] flex-none" />
-                    <span className="truncate">{selectedFileName || "Upload file"}</span>
-                  </div>
-                  {!isReadOnly && (
-                    <label className="px-3 py-1 bg-[#EEEBF4] border border-[#B89CF5] rounded-lg text-xs font-semibold text-[#6B46C1] flex-none transition-colors cursor-pointer hover:bg-[#F3EDFD]">
-                      Browse
-                      <input
-                        type="file"
-                        className="hidden"
-                        {...register("coaFile", {
-                          onChange: (e) => {
-                            const file = e.target.files?.[0];
-                            if (file) setSelectedFileName(file.name);
-                          },
-                        })}
-                      />
-                    </label>
-                  )}
+          {/* Section 3: Sensory & Technical Profile */}
+          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+            <FormSectionHeader
+              number="3"
+              title="Sensory & Technical Profile"
+              subtitle="Descriptive and performance detail for this product"
+            />
+            <div className="space-y-4 md:space-y-5">
+              {/* Row 1: Direction & Aroma & Taste Description (2 cols) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                {/* Direction */}
+                <div className="space-y-1.5 flex flex-col">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Direction
+                  </label>
+                  <Input
+                    type="textarea"
+                    readOnly={isReadOnly}
+                    {...register("direction")}
+                    placeholder="Describe flavour direction"
+                    className={cn(
+                      "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                      isHighlighted("Direction", "Describe flavour direction", "direction") &&
+                      "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
+                      isReadOnly && "pointer-events-none"
+                    )}
+                    inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                  />
+                </div>
+
+                {/* Aroma & Taste Description */}
+                <div className="space-y-1.5 flex flex-col">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Aroma & Taste Description
+                  </label>
+                  <Input
+                    type="textarea"
+                    readOnly={isReadOnly}
+                    {...register("aromaTasteDescription")}
+                    placeholder="Describe aroma and taste"
+                    className={cn(
+                      "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                      isHighlighted(
+                        "Aroma & Taste Description",
+                        "Describe aroma and taste",
+                        "aromaTasteDescription"
+                      ) && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
+                      isReadOnly && "pointer-events-none"
+                    )}
+                    inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                  />
                 </div>
               </div>
 
-              {/* 16. Customer Lead Time */}
+              {/* Row 2 & 3: Heat Stability, Perform Stability, Solubility, Recommended Dosing, Benchmark (4 cols) */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+                {/* Recommended Heat Stability */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Recommended Heat Stability
+                  </label>
+                  <Input
+                    {...register("recommendedHeatStability")}
+                    readOnly={isReadOnly}
+                    placeholder="e.g. 180 Degree"
+                    className={cn(
+                      commonInputClass,
+                      isHighlighted(
+                        "Recommended Heat Stability",
+                        "e.g. 180 Degree",
+                        "recommendedHeatStability"
+                      ) && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    )}
+                    inputClassName={commonInnerClass}
+                  />
+                </div>
+
+                {/* Perform Stability */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Perform Stability
+                  </label>
+                  <AccordionSelect
+                    id="performStabilities"
+                    disabled={isReadOnly}
+                    value={watch("performStabilities") || []}
+                    onChange={(e) =>
+                      setValue("performStabilities", e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    options={toOptions(performStabilityData)}
+                    placeholder="Select stability type"
+                    multiple={true}
+                    creatable={true}
+                    className={cn(
+                      selectClassName,
+                      isHighlighted(
+                        "Perform Stability",
+                        "Select stability type",
+                        "performStabilities"
+                      ) && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    )}
+                  />
+                </div>
+
+                {/* Solubility */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Solubility
+                  </label>
+                  <AccordionSelect
+                    id="solubility"
+                    disabled={isReadOnly}
+                    value={watch("solubility") || ""}
+                    onChange={(e) =>
+                      setValue("solubility", e.target.value, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                    options={toOptions(solubilityData)}
+                    placeholder="Select solubility"
+                    creatable={true}
+                    className={cn(
+                      selectClassName,
+                      isHighlighted("Solubility", "Select solubility", "solubility") &&
+                      "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    )}
+                  />
+                </div>
+
+                {/* Recommended Dosing */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Recommended Dosing
+                  </label>
+                  <Input
+                    {...register("recommendedDosing")}
+                    readOnly={isReadOnly}
+                    placeholder="e.g. 0.2% - 0.3%"
+                    className={cn(
+                      commonInputClass,
+                      isHighlighted(
+                        "Recommended Dosing",
+                        "e.g. 0.2% - 0.3%",
+                        "recommendedDosing"
+                      ) && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    )}
+                    inputClassName={commonInnerClass}
+                  />
+                </div>
+
+                {/* Benchmark */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                    Benchmark
+                  </label>
+                  <Input
+                    {...register("benchmark")}
+                    readOnly={isReadOnly}
+                    placeholder="Enter benchmark product"
+                    className={cn(
+                      commonInputClass,
+                      isHighlighted("Benchmark", "Enter benchmark product", "benchmark") &&
+                      "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    )}
+                    inputClassName={commonInnerClass}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Logistics & Compliance */}
+          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+            <FormSectionHeader
+              number="4"
+              title="Logistics & Compliance"
+              subtitle="Availability, storage and regulatory status"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+              {/* Row 1 */}
+              {/* 1. Customer Lead Time */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Customer Lead Time
@@ -1166,72 +1369,25 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 />
               </div>
 
-              {/* Row 4 Col 2 & Col 3 are filled by Direction & Aroma textareas (row-span-2) */}
-
-              {/* 17. Recommended Heat Stability */}
+              {/* 2. Shelf Life */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Recommended Heat Stability
+                  Shelf Life
                 </label>
                 <Input
-                  {...register("recommendedHeatStability")}
+                  {...register("shelfLifeValue")}
                   readOnly={isReadOnly}
-                  placeholder="e.g. 180 Degree"
+                  placeholder="e.g. 1 Year"
                   className={cn(
                     commonInputClass,
-                    isHighlighted("Recommended Heat Stability", "e.g. 180 Degree", "recommendedHeatStability") &&
+                    isHighlighted("Shelf Life", "e.g. 1 Year", "shelfLifeValue") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
                   inputClassName={commonInnerClass}
                 />
               </div>
 
-              {/* 18. Regulatory Status */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Regulatory Status
-                </label>
-                <AccordionSelect
-                  id="regulatoryStatuses"
-                  disabled={isReadOnly}
-                  value={watch("regulatoryStatuses") || []}
-                  onChange={(e) => setValue("regulatoryStatuses", e.target.value, { shouldValidate: true, shouldDirty: true })}
-                  options={toOptions(regulatoryData)}
-                  placeholder="Select regulatory status"
-                  multiple={true}
-                  creatable={true}
-                  className={cn(
-                    selectClassName,
-                    isHighlighted("Regulatory Status", "Select regulatory status", "regulatoryStatuses") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                />
-              </div>
-
-              {/* ROW 5 & 6 */}
-              {/* 19. Certifications */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Certifications
-                </label>
-                <AccordionSelect
-                  id="certifications"
-                  disabled={isReadOnly}
-                  value={watch("certifications") || []}
-                  onChange={(e) => setValue("certifications", e.target.value, { shouldValidate: true, shouldDirty: true })}
-                  options={toOptions(certificationData)}
-                  placeholder="Select certifications"
-                  multiple={true}
-                  creatable={true}
-                  className={cn(
-                    selectClassName,
-                    isHighlighted("Certifications", "Select certifications", "certifications") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                />
-              </div>
-
-              {/* 20. Available Forms */}
+              {/* 3. Available Forms */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Available Forms
@@ -1251,105 +1407,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 />
               </div>
 
-              {/* 21. Shelf Life */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Shelf Life
-                </label>
-                <Input
-                  {...register("shelfLifeValue")}
-                  readOnly={isReadOnly}
-                  placeholder="e.g. 1 Year"
-                  className={cn(
-                    commonInputClass,
-                    isHighlighted("Shelf Life", "e.g. 1 Year", "shelfLifeValue") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                  inputClassName={commonInnerClass}
-                />
-              </div>
-
-              {/* 22. Storage Condition (Spans 2 Rows vertically on Desktop) */}
-              <div className="space-y-1.5 md:row-span-2 flex flex-col">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Storage Condition
-                </label>
-                <Input
-                  type="textarea"
-                  readOnly={isReadOnly}
-                  {...register("storageCondition")}
-                  placeholder="Describe storage conditions"
-                  className={cn(
-                    "flex-1 min-h-[100px] md:min-h-[115px] w-full bg-white dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
-                    isHighlighted("Storage Condition", "Describe storage conditions", "storageCondition") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
-                    isReadOnly && "pointer-events-none"
-                  )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5]  focus:outline-none resize-none h-full p-3 bg-[#FBFBFD]"
-                />
-              </div>
-
-              {/* 23. Raw Materials Country of Origin */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Raw Materials Country of Origin
-                </label>
-                <Input
-                  {...register("countriesOfOrigin")}
-                  readOnly={isReadOnly}
-                  placeholder="Select country"
-                  className={cn(
-                    commonInputClass,
-                    isHighlighted("Raw Materials Country of Origin", "Select country", "countriesOfOrigin") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                  inputClassName={commonInnerClass}
-                />
-              </div>
-
-              {/* 24. Alternate Product */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Alternate Product
-                </label>
-                <AccordionSelect
-                  id="alternateProducts"
-                  disabled={isReadOnly}
-                  value={watch("alternateProducts") || []}
-                  onChange={(e) => setValue("alternateProducts", e.target.value)}
-                  options={alternateProductOptions}
-                  placeholder="Select alternate products"
-                  multiple={true}
-                  className={cn(
-                    selectClassName,
-                    isHighlighted("Alternate Product", "Select alternate products", "alternateProducts") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                />
-              </div>
-
-              {/* 25. Solubility */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Solubility
-                </label>
-                <AccordionSelect
-                  id="solubility"
-                  disabled={isReadOnly}
-                  value={watch("solubility") || ""}
-                  onChange={(e) => setValue("solubility", e.target.value, { shouldValidate: true, shouldDirty: true })}
-                  options={toOptions(solubilityData)}
-                  placeholder="Select solubility"
-                  creatable={true}
-                  className={cn(
-                    selectClassName,
-                    isHighlighted("Solubility", "Select solubility", "solubility") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                />
-              </div>
-
-              {/* 26. Packaging Available */}
+              {/* 4. Packaging Available */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Packaging Available
@@ -1370,47 +1428,170 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 />
               </div>
 
-              {/* Row 6 Col 4 is occupied by Storage Condition (row-span-2) */}
-
-              {/* 27. Recommended Dosing */}
-              <div className="space-y-1.5">
+              {/* Row 2 */}
+              {/* 5. Storage Condition (Spans 2 cols) */}
+              <div className="space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Recommended Dosing
+                  Storage Condition
                 </label>
                 <Input
-                  {...register("recommendedDosing")}
+                  type="textarea"
                   readOnly={isReadOnly}
-                  placeholder="e.g. 0.2% - 0.3%"
+                  {...register("storageCondition")}
+                  placeholder="Describe storage conditions"
+                  className={cn(
+                    "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    isHighlighted("Storage Condition", "Describe storage conditions", "storageCondition") &&
+                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
+                    isReadOnly && "pointer-events-none"
+                  )}
+                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                />
+              </div>
+
+              {/* 6. Raw Materials Country of Origin */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                  Raw Materials Country of Origin
+                </label>
+                <Input
+                  {...register("countriesOfOrigin")}
+                  readOnly={isReadOnly}
+                  placeholder="Select country"
                   className={cn(
                     commonInputClass,
-                    isHighlighted("Recommended Dosing", "e.g. 0.2% - 0.3%", "recommendedDosing") &&
+                    isHighlighted("Raw Materials Country of Origin", "Select country", "countriesOfOrigin") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
                   inputClassName={commonInnerClass}
                 />
               </div>
 
-              {/* ROW 7 */}
-              {/* 28. Product Advantage */}
+              {/* 7. Regulatory Status */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Product Advantage
+                  Regulatory Status
                 </label>
-                <Input
-                  {...register("productAdvantage")}
-                  readOnly={isReadOnly}
-                  placeholder="Describe product advantages"
+                <AccordionSelect
+                  id="regulatoryStatuses"
+                  disabled={isReadOnly}
+                  value={watch("regulatoryStatuses") || []}
+                  onChange={(e) =>
+                    setValue("regulatoryStatuses", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  options={toOptions(regulatoryData)}
+                  placeholder="Select regulatory status"
+                  multiple={true}
+                  creatable={true}
                   className={cn(
-                    commonInputClass,
-                    isHighlighted("Product Advantage", "Describe product advantages", "productAdvantage") &&
+                    selectClassName,
+                    isHighlighted("Regulatory Status", "Select regulatory status", "regulatoryStatuses") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
-                  inputClassName={commonInnerClass}
                 />
               </div>
 
-              {/* 29. Standard Price */}
+              {/* Row 3 */}
+              {/* 8. Certifications */}
               <div className="space-y-1.5">
+                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                  Certifications
+                </label>
+                <AccordionSelect
+                  id="certifications"
+                  disabled={isReadOnly}
+                  value={watch("certifications") || []}
+                  onChange={(e) =>
+                    setValue("certifications", e.target.value, {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                  options={toOptions(certificationData)}
+                  placeholder="Select certifications"
+                  multiple={true}
+                  creatable={true}
+                  className={cn(
+                    selectClassName,
+                    isHighlighted("Certifications", "Select certifications", "certifications") &&
+                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                  )}
+                />
+              </div>
+
+              {/* 9. Alternate Product */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                  Alternate Product
+                </label>
+                <AccordionSelect
+                  id="alternateProducts"
+                  disabled={isReadOnly}
+                  value={watch("alternateProducts") || []}
+                  onChange={(e) => setValue("alternateProducts", e.target.value)}
+                  options={alternateProductOptions}
+                  placeholder="Select alternate products"
+                  multiple={true}
+                  className={cn(
+                    selectClassName,
+                    isHighlighted("Alternate Product", "Select alternate products", "alternateProducts") &&
+                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                  )}
+                />
+              </div>
+
+              {/* 10. Certificate Of Analysis (Spans 2 cols) */}
+              <div className="space-y-1.5 col-span-1 md:col-span-2">
+                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                  Certificate of Analysis
+                </label>
+                <div
+                  className={cn(
+                    "w-full h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 px-3 bg-[#FBFBFD] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
+                    isHighlighted("Certificate Of Analysis", "Upload file", "coaFile") &&
+                    "ring-2 ring-[#6B46C1]",
+                    isReadOnly && "pointer-events-none"
+                  )}
+                >
+                  <div className="flex items-center gap-2 text-xs text-[#0D111A] dark:text-foreground truncate">
+                    <Paperclip className="w-3.5 h-3.5 text-[#6B46C1] flex-none" />
+                    <span className={cn("truncate text-xs", selectedFileName ? "text-[#1E1B2E] dark:text-foreground" : "text-[#948FA5]")}>
+                      {selectedFileName || "No file selected"}
+                    </span>
+                  </div>
+                  {!isReadOnly && (
+                    <label className="px-2.5 py-0.5 bg-[#EEEBF4] dark:bg-purple-950/50 border border-[#B89CF5] rounded-md text-[11px] font-semibold text-[#6B46C1] dark:text-[#B89CF5] flex-none transition-colors cursor-pointer hover:bg-[#F3EDFD]">
+                      Browse
+                      <input
+                        type="file"
+                        className="hidden"
+                        {...register("coaFile", {
+                          onChange: (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setSelectedFileName(file.name);
+                          },
+                        })}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 5: Commercial */}
+          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+            <FormSectionHeader
+              number="5"
+              title="Commercial"
+              subtitle="Pricing, positioning and identifiers"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 items-start">
+              {/* Standard Price */}
+              <div className="space-y-1.5 col-span-1">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Standard Price <span className="text-red-500">*</span>
                 </label>
@@ -1419,10 +1600,10 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     required: "Standard price is required",
                   })}
                   readOnly={isReadOnly}
-                  placeholder="e.g. 300 TK/Kg"
+                  placeholder="500"
                   className={cn(
                     commonInputClass,
-                    isHighlighted("Standard Price", "e.g. 300 TK/Kg", "standardPrice") &&
+                    isHighlighted("Standard Price", "500", "standardPrice") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                   )}
                   inputClassName={commonInnerClass}
@@ -1432,52 +1613,28 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 )}
               </div>
 
-              {/* 30. Perform Stability */}
-              <div className="space-y-1.5">
+              {/* Product Advantage */}
+              <div className="space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Perform Stability
+                  Product Advantage
                 </label>
-                <AccordionSelect
-                  id="performStabilities"
-                  disabled={isReadOnly}
-                  value={watch("performStabilities") || []}
-                  onChange={(e) => setValue("performStabilities", e.target.value, { shouldValidate: true, shouldDirty: true })}
-                  options={toOptions(performStabilityData)}
-                  placeholder="Select stability type"
-                  multiple={true}
-                  creatable={true}
+                <Input
+                  type="textarea"
+                  readOnly={isReadOnly}
+                  {...register("productAdvantage")}
+                  placeholder="Describe product advantages"
                   className={cn(
-                    selectClassName,
-                    isHighlighted("Perform Stability", "Select stability type", "performStabilities") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
+                    "w-full min-h-[80px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    isHighlighted("Product Advantage", "Describe product advantages", "productAdvantage") &&
+                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
+                    isReadOnly && "pointer-events-none"
                   )}
+                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
                 />
               </div>
 
-              {/* 31. Application Area */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
-                  Application Area
-                </label>
-                <AccordionSelect
-                  id="applicationAreas"
-                  disabled={isReadOnly}
-                  value={watch("applicationAreas") || []}
-                  onChange={(e) => setValue("applicationAreas", e.target.value, { shouldValidate: true, shouldDirty: true })}
-                  options={toOptions(applicationAreaData)}
-                  placeholder="Select application areas"
-                  multiple={true}
-                  creatable={true}
-                  className={cn(
-                    selectClassName,
-                    isHighlighted("Application Area", "Select application areas", "applicationAreas") &&
-                    "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
-                  )}
-                />
-              </div>
-
-              {/* 32. Barcode */}
-              <div className="space-y-1.5">
+              {/* Barcode */}
+              <div className="space-y-1.5 col-span-1">
                 <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Barcode
                 </label>
@@ -1485,11 +1642,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   <Input
                     {...register("remarks")}
                     readOnly={isReadOnly}
-                    placeholder="Enter barcode number"
+                    placeholder="testing remarks"
                     className={cn(
                       "flex-1",
                       commonInputClass,
-                      isHighlighted("Barcode", "Enter barcode number", "remarks") &&
+                      isHighlighted("Barcode", "testing remarks", "remarks") &&
                       "border-[#6B46C1] ring-2 ring-[#6B46C1]/20"
                     )}
                     inputClassName={commonInnerClass}
@@ -1497,14 +1654,39 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   <button
                     type="button"
                     title="Download Barcode"
-                    className="w-9.5 h-9.5 bg-[#ECE5F8] hover:bg-[#E2D6F5] dark:bg-accent text-[#6B46C1] rounded-xl flex items-center justify-center flex-none transition-colors cursor-pointer"
+                    className="w-8 h-8 lg:w-4.5 lg:h-4.5 xl:w-5.5 xl:h-5.5 2xl:w-6.5 2xl:h-6.5 3xl:w-8 3xl:h-8 bg-[#ECE5F8] hover:bg-[#E2D6F5] dark:bg-accent text-[#6B46C1] rounded-md flex items-center justify-center flex-none transition-colors cursor-pointer"
                   >
-                    <Download className="w-4 h-4 text-[#6B46C1]" />
+                    <Download className="w-3.5 h-3.5 text-[#6B46C1]" />
                   </button>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Associated Entities Section - shown only in edit/view mode */}
+          {mode !== "create" && id && (
+            <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* 1. Applied Recipes */}
+                <AppliedRecipesList
+                  productCodeId={id || productCode?._id || productCode?.id}
+                  referenceRecipes={productCode?.referenceRecipes}
+                />
+
+                {/* 2. Clients */}
+                <AppliedClientsList
+                  productCodeId={id || productCode?._id || productCode?.id}
+                  referenceClients={productCode?.referenceClients}
+                />
+
+                {/* 3. Prospects */}
+                <AppliedProspectsList
+                  productCodeId={id || productCode?._id || productCode?.id}
+                  referenceProspects={productCode?.referenceProspects}
+                />
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </section>
