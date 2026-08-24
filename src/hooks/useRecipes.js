@@ -82,6 +82,10 @@ const prepareRecipeParams = ({
   recipeType = "all",
   recipeStatus = "all",
   isActive = "all",
+  createdBy = "",
+  purpose = "",
+  dateFrom = "",
+  dateTo = "",
   page,
   limit,
   sortBy = "",
@@ -121,6 +125,11 @@ const prepareRecipeParams = ({
   if (isActive && isActive !== "all") {
     params.isActive = isActive;
   }
+
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
 
   if (sortBy) {
     params.sortBy = sortBy;
@@ -170,7 +179,8 @@ export function useInDevelopmentRecipes(filters = {}) {
 /**
  * Hook to fetch master projects enriched with latest recipe create date
  * Calls server route: GET /recipes/projects-with-latest-recipe-date
- * Accepted filters: searchTerm, status, isActive, isFeasible, page, limit
+ * Accepted filters: searchTerm, status, isActive, isFeasible, page, limit,
+ *   category, subcategory, subSubcategory, createdBy, purpose, dateFrom, dateTo
  */
 export function useProjectsWithLatestRecipeDate(filters = {}) {
   const {
@@ -179,6 +189,15 @@ export function useProjectsWithLatestRecipeDate(filters = {}) {
     statusFilter = "running",
     isActive = "all",
     isFeasible = "all",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -191,6 +210,15 @@ export function useProjectsWithLatestRecipeDate(filters = {}) {
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
   if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.recipes.projectsWithLatestRecipeDate(params),

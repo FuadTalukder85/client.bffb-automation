@@ -18,6 +18,15 @@ export function useProjectsForSensoryForm(filters = {}) {
     isActive = "all",
     isFeasible = "all",
     statusFilter = "running",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -30,6 +39,15 @@ export function useProjectsForSensoryForm(filters = {}) {
   if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.sensory.projectsForSensoryForm(params),
@@ -58,6 +76,15 @@ export function useProjectsForSensoryTopSheet(filters = {}) {
     isActive = "all",
     isFeasible = "all",
     statusFilter = "running",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -70,6 +97,15 @@ export function useProjectsForSensoryTopSheet(filters = {}) {
   if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.sensory.projectsForSensoryTopSheet(params),

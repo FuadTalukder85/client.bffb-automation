@@ -74,6 +74,23 @@ export const purposeOptions = [
   { label: "Campaign", value: "Campaign" },
 ];
 
+// Purpose filter options (includes "All")
+export const purposeFilterOptions = [
+  { label: "All Purpose", value: "" },
+  ...purposeOptions,
+];
+
+// Date range filter helper
+export const dateRangeOptions = [
+  { label: "All Dates", value: "" },
+  { label: "Today", value: "today" },
+  { label: "This Week", value: "this_week" },
+  { label: "This Month", value: "this_month" },
+  { label: "Last 7 Days", value: "last_7_days" },
+  { label: "Last 30 Days", value: "last_30_days" },
+  { label: "This Year", value: "this_year" },
+];
+
 export const getObjectiveByPurpose = (purpose) => {
   const normalizedPurpose = (purpose || "").trim().toLowerCase();
 

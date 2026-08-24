@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
@@ -17,11 +17,18 @@ import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import { NoData } from "@/components/ui/NoData";
 import { hasPermission } from "@/lib/utils";
+import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
+import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 
 const ApplicationRecipesPage = () => {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
+  const [selectedCreator, setSelectedCreator] = useState("");
+  const [selectedPurpose, setSelectedPurpose] = useState("");
 
   const runOptions = [
     { label: "Running", value: "running" },
@@ -58,7 +65,10 @@ const ApplicationRecipesPage = () => {
     handleStatusChange,
     handleRunToggleChange,
     filters,
+    filterOptions,
   } = useApplicationRecipesLogic();
+
+  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, filterOptions);
 
   const getErrorMessage = (error) =>
     error?.response?.data?.error ||
@@ -79,10 +89,36 @@ const ApplicationRecipesPage = () => {
   };
 
   const handleCreateRecipeConfirm = (data) => {
-    // The CreateRecipeModal now handles the API call and navigation itself
-    // This callback is for any additional cleanup or state updates
     setIsCreateModalOpen(false);
   };
+
+  const handleCategoryChange = useCallback((value) => {
+    setSelectedCategory(value);
+    setSelectedSubcategory("");
+    setSelectedSubSubcategory("");
+    setCurrentPage(1);
+  }, [setCurrentPage]);
+
+  const handleSubcategoryChange = useCallback((value) => {
+    setSelectedSubcategory(value);
+    setSelectedSubSubcategory("");
+    setCurrentPage(1);
+  }, [setCurrentPage]);
+
+  const handleSubSubcategoryChange = useCallback((value) => {
+    setSelectedSubSubcategory(value);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
+
+  const handleCreatorChange = useCallback((value) => {
+    setSelectedCreator(value);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
+
+  const handlePurposeChange = useCallback((value) => {
+    setSelectedPurpose(value);
+    setCurrentPage(1);
+  }, [setCurrentPage]);
 
   // Mobile filters including run toggle
   const mobileFilters = [
@@ -99,6 +135,41 @@ const ApplicationRecipesPage = () => {
       value: selectedStatus,
       options: statusOptions,
       onChange: handleStatusChange,
+    },
+    {
+      id: "category",
+      value: selectedCategory,
+      onChange: handleCategoryChange,
+      options: [{ label: "All Categories", value: "" }, ...categories],
+      placeholder: "All Categories",
+    },
+    {
+      id: "subcategory",
+      value: selectedSubcategory,
+      onChange: handleSubcategoryChange,
+      options: [{ label: "All Subcategories", value: "" }, ...subcategories],
+      placeholder: "All Subcategories",
+    },
+    {
+      id: "subSubcategory",
+      value: selectedSubSubcategory,
+      onChange: handleSubSubcategoryChange,
+      options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
+      placeholder: "All Sub-Subcategories",
+    },
+    {
+      id: "creator",
+      value: selectedCreator,
+      onChange: handleCreatorChange,
+      options: [{ label: "All Creators", value: "" }, ...users],
+      placeholder: "All Creators",
+    },
+    {
+      id: "purpose",
+      value: selectedPurpose,
+      onChange: handlePurposeChange,
+      options: purposeFilterOptions,
+      placeholder: "All Purpose",
     },
   ];
 

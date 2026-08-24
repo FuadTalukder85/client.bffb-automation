@@ -11,6 +11,8 @@ import {
     useImportProjects,
 } from "@/hooks/mutations/useProjectMutations";
 import { stateOptions, masterProjectStatusFilterOptions as statusOptions } from "../constants/projectOptions";
+import { purposeFilterOptions } from "../../shared/constants/projectOptions";
+import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
 
 export const useMasterProjectsLogic = () => {
     const navigate = useNavigate();
@@ -22,6 +24,15 @@ export const useMasterProjectsLogic = () => {
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [sorting, setSorting] = useState([]);
 
+    // New filter states
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedSubcategory, setSelectedSubcategory] = useState("");
+    const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
+    const [selectedCreator, setSelectedCreator] = useState("");
+    const [selectedPurpose, setSelectedPurpose] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
     const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
     const [projectModalMode, setProjectModalMode] = useState("create");
     const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -31,7 +42,7 @@ export const useMasterProjectsLogic = () => {
 
     useEffect(() => {
         setSelectedProjectIds([]);
-    }, [currentPage, searchTerm, selectedState, selectedStatus]);
+    }, [currentPage, searchTerm, selectedState, selectedStatus, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, dateFrom, dateTo]);
 
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [isUploadSuccessModalOpen, setIsUploadSuccessModalOpen] = useState(false);
@@ -95,10 +106,19 @@ export const useMasterProjectsLogic = () => {
         limit: itemsPerPage,
         sortBy,
         sortOrder,
+        category: selectedCategory,
+        subcategory: selectedSubcategory,
+        subSubcategory: selectedSubSubcategory,
+        createdBy: selectedCreator,
+        purpose: selectedPurpose,
+        dateFrom,
+        dateTo,
     });
 
     const projects = projectsData?.data ?? [];
     const pagination = projectsData?.pagination;
+
+    const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsData?.filterOptions);
 
     const handleSearchChange = (value) => {
         setSearchTerm(value);
@@ -112,6 +132,44 @@ export const useMasterProjectsLogic = () => {
 
     const handleStatusChange = useCallback((value) => {
         setSelectedStatus(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleCategoryChange = useCallback((value) => {
+        setSelectedCategory(value);
+        setSelectedSubcategory("");
+        setSelectedSubSubcategory("");
+        setCurrentPage(1);
+    }, []);
+
+    const handleSubcategoryChange = useCallback((value) => {
+        setSelectedSubcategory(value);
+        setSelectedSubSubcategory("");
+        setCurrentPage(1);
+    }, []);
+
+    const handleSubSubcategoryChange = useCallback((value) => {
+        setSelectedSubSubcategory(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleCreatorChange = useCallback((value) => {
+        setSelectedCreator(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handlePurposeChange = useCallback((value) => {
+        setSelectedPurpose(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleDateFromChange = useCallback((value) => {
+        setDateFrom(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleDateToChange = useCallback((value) => {
+        setDateTo(value);
         setCurrentPage(1);
     }, []);
 
@@ -220,8 +278,6 @@ export const useMasterProjectsLogic = () => {
 
     const filters = useMemo(
         () => {
-            
-            
             return [
                 {
                     id: "status",
@@ -237,9 +293,44 @@ export const useMasterProjectsLogic = () => {
                     options: stateOptions,
                     placeholder: "Active",
                 },
+                {
+                    id: "category",
+                    value: selectedCategory,
+                    onChange: handleCategoryChange,
+                    options: [{ label: "All Categories", value: "" }, ...categories],
+                    placeholder: "All Categories",
+                },
+                {
+                    id: "subcategory",
+                    value: selectedSubcategory,
+                    onChange: handleSubcategoryChange,
+                    options: [{ label: "All Subcategories", value: "" }, ...subcategories],
+                    placeholder: "All Subcategories",
+                },
+                {
+                    id: "subSubcategory",
+                    value: selectedSubSubcategory,
+                    onChange: handleSubSubcategoryChange,
+                    options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
+                    placeholder: "All Sub-Subcategories",
+                },
+                {
+                    id: "creator",
+                    value: selectedCreator,
+                    onChange: handleCreatorChange,
+                    options: [{ label: "All Creators", value: "" }, ...users],
+                    placeholder: "All Creators",
+                },
+                {
+                    id: "purpose",
+                    value: selectedPurpose,
+                    onChange: handlePurposeChange,
+                    options: purposeFilterOptions,
+                    placeholder: "All Purpose",
+                },
             ];
         },
-        [selectedState, selectedStatus, handleStateChange, handleStatusChange]
+        [selectedState, selectedStatus, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, handleStateChange, handleStatusChange, handleCategoryChange, handleSubcategoryChange, handleSubSubcategoryChange, handleCreatorChange, handlePurposeChange, categories, subcategories, subSubcategories, users]
     );
 
     return {
@@ -299,5 +390,20 @@ export const useMasterProjectsLogic = () => {
             importProjectsMutation.error?.response?.data?.error ||
             importProjectsMutation.error?.message ||
             null,
+        // New filter states
+        selectedCategory,
+        selectedSubcategory,
+        selectedSubSubcategory,
+        selectedCreator,
+        selectedPurpose,
+        dateFrom,
+        dateTo,
+        handleCategoryChange,
+        handleSubcategoryChange,
+        handleSubSubcategoryChange,
+        handleCreatorChange,
+        handlePurposeChange,
+        handleDateFromChange,
+        handleDateToChange,
     };
 };

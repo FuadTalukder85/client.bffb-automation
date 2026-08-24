@@ -21,8 +21,17 @@ export const prepareMasterProjectParams = ({
   status = "all",
   isActive = "true",
   isFeasible = "all",
+  category = "",
+  subcategory = "",
+  subSubcategory = "",
+  createdBy = "",
+  purpose = "",
+  dateFrom = "",
+  dateTo = "",
   page,
   limit,
+  sortBy = "",
+  sortOrder = "",
 }) => {
   const params = { page, limit };
   const trimmedTerm = searchTerm.trim();
@@ -51,6 +60,19 @@ export const prepareMasterProjectParams = ({
     params.isFeasible = "all";
   }
 
+  // Common list filters
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+
+  // Sorting
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
+
   return params;
 };
 
@@ -61,6 +83,8 @@ export const prepareMasterProjectParams = ({
  * @param {string} filters.status - Status filter
  * @param {number} filters.page - Current page (1-indexed)
  * @param {number} filters.limit - Page size
+ * @param {string} filters.sortBy - Sort field
+ * @param {string} filters.sortOrder - Sort direction (asc/desc)
  * @returns {Object} TanStack Query result with { data, isLoading, error, refetch, isPlaceholderData }
  */
 export function useMasterProjects(filters = {}) {

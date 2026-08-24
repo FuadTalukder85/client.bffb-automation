@@ -118,7 +118,8 @@ export function useSamplesByProject(projectId, filters = {}) {
 /**
  * Hook to fetch projects for sample preparation with filter
  * Calls server route: GET /samples/projects-for-sample-preparation
- * Accepted filters: searchTerm, status, isActive, isFeasible, filter, page, limit
+ * Accepted filters: searchTerm, status, isActive, isFeasible, filter, page, limit,
+ *   category, subcategory, subSubcategory, createdBy, purpose, dateFrom, dateTo
  */
 export function useProjectsForSamplePreparation(filters = {}) {
   const {
@@ -128,6 +129,15 @@ export function useProjectsForSamplePreparation(filters = {}) {
     isFeasible = "all",
     filter = "sample-preparation",
     statusFilter = "running",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -141,6 +151,15 @@ export function useProjectsForSamplePreparation(filters = {}) {
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
   if (filter && filter !== "sample-preparation") params.filter = filter;
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.samples.projectsForSamplePreparation(params),
@@ -214,7 +233,8 @@ export function useProjectsForSamplePreparation(filters = {}) {
 /**
  * Hook to fetch projects for application lab records with additional fields
  * Calls server route: GET /samples/project-for-application-lab-records
- * Accepted filters: searchTerm, status, isActive, isFeasible, page, limit
+ * Accepted filters: searchTerm, status, isActive, isFeasible, page, limit,
+ *   category, subcategory, subSubcategory, createdBy, purpose, dateFrom, dateTo
  */
 export function useProjectsForApplicationLabRecords(filters = {}) {
   const {
@@ -223,6 +243,15 @@ export function useProjectsForApplicationLabRecords(filters = {}) {
     isActive = "all",
     isFeasible = "all",
     statusFilter = "running",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -235,6 +264,15 @@ export function useProjectsForApplicationLabRecords(filters = {}) {
   if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.samples.projectsForApplicationLabRecords(params),
@@ -309,6 +347,8 @@ export function useProjectsForApplicationLabRecords(filters = {}) {
 /**
  * Hook to fetch projects for shelf-life test records
  * Calls server route: GET /shelf-life-testing/test-records/projects
+ * Accepted filters: searchTerm, status, isActive, isFeasible, statusFilter, page, limit,
+ *   category, subcategory, subSubcategory, createdBy, purpose, dateFrom, dateTo
  */
 export function useProjectsForShelfLifeTestRecords(filters = {}) {
   const {
@@ -317,6 +357,15 @@ export function useProjectsForShelfLifeTestRecords(filters = {}) {
     isActive = "all",
     isFeasible = "all",
     statusFilter = "running",
+    category = "",
+    subcategory = "",
+    subSubcategory = "",
+    createdBy = "",
+    purpose = "",
+    dateFrom = "",
+    dateTo = "",
+    sortBy = "",
+    sortOrder = "",
     page = DEFAULT_PAGINATION.page,
     limit = DEFAULT_PAGINATION.limit,
     enabled = true,
@@ -329,6 +378,15 @@ export function useProjectsForShelfLifeTestRecords(filters = {}) {
   if (isActive !== undefined && isActive !== "all") params.isActive = String(isActive);
   if (isFeasible !== undefined && isFeasible !== "all") params.isFeasible = String(isFeasible);
   if (statusFilter && statusFilter !== "running") params.statusFilter = statusFilter;
+  if (category) params.category = category;
+  if (subcategory) params.subcategory = subcategory;
+  if (subSubcategory) params.subSubcategory = subSubcategory;
+  if (createdBy) params.createdBy = createdBy;
+  if (purpose) params.purpose = purpose;
+  if (dateFrom) params.dateFrom = dateFrom;
+  if (dateTo) params.dateTo = dateTo;
+  if (sortBy) params.sortBy = sortBy;
+  if (sortOrder) params.sortOrder = sortOrder;
 
   return useQuery({
     queryKey: queryKeys.samples.projectsForShelfLifeTestRecords(params),

@@ -1,10 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useProjectsForSamplePreparation } from "@/hooks/useSamples";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { statusOptions, periodOptions } from "../constants/projectOptions";
 import { hasPermission } from "@/lib/utils";
+import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
+import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
 
 export const useSamplePreparationLogic = () => {
     const navigate = useNavigate();
@@ -14,6 +16,19 @@ export const useSamplePreparationLogic = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [sorting, setSorting] = useState([]);
+
+    // New filter states
+    const [selectedCategory, setSelectedCategory] = useState("");
+    const [selectedSubcategory, setSelectedSubcategory] = useState("");
+    const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
+    const [selectedCreator, setSelectedCreator] = useState("");
+    const [selectedPurpose, setSelectedPurpose] = useState("");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedStatus, selectedPeriod, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, dateFrom, dateTo]);
 
     const [columnVisibility, setColumnVisibility] = useState({});
     const [columnPinning, setColumnPinning] = useState({});
@@ -49,7 +64,17 @@ export const useSamplePreparationLogic = () => {
         isFeasible: "all",
         page: currentPage,
         limit: itemsPerPage,
+        category: selectedCategory,
+        subcategory: selectedSubcategory,
+        subSubcategory: selectedSubSubcategory,
+        createdBy: selectedCreator,
+        purpose: selectedPurpose,
+        dateFrom,
+        dateTo,
     });
+
+    // Fetch filter options (from API response if available)
+    const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
 
     const projects = projectsResponse?.data ?? [];
     const pagination = projectsResponse?.pagination ?? {
@@ -75,6 +100,44 @@ export const useSamplePreparationLogic = () => {
         setCurrentPage(1);
     };
 
+    const handleCategoryChange = useCallback((value) => {
+        setSelectedCategory(value);
+        setSelectedSubcategory("");
+        setSelectedSubSubcategory("");
+        setCurrentPage(1);
+    }, []);
+
+    const handleSubcategoryChange = useCallback((value) => {
+        setSelectedSubcategory(value);
+        setSelectedSubSubcategory("");
+        setCurrentPage(1);
+    }, []);
+
+    const handleSubSubcategoryChange = useCallback((value) => {
+        setSelectedSubSubcategory(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleCreatorChange = useCallback((value) => {
+        setSelectedCreator(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handlePurposeChange = useCallback((value) => {
+        setSelectedPurpose(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleDateFromChange = useCallback((value) => {
+        setDateFrom(value);
+        setCurrentPage(1);
+    }, []);
+
+    const handleDateToChange = useCallback((value) => {
+        setDateTo(value);
+        setCurrentPage(1);
+    }, []);
+
     const handleViewProjectDetails = (project) => {
         navigate(`/project-overview/sample-preparation/${project._id}`);
     };
@@ -94,7 +157,42 @@ export const useSamplePreparationLogic = () => {
             options: filteredPeriodOptions,
             onChange: handlePeriodChange,
         },
-    ], [selectedStatus, selectedPeriod, filteredPeriodOptions]);
+        {
+            id: "category",
+            value: selectedCategory,
+            onChange: handleCategoryChange,
+            options: [{ label: "All Categories", value: "" }, ...categories],
+            placeholder: "All Categories",
+        },
+        {
+            id: "subcategory",
+            value: selectedSubcategory,
+            onChange: handleSubcategoryChange,
+            options: [{ label: "All Subcategories", value: "" }, ...subcategories],
+            placeholder: "All Subcategories",
+        },
+        {
+            id: "subSubcategory",
+            value: selectedSubSubcategory,
+            onChange: handleSubSubcategoryChange,
+            options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
+            placeholder: "All Sub-Subcategories",
+        },
+        {
+            id: "creator",
+            value: selectedCreator,
+            onChange: handleCreatorChange,
+            options: [{ label: "All Creators", value: "" }, ...users],
+            placeholder: "All Creators",
+        },
+        {
+            id: "purpose",
+            value: selectedPurpose,
+            onChange: handlePurposeChange,
+            options: purposeFilterOptions,
+            placeholder: "All Purpose",
+        },
+    ], [selectedStatus, selectedPeriod, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, filteredPeriodOptions, handleStatusChange, handlePeriodChange, handleCategoryChange, handleSubcategoryChange, handleSubSubcategoryChange, handleCreatorChange, handlePurposeChange, categories, subcategories, subSubcategories, users]);
 
     return {
         searchTerm,
@@ -126,5 +224,6 @@ export const useSamplePreparationLogic = () => {
         handleViewProjectDetails,
         filters,
         filteredPeriodOptions,
+        filterOptions: projectsResponse?.filterOptions,
     };
 };
