@@ -707,7 +707,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   }
 
   const commonInputClass = cn(
-    "bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border 3xl:h-11 transition-colors",
+    "bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border h-9! lg:h-6! xl:h-7.5! 2xl:h-9! 3xl:h-11! transition-colors",
     isReadOnly && "pointer-events-none"
   );
   const commonInnerClass = cn(
