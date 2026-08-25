@@ -1550,7 +1550,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </label>
                 <div
                   className={cn(
-                    "w-full h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 px-3 bg-[#FBFBFD] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
+                    "w-full h-9! lg:h-6! xl:h-7.5! 2xl:h-9! 3xl:h-11! px-3 bg-[#FBFBFD] dark:bg-purple-950/20 border border-dashed border-[#B89CF5] rounded-md flex items-center justify-between transition-colors",
                     isHighlighted("Certificate Of Analysis", "Upload file", "coaFile") &&
                     "ring-2 ring-[#6B46C1]",
                     isReadOnly && "pointer-events-none"
