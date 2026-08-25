@@ -70,7 +70,7 @@ export const prepareMasterProjectParams = ({
   if (dateTo) params.dateTo = dateTo;
 
   // Sorting
-  if (sortBy) params.sortBy = sortBy;
+  if (sortBy) params.sortBy = sortBy.replace(/_/g, ".");
   if (sortOrder) params.sortOrder = sortOrder;
 
   return params;

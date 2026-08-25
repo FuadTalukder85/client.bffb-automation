@@ -1,53 +1,28 @@
 export const dummyTeams = [
   {
     id: "1",
-    name: "Special Sensory Team",
+    name: "Bakery Tunnel",
     isActive: true,
   },
   {
     id: "2",
-    name: "Application Lab",
+    name: "Bakery Rotary",
     isActive: true,
   },
   {
     id: "3",
-    name: "Board of Directors",
+    name: "Confectionary & PSD",
     isActive: true,
   },
   {
     id: "4",
-    name: "Sensory Team A",
+    name: "Seasoning",
     isActive: true,
   },
   {
     id: "5",
-    name: "Research & Development",
+    name: "Dairy & Beverage",
     isActive: true,
-  },
-  {
-    id: "6",
-    name: "Quality Assurance Team",
-    isActive: false,
-  },
-  {
-    id: "7",
-    name: "Marketing Department",
-    isActive: false,
-  },
-  {
-    id: "8",
-    name: "Customer Support",
-    isActive: false,
-  },
-  {
-    id: "9",
-    name: "Product Management",
-    isActive: false,
-  },
-  {
-    id: "10",
-    name: "Operations Team",
-    isActive: false,
   },
 ];
 
