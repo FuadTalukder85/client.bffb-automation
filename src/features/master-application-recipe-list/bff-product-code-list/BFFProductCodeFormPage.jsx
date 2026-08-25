@@ -132,24 +132,24 @@ const FormDateField = ({
   };
 
   return (
-    <div className="space-y-1.5">
-      <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+    <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+      <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div
         onClick={handleOpenPicker}
         className={cn(
-          "relative flex items-center w-full rounded-md px-3 text-xs transition-colors h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8",
+          "relative flex items-center w-full rounded-md px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 text-xs transition-colors h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8",
           commonInputClass,
           !isReadOnly && "cursor-pointer hover:border-[#B89CF5]",
           isHighlighted && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
           isReadOnly && "cursor-default"
         )}
       >
-        <CalendarIcon className="w-3.5 h-3.5 mr-2 text-muted-foreground shrink-0 flex-none" />
+        <CalendarIcon className="w-3.5 h-3.5 lg:w-2 lg:h-2 xl:w-2.5 xl:h-2.5 2xl:w-3 2xl:h-3 3xl:w-3.5 3xl:h-3.5 mr-2 lg:mr-1 xl:mr-1.5 2xl:mr-1.5 3xl:mr-2 text-muted-foreground shrink-0 flex-none" />
         <span
           className={cn(
-            "flex-1 text-xs truncate select-none",
+            "flex-1 text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs truncate select-none",
             displayValue
               ? "text-[#1E1B2E] dark:text-foreground font-normal"
               : "text-[#948FA5]"
@@ -170,7 +170,7 @@ const FormDateField = ({
           className="sr-only opacity-0 absolute pointer-events-none"
         />
       </div>
-      {error && <p className="text-[11px] text-red-500">{error}</p>}
+      {error && <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{error}</p>}
     </div>
   );
 };
@@ -184,16 +184,16 @@ const CIRCLED_NUMBERS = {
 };
 
 const FormSectionHeader = ({ number, title, subtitle }) => (
-  <div className="flex items-center gap-2.5 sm:gap-3 mb-4 md:mb-5">
-    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#F5EFFE] dark:bg-purple-950/50 flex items-center justify-center text-[#7E3AF2] dark:text-[#B89CF5] shrink-0 text-sm sm:text-base font-semibold">
+  <div className="flex items-center gap-2.5 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-3 mb-4 md:mb-5 lg:mb-2 xl:mb-3 2xl:mb-4 3xl:mb-5">
+    <div className="w-7 h-7 lg:w-4.5 lg:h-4.5 xl:w-5.5 xl:h-5.5 2xl:w-6.5 2xl:h-6.5 3xl:w-8 3xl:h-8 rounded-lg lg:rounded-md 2xl:rounded-lg bg-[#F5EFFE] dark:bg-purple-950/50 flex items-center justify-center text-[#7E3AF2] dark:text-[#B89CF5] shrink-0 text-sm lg:text-[9px] xl:text-[11px] 2xl:text-xs 3xl:text-base font-semibold">
       {CIRCLED_NUMBERS[number] || number}
     </div>
     <div>
-      <h3 className="text-xs sm:text-sm md:text-base font-bold text-[#1E1B2E] dark:text-foreground leading-tight">
+      <h3 className="text-xs lg:text-[9px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-bold text-[#1E1B2E] dark:text-foreground leading-tight">
         {title}
       </h3>
       {subtitle && (
-        <p className="text-[11px] sm:text-xs text-[#716A85] dark:text-muted-foreground mt-0.5">
+        <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#716A85] dark:text-muted-foreground mt-0.5">
           {subtitle}
         </p>
       )}
@@ -711,7 +711,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
     isReadOnly && "pointer-events-none"
   );
   const commonInnerClass = cn(
-    "text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-[#FBFBFD] focus:outline-none h-full"
+    "text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] bg-[#FBFBFD] focus:outline-none h-full"
   );
 
   const selectClassName = cn(
@@ -731,11 +731,11 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between mb-4 md:mb-5 gap-2 sm:gap-3 ms-0 lg:ms-5 flex-none">
+      <div className="flex items-center justify-between mb-4 md:mb-5 gap-2 sm:gap-3 lg:gap-1 xl:gap-1.5 2xl:gap-2 3xl:gap-3 ms-0 lg:ms-5 flex-none">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <BackButton
             onClick={() => navigate("/bff-product/list")}
-            className="w-9 h-9 rounded-xl bg-[#F2EAFA] text-[#6B46C1] hover:bg-[#E7DAF7] flex-none"
+            className="bg-[#F2EAFA] text-[#6B46C1] hover:bg-[#E7DAF7] flex-none"
           />
           <DesktopBreadcrumb items={breadcrumbItems} />
           <div className="md:hidden truncate">
@@ -745,14 +745,14 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-none">
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-1 xl:gap-1.5 2xl:gap-2 3xl:gap-3 flex-none">
           {isReadOnly ? (
             <button
               type="button"
               onClick={() => setIsReadOnly(false)}
-              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 sm:gap-2 rpx-[14px] sm:px-5 py-1.5 rounded-full rtext-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
+              className="bg-primary text-white hover:bg-[#5A3AAB] flex items-center gap-1.5 lg:gap-1 xl:gap-1 2xl:gap-1.5 3xl:gap-1.5 px-[14px] lg:px-3 xl:px-3.5 2xl:px-4 3xl:px-5 py-1.5 lg:py-0.5 xl:py-1 2xl:py-[5px] 3xl:py-1.5 rounded-full text-[14px] lg:text-[8px] xl:text-[10px] 2xl:text-[11.5px] 3xl:text-[14px] font-semibold shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
-              <SquarePen className="w-[16px] h-[16px] text-white" />
+              <SquarePen className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 text-white" />
               Edit Details
             </button>
           ) : (
@@ -802,19 +802,19 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
       )}
 
       {/* Section-Wise Form Container with Custom Scrollbar */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2 pb-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 md:pr-2 pb-4 lg:pb-4.5 xl:pb-5.5 2xl:pb-6.5 3xl:pb-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 md:space-y-6">
           {/* Section 1: Identification */}
-          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+          <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl  p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
             <FormSectionHeader
               number="1"
               title="Identification"
               subtitle="Core naming and codes used to reference this product"
             />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5">
               {/* 1. Product Name */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Product Name <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -829,13 +829,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   inputClassName={commonInnerClass}
                 />
                 {errors.name && (
-                  <p className="text-[11px] text-red-500">{errors.name.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.name.message}</p>
                 )}
               </div>
 
               {/* 2. BFF Brand Name */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   BFF Brand Name
                 </label>
                 <AccordionSelect
@@ -861,12 +861,12 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 3. XP Code */}
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-1 text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="flex items-center gap-1 text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   <span>XP Code</span>
                   {!isCommercialCodeEntered && <span className="text-red-500">*</span>}
                   <span
-                    className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#F2EAFA] text-[#6B46C1] text-[9px] font-bold cursor-help"
+                    className="inline-flex items-center justify-center w-3.5 h-3.5 lg:w-2 lg:h-2 xl:w-2.5 xl:h-2.5 2xl:w-3 2xl:h-3 3xl:w-3.5 3xl:h-3.5 rounded-full bg-[#F2EAFA] text-[#6B46C1] text-[9px] lg:text-[6px] xl:text-[7px] 2xl:text-[8px] 3xl:text-[9px] font-bold cursor-help"
                     title="Experimental / Pre-commercial code"
                   >
                     ?
@@ -886,7 +886,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   inputClassName={commonInnerClass}
                 />
                 {errors.productCode && (
-                  <p className="text-[11px] text-red-500">{errors.productCode.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.productCode.message}</p>
                 )}
               </div>
 
@@ -913,8 +913,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               />
 
               {/* 5. Commercial Code */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Commercial Code {!isXpCodeEntered && <span className="text-red-500">*</span>}
                 </label>
                 <Input
@@ -931,7 +931,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   inputClassName={commonInnerClass}
                 />
                 {errors.commercializedProductCode && (
-                  <p className="text-[11px] text-red-500">
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">
                     {errors.commercializedProductCode.message}
                   </p>
                 )}
@@ -966,16 +966,16 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           </div>
 
           {/* Section 2: Classification */}
-          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+          <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl  p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
             <FormSectionHeader
               number="2"
               title="Classification"
               subtitle="Where this product sits in the catalog"
             />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5">
               {/* 7. Segment */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Segment <span className="text-red-500">*</span>
                 </label>
                 <AccordionSelect
@@ -1002,13 +1002,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("segment", { required: "Segment is required" })}
                 />
                 {errors.segment && (
-                  <p className="text-[11px] text-red-500">{errors.segment.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.segment.message}</p>
                 )}
               </div>
 
               {/* 8. Category */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <AccordionSelect
@@ -1035,13 +1035,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("category", { required: "Category is required" })}
                 />
                 {errors.category && (
-                  <p className="text-[11px] text-red-500">{errors.category.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.category.message}</p>
                 )}
               </div>
 
               {/* 9. Market */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Market <span className="text-red-500">*</span>
                 </label>
                 <AccordionSelect
@@ -1068,13 +1068,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("market", { required: "Market is required" })}
                 />
                 {errors.market && (
-                  <p className="text-[11px] text-red-500">{errors.market.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.market.message}</p>
                 )}
               </div>
 
               {/* 10. Brand */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Brand <span className="text-red-500">*</span>
                 </label>
                 <AccordionSelect
@@ -1101,13 +1101,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("brand", { required: "Brand is required" })}
                 />
                 {errors.brand && (
-                  <p className="text-[11px] text-red-500">{errors.brand.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.brand.message}</p>
                 )}
               </div>
 
               {/* 11. Product Type */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Product Type <span className="text-red-500">*</span>
                 </label>
                 <AccordionSelect
@@ -1134,13 +1134,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("productType", { required: "Product type is required" })}
                 />
                 {errors.productType && (
-                  <p className="text-[11px] text-red-500">{errors.productType.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.productType.message}</p>
                 )}
               </div>
 
               {/* 12. Application Area */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Application Area
                 </label>
                 <AccordionSelect
@@ -1168,18 +1168,18 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           </div>
 
           {/* Section 3: Sensory & Technical Profile */}
-          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+          <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl  p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
             <FormSectionHeader
               number="3"
               title="Sensory & Technical Profile"
               subtitle="Descriptive and performance detail for this product"
             />
-            <div className="space-y-4 md:space-y-5">
+            <div className="space-y-4 md:space-y-5 lg:space-y-2.5 xl:space-y-3.5 2xl:space-y-4 3xl:space-y-5">
               {/* Row 1: Direction & Aroma & Taste Description (2 cols) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5">
                 {/* Direction */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 flex flex-col">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Direction
                   </label>
                   <Input
@@ -1188,18 +1188,18 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     {...register("direction")}
                     placeholder="Describe flavour direction"
                     className={cn(
-                      "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                      "w-full min-h-[90px] md:min-h-[100px] lg:min-h-[60px] xl:min-h-[70px] 2xl:min-h-[85px] 3xl:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                       isHighlighted("Direction", "Describe flavour direction", "direction") &&
                       "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                       isReadOnly && "pointer-events-none"
                     )}
-                    inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                    inputClassName="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 lg:p-1.5 xl:p-2 2xl:p-2.5 3xl:p-3 bg-[#FBFBFD] dark:bg-background"
                   />
                 </div>
 
                 {/* Aroma & Taste Description */}
-                <div className="space-y-1.5 flex flex-col">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 flex flex-col">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Aroma & Taste Description
                   </label>
                   <Input
@@ -1208,7 +1208,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     {...register("aromaTasteDescription")}
                     placeholder="Describe aroma and taste"
                     className={cn(
-                      "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                      "w-full min-h-[90px] md:min-h-[100px] lg:min-h-[60px] xl:min-h-[70px] 2xl:min-h-[85px] 3xl:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                       isHighlighted(
                         "Aroma & Taste Description",
                         "Describe aroma and taste",
@@ -1216,16 +1216,16 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                       ) && "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                       isReadOnly && "pointer-events-none"
                     )}
-                    inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                    inputClassName="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 lg:p-1.5 xl:p-2 2xl:p-2.5 3xl:p-3 bg-[#FBFBFD] dark:bg-background"
                   />
                 </div>
               </div>
 
               {/* Row 2 & 3: Heat Stability, Perform Stability, Solubility, Recommended Dosing, Benchmark (4 cols) */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5">
                 {/* Recommended Heat Stability */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Recommended Heat Stability
                   </label>
                   <Input
@@ -1245,8 +1245,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </div>
 
                 {/* Perform Stability */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Perform Stability
                   </label>
                   <AccordionSelect
@@ -1275,8 +1275,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </div>
 
                 {/* Solubility */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Solubility
                   </label>
                   <AccordionSelect
@@ -1301,8 +1301,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </div>
 
                 {/* Recommended Dosing */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Recommended Dosing
                   </label>
                   <Input
@@ -1322,8 +1322,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                 </div>
 
                 {/* Benchmark */}
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+                <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                  <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                     Benchmark
                   </label>
                   <Input
@@ -1343,17 +1343,17 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           </div>
 
           {/* Section 4: Logistics & Compliance */}
-          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+          <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl  p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
             <FormSectionHeader
               number="4"
               title="Logistics & Compliance"
               subtitle="Availability, storage and regulatory status"
             />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5">
               {/* Row 1 */}
               {/* 1. Customer Lead Time */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Customer Lead Time
                 </label>
                 <Input
@@ -1370,8 +1370,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 2. Shelf Life */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Shelf Life
                 </label>
                 <Input
@@ -1388,8 +1388,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 3. Available Forms */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Available Forms
                 </label>
                 <AccordionSelect
@@ -1408,8 +1408,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 4. Packaging Available */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Packaging Available
                 </label>
                 <AccordionSelect
@@ -1430,8 +1430,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
               {/* Row 2 */}
               {/* 5. Storage Condition (Spans 2 cols) */}
-              <div className="space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Storage Condition
                 </label>
                 <Input
@@ -1440,18 +1440,18 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("storageCondition")}
                   placeholder="Describe storage conditions"
                   className={cn(
-                    "w-full min-h-[90px] md:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    "w-full min-h-[90px] md:min-h-[100px] lg:min-h-[60px] xl:min-h-[70px] 2xl:min-h-[85px] 3xl:min-h-[100px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Storage Condition", "Describe storage conditions", "storageCondition") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
                   )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                  inputClassName="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 lg:p-1.5 xl:p-2 2xl:p-2.5 3xl:p-3 bg-[#FBFBFD] dark:bg-background"
                 />
               </div>
 
               {/* 6. Raw Materials Country of Origin */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Raw Materials Country of Origin
                 </label>
                 <Input
@@ -1468,8 +1468,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 7. Regulatory Status */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Regulatory Status
                 </label>
                 <AccordionSelect
@@ -1496,8 +1496,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
               {/* Row 3 */}
               {/* 8. Certifications */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Certifications
                 </label>
                 <AccordionSelect
@@ -1523,8 +1523,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 9. Alternate Product */}
-              <div className="space-y-1.5">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Alternate Product
                 </label>
                 <AccordionSelect
@@ -1544,8 +1544,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
               </div>
 
               {/* 10. Certificate Of Analysis (Spans 2 cols) */}
-              <div className="space-y-1.5 col-span-1 md:col-span-2">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 col-span-1">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Certificate of Analysis
                 </label>
                 <div
@@ -1557,13 +1557,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   )}
                 >
                   <div className="flex items-center gap-2 text-xs text-[#0D111A] dark:text-foreground truncate">
-                    <Paperclip className="w-3.5 h-3.5 text-[#6B46C1] flex-none" />
-                    <span className={cn("truncate text-xs", selectedFileName ? "text-[#1E1B2E] dark:text-foreground" : "text-[#948FA5]")}>
+                    <Paperclip className="w-3.5 h-3.5 lg:w-2 lg:h-2 xl:w-2.5 xl:h-2.5 2xl:w-3 2xl:h-3 3xl:w-3.5 3xl:h-3.5 text-[#6B46C1] flex-none" />
+                    <span className={cn("truncate text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs", selectedFileName ? "text-[#1E1B2E] dark:text-foreground" : "text-[#948FA5]")}>
                       {selectedFileName || "No file selected"}
                     </span>
                   </div>
                   {!isReadOnly && (
-                    <label className="px-2.5 py-0.5 bg-[#EEEBF4] dark:bg-purple-950/50 border border-[#B89CF5] rounded-md text-[11px] font-semibold text-[#6B46C1] dark:text-[#B89CF5] flex-none transition-colors cursor-pointer hover:bg-[#F3EDFD]">
+                    <label className="px-2.5 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-2.5 py-0.5 bg-[#EEEBF4] dark:bg-purple-950/50 border border-[#B89CF5] rounded-md text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#6B46C1] dark:text-[#B89CF5] flex-none transition-colors cursor-pointer hover:bg-[#F3EDFD]">
                       Browse
                       <input
                         type="file"
@@ -1583,16 +1583,16 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
           </div>
 
           {/* Section 5: Commercial */}
-          <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+          <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl  p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
             <FormSectionHeader
               number="5"
               title="Commercial"
               subtitle="Pricing, positioning and identifiers"
             />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-5 lg:gap-2.5 xl:gap-3.5 2xl:gap-4 3xl:gap-5 items-start">
               {/* Standard Price */}
-              <div className="space-y-1.5 col-span-1">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 col-span-1">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Standard Price <span className="text-red-500">*</span>
                 </label>
                 <Input
@@ -1609,13 +1609,13 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   inputClassName={commonInnerClass}
                 />
                 {errors.standardPrice && (
-                  <p className="text-[11px] text-red-500">{errors.standardPrice.message}</p>
+                  <p className="text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-red-500">{errors.standardPrice.message}</p>
                 )}
               </div>
 
               {/* Product Advantage */}
-              <div className="space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 col-span-1 md:col-span-2 flex flex-col">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Product Advantage
                 </label>
                 <Input
@@ -1624,18 +1624,18 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                   {...register("productAdvantage")}
                   placeholder="Describe product advantages"
                   className={cn(
-                    "w-full min-h-[80px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
+                    "w-full min-h-[80px] lg:min-h-[50px] xl:min-h-[60px] 2xl:min-h-[70px] 3xl:min-h-[80px] bg-[#FBFBFD] dark:bg-background border border-[#DFD5F5] dark:border-border rounded-md",
                     isHighlighted("Product Advantage", "Describe product advantages", "productAdvantage") &&
                     "border-[#6B46C1] ring-2 ring-[#6B46C1]/20",
                     isReadOnly && "pointer-events-none"
                   )}
-                  inputClassName="text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 bg-[#FBFBFD] dark:bg-background"
+                  inputClassName="text-xs lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-[#1E1B2E] dark:text-foreground placeholder:text-[#948FA5] focus:outline-none resize-none h-full p-3 lg:p-1.5 xl:p-2 2xl:p-2.5 3xl:p-3 bg-[#FBFBFD] dark:bg-background"
                 />
               </div>
 
               {/* Barcode */}
-              <div className="space-y-1.5 col-span-1">
-                <label className="block text-[11px] xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
+              <div className="space-y-1.5 lg:space-y-[3px] xl:space-y-[4px] 2xl:space-y-[4.5px] 3xl:space-y-1.5 col-span-1">
+                <label className="block text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-[#1E1B2E] dark:text-foreground">
                   Barcode
                 </label>
                 <div className="flex items-center gap-2">
@@ -1656,7 +1656,7 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
                     title="Download Barcode"
                     className="w-8 h-8 lg:w-4.5 lg:h-4.5 xl:w-5.5 xl:h-5.5 2xl:w-6.5 2xl:h-6.5 3xl:w-8 3xl:h-8 bg-[#ECE5F8] hover:bg-[#E2D6F5] dark:bg-accent text-[#6B46C1] rounded-md flex items-center justify-center flex-none transition-colors cursor-pointer"
                   >
-                    <Download className="w-3.5 h-3.5 text-[#6B46C1]" />
+                    <Download className="w-3.5 h-3.5 lg:w-2 lg:h-2 xl:w-2.5 xl:h-2.5 2xl:w-3 2xl:h-3 3xl:w-3.5 3xl:h-3.5 text-[#6B46C1]" />
                   </button>
                 </div>
               </div>
@@ -1665,8 +1665,8 @@ export default function BFFProductCodeFormPage({ mode = "create" }) {
 
           {/* Associated Entities Section - shown only in edit/view mode */}
           {mode !== "create" && id && (
-            <div className="bg-white dark:bg-card rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-card rounded-2xl lg:rounded-lg xl:rounded-xl 2xl:rounded-2xl 3xl:rounded-3xl p-4 lg:p-3 xl:p-4 2xl:p-5 3xl:p-6 border border-[#EBE4F7] dark:border-border shadow-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-1.5 xl:gap-2 2xl:gap-2.5 3xl:gap-4">
                 {/* 1. Applied Recipes */}
                 <AppliedRecipesList
                   productCodeId={id || productCode?._id || productCode?.id}
