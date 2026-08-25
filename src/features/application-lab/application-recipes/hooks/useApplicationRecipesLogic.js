@@ -35,6 +35,9 @@ export const useApplicationRecipesLogic = () => {
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+    const sortBy = sorting.length > 0 ? sorting[0].id : "";
+    const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
+
     // Fetch projects (server returns master projects enriched with latest recipe info)
     const {
       data: projectsDataFromApi,
@@ -54,6 +57,8 @@ export const useApplicationRecipesLogic = () => {
       purpose: selectedPurpose,
       dateFrom,
       dateTo,
+      sortBy,
+      sortOrder,
     });
 
     // Fetch filter options (from API response if available)

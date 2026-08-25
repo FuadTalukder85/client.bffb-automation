@@ -53,6 +53,9 @@ export default function SensoryFormProjectListPage() {
   const [selectedCreator, setSelectedCreator] = useState("");
   const [selectedPurpose, setSelectedPurpose] = useState("");
 
+  const sortBy = sorting.length > 0 ? sorting[0].id : "";
+  const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
+
   const {
     data: projectsResponse,
     isLoading,
@@ -70,6 +73,8 @@ export default function SensoryFormProjectListPage() {
     subSubcategory: selectedSubSubcategory,
     createdBy: selectedCreator,
     purpose: selectedPurpose,
+    sortBy,
+    sortOrder,
   });
 
   const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);

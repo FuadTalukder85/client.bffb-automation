@@ -50,6 +50,9 @@ export const useSamplePreparationLogic = () => {
         return periodOptions.filter(option => option.value !== "all"); // Hide "All" option
     }, [canViewAllSampleProjects]);
 
+    const sortBy = sorting.length > 0 ? sorting[0].id : "";
+    const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
+
     // Fetch projects with latest sample data from API
     const {
         data: projectsResponse,
@@ -71,6 +74,8 @@ export const useSamplePreparationLogic = () => {
         purpose: selectedPurpose,
         dateFrom,
         dateTo,
+        sortBy,
+        sortOrder,
     });
 
     // Fetch filter options (from API response if available)

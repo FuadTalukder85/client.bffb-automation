@@ -48,6 +48,10 @@ export default function SensoryTopSheet() {
   const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
   const [selectedCreator, setSelectedCreator] = useState("");
   const [selectedPurpose, setSelectedPurpose] = useState("");
+  const [sorting, setSorting] = useState([]);
+
+  const sortBy = sorting.length > 0 ? sorting[0].id : "";
+  const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
 
   const {
     data: projectsResponse,
@@ -66,6 +70,8 @@ export default function SensoryTopSheet() {
     subSubcategory: selectedSubSubcategory,
     createdBy: selectedCreator,
     purpose: selectedPurpose,
+    sortBy,
+    sortOrder,
   });
 
   const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
@@ -248,6 +254,8 @@ export default function SensoryTopSheet() {
     noDataMessage,
     noDataDescription,
     filters,
+    sorting,
+    setSorting,
   };
 
   if (isMobile) {

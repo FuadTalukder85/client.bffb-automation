@@ -13,6 +13,9 @@ import {
   GripVertical,
   RotateCcw,
   Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 
 import {
@@ -37,6 +40,18 @@ const DEFAULT_DESKTOP_BREAKPOINTS = {
 };
 
 const RESPONSIVE_SIZE_KEY = "__responsiveSize";
+
+function SortIcon({ state }) {
+  if (state === "asc") {
+    return <ArrowUp className="w-2.5 h-2.5 lg:w-3 lg:h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 3xl:w-5 3xl:h-5 shrink-0" />;
+  }
+  if (state === "desc") {
+    return <ArrowDown className="w-2.5 h-2.5 lg:w-3 lg:h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 3xl:w-5 3xl:h-5 shrink-0" />;
+  }
+  return (
+    <ArrowUpDown className="w-2.5 h-2.5 lg:w-3 lg:h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 3xl:w-5 3xl:h-5 shrink-0 opacity-30" />
+  );
+}
 
 function resolveResponsiveSize(windowWidth, sizes, breakpoints = DEFAULT_DESKTOP_BREAKPOINTS) {
   if (!sizes || typeof sizes !== 'object') {
@@ -407,6 +422,8 @@ export function PaginatedTable({
                         const canHide =
                           enableHiding &&
                           header.column.columnDef.enableHiding !== false;
+                        const canSort =
+                          enableSorting && header.column.getCanSort();
 
                         const headerContent = (
                           <div className="flex-1 line-clamp-2">
@@ -445,62 +462,77 @@ export function PaginatedTable({
                             }}
                           >
                             <div className="flex items-center justify-between gap-0.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2">
-                              {canPin || canUnpin || canHide ? (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <div className="flex-1 cursor-pointer hover:bg-muted/50 rounded p-0.5 lg:p-0.5 xl:p-[2.5px] 2xl:p-[3px] 3xl:p-1">
-                                      {headerContent}
-                                    </div>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    className={"bg-background text-foreground"}
-                                    align="end"
+                          {canSort ? (
+                            <button
+                              type="button"
+                              onClick={header.column.getToggleSortingHandler()}
+                              className="flex-1 flex items-center justify-center gap-0.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2 cursor-pointer hover:bg-muted/50 rounded p-0.5 lg:p-0.5 xl:p-[2.5px] 2xl:p-[3px] 3xl:p-1"
+                            >
+                              {headerContent}
+                              <SortIcon state={header.column.getIsSorted()} />
+                            </button>
+                          ) : (
+                            <div className="flex-1">{headerContent}</div>
+                          )}
+
+                          {canPin || canUnpin || canHide ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  type="button"
+                                  aria-label="Column options"
+                                  className="shrink-0 cursor-pointer rounded p-0.5 hover:bg-muted/50"
+                                >
+                                  <ChevronDown className="w-2.5 h-2.5 lg:w-3 lg:h-3 xl:w-3.5 xl:h-3.5 2xl:w-4 2xl:h-4 3xl:w-5 3xl:h-5" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                className={"bg-background text-foreground"}
+                                align="end"
+                              >
+                                {canPin && (
+                                  <>
+                                    <DropdownMenuItem
+                                      onClick={() => header.column.pin("left")}
+                                    >
+                                      <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                                      Pin Left
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => header.column.pin("right")}
+                                    >
+                                      <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                                      Pin Right
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+
+                                {canUnpin && (
+                                  <DropdownMenuItem
+                                    onClick={() => header.column.pin(false)}
                                   >
-                                    {canPin && (
-                                      <>
-                                        <DropdownMenuItem
-                                          onClick={() => header.column.pin("left")}
-                                        >
-                                          <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                                          Pin Left
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() => header.column.pin("right")}
-                                        >
-                                          <Pin className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                                          Pin Right
-                                        </DropdownMenuItem>
-                                      </>
-                                    )}
+                                    <PinOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                                    Unpin
+                                  </DropdownMenuItem>
+                                )}
 
-                                    {canUnpin && (
-                                      <DropdownMenuItem
-                                        onClick={() => header.column.pin(false)}
-                                      >
-                                        <PinOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                                        Unpin
-                                      </DropdownMenuItem>
-                                    )}
+                                {(canPin || canUnpin) && canHide && (
+                                  <DropdownMenuSeparator />
+                                )}
 
-                                    {(canPin || canUnpin) && canHide && (
-                                      <DropdownMenuSeparator />
-                                    )}
-
-                                    {canHide && (
-                                      <DropdownMenuItem
-                                        onClick={() =>
-                                          header.column.toggleVisibility(false)
-                                        }
-                                      >
-                                        <EyeOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                                        Hide Column
-                                      </DropdownMenuItem>
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              ) : (
-                                headerContent
-                              )}
+                                {canHide && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      header.column.toggleVisibility(false)
+                                    }
+                                  >
+                                    <EyeOff className="mr-0.5 lg:mr-0.5 xl:mr-1 2xl:mr-1.5 3xl:mr-2 w-1.5 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-1.5 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
+                                    Hide Column
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : null}
 
                               {enableColumnResizing &&
                                 header.column.getCanResize() && (

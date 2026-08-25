@@ -6,6 +6,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
+  ArrowUp,
+  ArrowDown,
   ArrowUpDown,
   Eye,
   EyeOff,
@@ -26,6 +28,16 @@ import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { ChevronDownCircleIcon } from "lucide-react";
 import { AiFillThunderbolt } from "react-icons/ai";
+
+function SortIcon({ state }) {
+  if (state === "asc") {
+    return <ArrowUp className="h-3.5 w-3.5 shrink-0" />;
+  }
+  if (state === "desc") {
+    return <ArrowDown className="h-3.5 w-3.5 shrink-0" />;
+  }
+  return <ArrowUpDown className="h-3.5 w-3.5 shrink-0 opacity-40" />;
+}
 
 export function CustomTable({
   data,
@@ -189,39 +201,34 @@ export function CustomTable({
                         }}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          {canSort || canPin || canUnpin || canHide ? (
+                          {canSort ? (
+                            <button
+                              type="button"
+                              onClick={header.column.getToggleSortingHandler()}
+                              className="flex-1 flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded p-1 lg:p-0.5 xl:p-1 text-left"
+                            >
+                              {headerContent}
+                              <SortIcon state={header.column.getIsSorted()} />
+                            </button>
+                          ) : (
+                            <div className="flex-1">{headerContent}</div>
+                          )}
+
+                          {canPin || canUnpin || canHide ? (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <div className="flex-1 cursor-pointer hover:bg-muted/50 rounded p-1 lg:p-0.5 xl:p-1">
-                                  {headerContent}
-                                </div>
+                                <button
+                                  type="button"
+                                  aria-label="Column options"
+                                  className="shrink-0 cursor-pointer rounded p-1 hover:bg-muted/50"
+                                >
+                                  <ChevronDown className="h-3.5 w-3.5" />
+                                </button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 className={"bg-background text-foreground"}
                                 align="end"
                               >
-                                {/* {canSort && (
-                                  <>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        header.column.toggleSorting(false)
-                                      }
-                                    >
-                                      <ArrowUpDown className="w-4 h-4 mr-2" />
-                                      Sort Ascending
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        header.column.toggleSorting(true)
-                                      }
-                                    >
-                                      <ArrowUpDown className="w-4 h-4 mr-2" />
-                                      Sort Descending
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                  </>
-                                )} */}
-
                                 {canPin && (
                                   <>
                                     <DropdownMenuItem
@@ -264,9 +271,7 @@ export function CustomTable({
                                 )}
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          ) : (
-                            headerContent
-                          )}
+                          ) : null}
 
                           {enableColumnResizing &&
                             header.column.getCanResize() && (

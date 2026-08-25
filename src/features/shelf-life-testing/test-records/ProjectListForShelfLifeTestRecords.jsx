@@ -60,6 +60,9 @@ export default function ProjectListForShelfLifeTestRecords() {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  const sortBy = sorting.length > 0 ? sorting[0].id : "";
+  const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
+
   const {
     data: projectsResponse,
     isLoading,
@@ -76,6 +79,8 @@ export default function ProjectListForShelfLifeTestRecords() {
     subSubcategory: selectedSubSubcategory,
     createdBy: selectedCreator,
     purpose: selectedPurpose,
+    sortBy,
+    sortOrder,
   });
 
   const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
