@@ -72,41 +72,41 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
       {/* Applied Recipes Card */}
       <div
         className={cn(
-          "flex flex-col justify-between bg-[#FBFBFD] dark:bg-card/40 border border-[#ECE5F8] dark:border-border rounded-xl p-3.5 sm:p-4 min-h-[110px] transition-all",
+          "flex flex-col justify-between bg-[#FBFBFD] dark:bg-card/40 border border-[#ECE5F8] dark:border-border rounded-xl p-3.5 lg:p-2 xl:p-2.5 2xl:p-3.5 3xl:p-4 lg:min-h-[58px] xl:min-h-[78px] 2xl:min-h-[88px] 3xl:min-h-[110px] transition-all",
           className
         )}
       >
         <div>
           {/* Card Header */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 lg:mb-1.5 xl:mb-2 2xl:mb-2.5 3xl:mb-3">
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center size-6.5 rounded-lg bg-[#F3F0FA] dark:bg-primary/10 text-[#6B46C1] dark:text-primary">
-                <CookingPot className="w-3.5 h-3.5" />
+              <div className="flex items-center justify-center size-6.5 lg:size-[14px] xl:size-[18px] 2xl:size-[20px] 3xl:size-6.5 rounded-lg lg:rounded-xs xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg bg-[#F3F0FA] dark:bg-primary/10 text-[#6B46C1] dark:text-primary">
+                <CookingPot className="w-3.5 lg:w-[7.5px] xl:w-[10px] 2xl:w-[11px] 3xl:w-3.5 h-3.5 lg:h-[7.5px] xl:h-[10px] 2xl:h-[11px] 3xl:h-3.5" />
               </div>
-              <h4 className="text-xs xl:text-sm font-semibold text-[#1E1B2E] dark:text-foreground">
+              <h4 className="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-semibold text-[#1E1B2E] dark:text-foreground">
                 Applied Recipes
               </h4>
             </div>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F3F0FA] dark:bg-primary/20 text-[#6B46C1] dark:text-primary">
+            <span className="text-[11px] lg:text-[7.5px] xl:text-[8px] 2xl:text-[9px] 3xl:text-[11px] font-bold px-2 lg:px-1 xl:px-1 2xl:px-1.5 3xl:px-2 py-0.5 lg:py-[1px] 2xl:py-0.5 rounded-full bg-[#F3F0FA] dark:bg-primary/20 text-[#6B46C1] dark:text-primary">
               {recipes.length}
             </span>
           </div>
 
           {/* Pill Buttons or Empty State */}
           {recipes.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2">
               {visibleRecipes.map((recipe, index) => (
                 <button
                   key={recipe.id || recipe._id || `recipe-${index}`}
                   type="button"
                   onClick={() => handleNavigateToRecipe(recipe)}
                   title={recipe.recipeName ? `${recipe.recipeCode || ""} - ${recipe.recipeName}` : recipe.recipeCode}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] xl:text-xs font-medium text-[#6B46C1] bg-[#F3F0FA] dark:bg-primary/10 dark:text-primary border border-[#DFD5F5] dark:border-primary/30 rounded-full hover:bg-[#E7DAF7] dark:hover:bg-primary/20 hover:border-[#B89CF5] transition-all duration-200 cursor-pointer group max-w-full"
+                  className="inline-flex items-center gap-1 px-2.5 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-1 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5 text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-medium text-[#6B46C1] bg-[#F3F0FA] dark:bg-primary/10 dark:text-primary border border-[#DFD5F5] dark:border-primary/30 rounded-full hover:bg-[#E7DAF7] dark:hover:bg-primary/20 hover:border-[#B89CF5] transition-all duration-200 cursor-pointer group max-w-full"
                 >
-                  <span className="truncate max-w-[130px] xl:max-w-[150px]">
+                  <span className="truncate max-w-[130px] xl:max-w-[150px] xl:max-w-[80px] xl:max-w-[106px] 2xl:max-w-[120px] 3xl:max-w-[150px]">
                     {recipe.recipeCode || recipe.recipeName || "Recipe"}
                   </span>
-                  <ChevronRight className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity flex-none" />
+                  <ChevronRight className="w-3 lg:w-1.5 xl:w-2 2xl:w-2.5 3xl:w-3 h-3 lg:h-1.5 xl:h-2 2xl:h-2.5 3xl:h-3 opacity-50 group-hover:opacity-100 transition-opacity flex-none" />
                 </button>
               ))}
 
@@ -114,7 +114,7 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] xl:text-xs font-semibold text-white bg-[#6B46C1] dark:bg-primary rounded-full hover:bg-[#5A3AAB] dark:hover:bg-primary/90 transition-all duration-200 cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1 px-2.5 px-2.5 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-1 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5 text-[11px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs font-semibold text-white bg-[#6B46C1] dark:bg-primary rounded-full hover:bg-[#5A3AAB] dark:hover:bg-primary/90 transition-all duration-200 cursor-pointer shadow-xs"
                 >
                   +{recipes.length - MAX_VISIBLE_RECIPES} More
                 </button>
@@ -132,7 +132,7 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
       <Modal open={modalOpen} onOpenChange={setModalOpen}>
         <ModalContent
           className={cn(
-            "max-w-[500px] sm:max-w-[600px] lg:max-w-[620px]! xl:max-w-[780px]! 2xl:max-w-[900px]! 3xl:max-w-[1100px]! gap-0 px-6 py-6 md:px-6 lg:px-6! xl:px-7! 2xl:px-8! 3xl:px-10! md:py-6 lg:py-5! xl:py-6! 2xl:py-7! 3xl:py-8! rounded-2xl md:rounded-lg lg:rounded-xl! xl:rounded-2xl! 2xl:rounded-2xl! 3xl:rounded-3xl!"
+            "max-w-[500px] lg:max-w-[620px]! xl:max-w-[780px]! 2xl:max-w-[900px]! 3xl:max-w-[1100px]!"
           )}
         >
           {/* Close Button */}
@@ -144,10 +144,10 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
             <X className="w-4 lg:w-2.5 xl:w-3 2xl:w-3.5 3xl:w-4 h-4 lg:h-2.5 xl:h-3 2xl:h-3.5 3xl:h-4 text-nav-highlight" />
           </button>
 
-          <div className="md:mt-6 md:mx-4">
+          <div className="mt-3 lg:mt-3 xl:mt-4 2xl:mt-5 3xl:mt-6">
             {/* Header */}
-            <ModalHeader className="pb-2">
-              <ModalTitle className="text-xl lg:text-sm! xl:text-base! 2xl:text-lg! 3xl:text-2xl! font-semibold text-left">
+            <ModalHeader className="">
+              <ModalTitle className="text-xl lg:text-sm! xl:text-base! 2xl:text-lg! 3xl:text-2xl! font-semibold text-left ">
                 Applied Recipes
               </ModalTitle>
               <ModalDescription className="sr-only">
@@ -161,7 +161,7 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
 
             {/* Search */}
             <div className="flex items-center justify-end mb-3 lg:mb-2 xl:mb-2.5 2xl:mb-3 3xl:mb-4">
-              <div className="relative w-40 lg:w-28 xl:w-32 2xl:w-36 3xl:w-44">
+              <div className="relative flex items-center w-40 lg:w-32 xl:w-36 2xl:w-42 3xl:w-52">
                 <input
                   type="text"
                   placeholder="Search.."
@@ -169,7 +169,9 @@ export function AppliedRecipesList({ productCodeId, referenceRecipes, className 
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full font-medium text-foreground placeholder:text-lighter-text h-8 lg:h-5 xl:h-6 2xl:h-7 3xl:h-8 rounded-md lg:rounded-xs xl:rounded-sm 2xl:rounded-md 3xl:rounded-md border border-table-stroke px-2.5 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 text-sm lg:text-[7.5px] xl:text-[10px] 2xl:text-xs 3xl:text-sm focus-visible:outline-none pr-7 lg:pr-5 xl:pr-6 2xl:pr-6 3xl:pr-7 bg-transparent"
                 />
-                <Search className="absolute w-3.5 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-3.5 -translate-y-1/2 pointer-events-none right-2.5 lg:right-1.5 xl:right-2 2xl:right-2 3xl:right-2.5 top-1/2 text-nav-highlight" />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 lg:pr-[5px] xl:pr-[7px] 2xl:pr-2 3xl:pr-2.5 pointer-events-none">
+                  <Search className="w-3.5 lg:w-2 xl:w-2.5 2xl:w-3 3xl:w-3.5 h-3.5 lg:h-2 xl:h-2.5 2xl:h-3 3xl:h-3.5 text-nav-highlight flex-none" />
+                </div>
               </div>
             </div>
 
