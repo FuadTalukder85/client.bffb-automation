@@ -22,14 +22,16 @@ import {
     TIME_SLOTS 
 } from '@/hooks/useProductionSchedules';
 import { useProjects } from '@/hooks/useProjects';
+import { useUsers } from '@/hooks/useUsers';
+import { useRecipes } from '@/hooks/useRecipes';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { PERMISSIONS } from '@/constants/permissions';
+import { hasPermission } from '@/lib/utils';
 import { toast } from 'sonner';
 import { getApiErrorMessage } from '@/utils/apiError';
 
 const getResponseMessage = (response, fallback) =>
     response?.message || response?.data?.message || fallback;
-
-// Helper was removed in favor of getApiErrorMessage
-
 
 const ProductionSchedulePage = () => {
     const isMobile = useIsMobile();
@@ -40,6 +42,17 @@ const ProductionSchedulePage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [downloadComplete, setDownloadComplete] = useState(false);
     
+    // User permissions
+    const { permissions = [] } = useUserPermissions();
+    const canCreateSchedule = hasPermission(permissions, PERMISSIONS.PRODUCTION_SCHEDULE.CREATE);
+
+    // Fetch all active users for responsible person selection
+    const { data: allUsers = [] } = useUsers({ activeOnly: true });
+
+    // Fetch recipes for recipe code selection
+    const { data: recipesData } = useRecipes({ limit: 1000, isActive: 'true' });
+    const allRecipes = useMemo(() => recipesData?.data || recipesData?.items || [], [recipesData]);
+
     // New row state for adding projects
     const [newRow, setNewRow] = useState(null);
 
@@ -106,8 +119,8 @@ const ProductionSchedulePage = () => {
             id: project._id,
             code: project.masterProject?.code || project.code || 'Unknown',
             name: project.masterProject?.title || project.title || '',
-            purposeName: project.applicationLab?.purposeName || '',
-            objectiveDetails: project.productDevelopment?.objectiveDetails || '',
+            purposeName: project.masterProject?.purposeDetails || project.masterProject?.purposeName || project.masterProject?.purpose || project.purposeDetails || project.purposeName || project.applicationLab?.purposeName || '',
+            objectiveDetails: project.masterProject?.objectiveDetails || project.masterProject?.objective || project.objectiveDetails || project.productDevelopment?.objectiveDetails || '',
             recipeCode: project.applicationLab?.recipeCode || '',
         }));
     }, [projectsData]);
@@ -219,8 +232,60 @@ const ProductionSchedulePage = () => {
         }
     }, [scheduleData, selectedDate, updateTimeSlotMutation, removeTimeSlotMutation, refetchSchedules]);
 
-    // Handle project selection for new row - immediately save to server
-    const handleProjectCodeChange = useCallback(async (rowId, projectCode) => {
+    // Save or update an entire schedule row (metadata + slots)
+    const handleSaveScheduleRow = useCallback(async (rowId, payload = {}) => {
+        const formattedDate = selectedDate.toISOString().split('T')[0];
+        const row = scheduleData.find(r => r.id === rowId);
+        const projectId = payload.projectId || row?.projectId;
+
+        if (!projectId || projectId === 'new') {
+            toast.error('Please select a project');
+            return;
+        }
+
+        // Convert schedule object map to schedule array items if needed
+        let scheduleArray = [];
+        if (Array.isArray(payload.schedule)) {
+            scheduleArray = payload.schedule;
+        } else if (payload.schedule && typeof payload.schedule === 'object') {
+            scheduleArray = Object.entries(payload.schedule)
+                .filter(([_, action]) => Boolean(action))
+                .map(([timeSlot, action]) => ({ timeSlot, action }));
+        } else if (row?.schedule && typeof row.schedule === 'object') {
+            scheduleArray = Object.entries(row.schedule)
+                .filter(([_, action]) => Boolean(action))
+                .map(([timeSlot, action]) => ({ timeSlot, action }));
+        }
+
+        // Convert responsiblePersons to string IDs if objects
+        const responsiblePersonIds = Array.isArray(payload.responsiblePersons)
+            ? payload.responsiblePersons.map(u => (typeof u === 'object' ? (u._id || u.id) : u)).filter(Boolean)
+            : Array.isArray(row?.responsiblePersons)
+                ? row.responsiblePersons.map(u => (typeof u === 'object' ? (u._id || u.id) : u)).filter(Boolean)
+                : [];
+
+        upsertScheduleMutation.mutate({
+            projectId,
+            date: formattedDate,
+            schedule: scheduleArray,
+            recipeId: payload.recipeId !== undefined ? payload.recipeId : (row?.recipeId || null),
+            recipeCode: payload.recipeCode !== undefined ? payload.recipeCode : (row?.recipeCode || null),
+            responsiblePersons: responsiblePersonIds,
+        }, {
+            onSuccess: () => {
+                setNewRow(null);
+                setEditingProject(null);
+                refetchSchedules();
+                toast.success('Schedule saved successfully');
+            },
+            onError: (err) => {
+                toast.error(getApiErrorMessage(err, 'Failed to save schedule'));
+            }
+        });
+    }, [scheduleData, selectedDate, upsertScheduleMutation, refetchSchedules]);
+
+    // Handle project selection for new row
+    const handleProjectCodeChange = useCallback((rowId, projectCode) => {
         const project = projectsList.find(p => p.code === projectCode);
         if (!project) return;
 
@@ -230,21 +295,27 @@ const ProductionSchedulePage = () => {
             return;
         }
 
-        const formattedDate = selectedDate.toISOString().split('T')[0];
-        
-        // Create empty schedule using upsert
-        upsertScheduleMutation.mutate({
-            projectId: project.id,
-            date: formattedDate,
-            schedule: [], // Empty schedule array
-        }, {
-            onSuccess: () => {
-                setNewRow(null); // Clear new row
-                setEditingProject(null);
-                refetchSchedules(); // Refresh to show as normal row
-            }
+        // Find default recipe for project if any from allRecipes or project
+        const projectRecipes = (allRecipes || []).filter(r => r.project?._id === project.id || r.project === project.id);
+        const defaultRecipe = projectRecipes[0];
+        const defaultRecipeCode = defaultRecipe?.recipeCode || project.recipeCode || '';
+        const defaultRecipeId = defaultRecipe?._id || null;
+
+        setNewRow(prev => {
+            if (!prev) return null;
+            return {
+                ...prev,
+                projectId: project.id,
+                projectCode: project.code,
+                projectName: project.name,
+                purposeName: project.purposeName,
+                objectiveDetails: project.objectiveDetails,
+                recipeCode: defaultRecipeCode,
+                recipeId: defaultRecipeId,
+            };
         });
-    }, [projectsList, scheduleData, selectedDate, upsertScheduleMutation, refetchSchedules]);
+        setEditingProject(null);
+    }, [projectsList, scheduleData, allRecipes]);
 
     const handleProjectClick = (rowId) => {
         const row = scheduleData.find(r => r.id === rowId);
@@ -555,8 +626,12 @@ const response = await exportScheduleMutation.mutateAsync(
                             editingProject={editingProject}
                             isExpanded={isExpanded}
                             isLoading={isLoading}
+                            canCreateSchedule={canCreateSchedule}
+                            allUsers={allUsers}
+                            allRecipes={allRecipes}
                             onActivityChange={handleActivityChange}
                             onProjectCodeChange={handleProjectCodeChange}
+                            onSaveRow={handleSaveScheduleRow}
                             onProjectClick={handleProjectClick}
                             onDeleteRow={handleDeleteRow}
                             onRestoreRow={handleRestoreRow}
@@ -577,7 +652,11 @@ const response = await exportScheduleMutation.mutateAsync(
                             activityOptions={activityOptions}
                             projectsList={availableProjectsList}
                             editingProject={editingProject}
+                            canCreateSchedule={canCreateSchedule}
+                            allUsers={allUsers}
+                            allRecipes={allRecipes}
                             onActivityChange={handleActivityChange}
+                            onSaveRow={handleSaveScheduleRow}
                             onDeleteRow={handleDeleteRow}
                             onRestoreRow={handleRestoreRow}
                             isArchived={selectedState === 'archived'}

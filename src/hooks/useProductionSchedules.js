@@ -58,14 +58,24 @@ const transformSchedulesToRows = (schedules) => {
       });
     }
 
+    const responsiblePersons = schedule.responsiblePersons || [];
+    const responsiblePersonNames = Array.isArray(responsiblePersons)
+      ? responsiblePersons.map(u => u?.name || u?.email || "Unknown").join(", ")
+      : "";
+    const recipeId = schedule.recipeId?._id || schedule.recipeId || null;
+    const recipeCode = schedule.recipeCode || schedule.recipeId?.recipeCode || project.applicationLab?.recipeCode || '';
+
     return {
       id: schedule._id,
       projectId: project._id,
       projectCode: masterProject.code || 'Unknown',
       projectName: masterProject.title || '',
-      purposeName: project.applicationLab?.purposeName || '',
-      objectiveDetails: project.productDevelopment?.objectiveDetails || '',
-      recipeCode: project.applicationLab?.recipeCode || '',
+      purposeName: masterProject.purposeDetails || masterProject.purposeName || masterProject.purpose || project.purposeDetails || project.purposeName || project.applicationLab?.purposeName || '',
+      objectiveDetails: masterProject.objectiveDetails || masterProject.objective || project.objectiveDetails || project.productDevelopment?.objectiveDetails || '',
+      recipeCode: recipeCode,
+      recipeId: recipeId,
+      responsiblePersons: responsiblePersons,
+      responsiblePersonNames: responsiblePersonNames,
       date: schedule.date,
       isActive: schedule.isActive,
       schedule: scheduleMap,
