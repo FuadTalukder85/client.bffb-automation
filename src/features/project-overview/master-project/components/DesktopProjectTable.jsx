@@ -62,6 +62,7 @@ export default function DesktopProjectTable({
       enablePinning: true,
     },
     {
+      id: "masterProject.code",
       accessorKey: "masterProject.code",
       header: "Project Code",
       headerClassName: "table-head-cell",
@@ -90,6 +91,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 69, xl: 92, '2xl': 104, '3xl': 130 }),
     },
     {
+      id: "masterProject.title",
       accessorKey: "masterProject.title",
       header: "Project Name",
       headerClassName: "table-head-cell ",
@@ -116,6 +118,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 107, xl: 142, '2xl': 160, '3xl': 200 }),
     },
     {
+      id: "productDevelopment.status",
       accessorKey: "productDevelopment.status",
       header: "PD Status",
       headerClassName: "table-head-cell",
@@ -140,6 +143,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 69, xl: 92, '2xl': 104, '3xl': 130 }),
     },
     {
+      id: "applicationLab.developmentStatus",
       accessorKey: "applicationLab.developmentStatus",
       header: "AD Status",
       headerClassName: "table-head-cell",
@@ -163,6 +167,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 69, xl: 92, '2xl': 104, '3xl': 130 }),
     },
     {
+      id: "sensoryLab.status",
       accessorKey: "sensoryLab.status",
       header: "Sensory Status",
       headerClassName: "table-head-cell",
@@ -186,6 +191,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 80, xl: 107, '2xl': 120, '3xl': 150 }),
     },
     {
+      id: "businessDevelopment.status",
       accessorKey: "businessDevelopment.status",
       header: "BD Status",
       headerClassName: "table-head-cell",
@@ -210,6 +216,7 @@ export default function DesktopProjectTable({
       size: getResponsiveSize({ lg: 64, xl: 85, '2xl': 96, '3xl': 120 }),
     },
     {
+      id: "masterProject.status",
       accessorKey: "masterProject.status",
       header: "Project Status",
       headerClassName: "table-head-cell",
