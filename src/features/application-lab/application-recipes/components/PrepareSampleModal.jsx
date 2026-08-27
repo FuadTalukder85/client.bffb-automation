@@ -21,6 +21,8 @@ export function PrepareSampleModal({
   open,
   onOpenChange,
   projectId,
+  recipeId,
+  recipeCode,
   projectMembers = [],
   className,
 }) {
@@ -105,6 +107,8 @@ export function PrepareSampleModal({
             subModule: task.subModule,
             startDate: startDate,
             dueDate: dueDate || null,
+            recipeId: recipeId || null,
+            recipeCode: recipeCode || null,
           };
 
           await createProjectTask(taskPayload);

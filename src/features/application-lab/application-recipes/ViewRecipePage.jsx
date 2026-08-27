@@ -952,6 +952,8 @@ export default function ViewRecipePage() {
         open={isPrepareSampleModalOpen}
         onOpenChange={setIsPrepareSampleModalOpen}
         projectId={projectId}
+        recipeId={recipe?._id}
+        recipeCode={recipe?.recipeCode}
         projectMembers={projectMembers}
       />
 

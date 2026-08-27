@@ -150,6 +150,7 @@ export function useUpdateRolePermissions() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.roles.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.permissions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.permissions() });
       toast.success(getSuccessMessage(response, "Role permissions updated successfully"));
     },
   });
