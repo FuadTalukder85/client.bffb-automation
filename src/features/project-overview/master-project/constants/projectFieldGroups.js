@@ -1,7 +1,6 @@
 import {
     purposeOptions,
     developmentPriorityOptions,
-    masterProjectDetailStatusOptions as statusOptions,
     clientStatusOptions,
     shelfLifeStatusOptions,
     trialStatusOptions,

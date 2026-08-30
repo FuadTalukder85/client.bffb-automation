@@ -99,7 +99,7 @@ export const EditableField = React.forwardRef(
       canEdit,
       type = "text",
       options = [],
-      onSave,
+      onChange,
       onFieldClick,
       onSearchChange,
       inputClassName,
@@ -112,7 +112,6 @@ export const EditableField = React.forwardRef(
       isNotAvailable = false,
       warningText,
       isEditing: externalIsEditing,
-      onEditChange,
       allowCreateOption = false,
       createOptionLabel,
       onCreateOption,
@@ -120,20 +119,12 @@ export const EditableField = React.forwardRef(
     },
     ref,
   ) => {
-    const [internalIsEditing, setInternalIsEditing] = useState(false);
     const [currentValue, setCurrentValue] = useState(initialValue);
-    const [isSaving, setIsSaving] = useState(false);
 
-    const isEditing = externalIsEditing !== undefined ? externalIsEditing : internalIsEditing;
-    const setIsEditing = (value) => {
-      if (externalIsEditing !== undefined && onEditChange) {
-        onEditChange(value);
-      } else {
-        setInternalIsEditing(value);
-      }
-    };
+    const isEditing = Boolean(canEdit && !isNotAvailable && (externalIsEditing !== undefined ? externalIsEditing : false));
 
     useEffect(() => {
+      /* eslint-disable react-hooks/set-state-in-effect */
       const isMultiselectType = type === "multiselect" || type === "multiselectwithsearch";
 
       if (!isMultiselectType) {
@@ -147,59 +138,22 @@ export const EditableField = React.forwardRef(
       if (!isEditing) {
         setCurrentValue(initialValue);
       }
-    }, [initialValue]);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }, [initialValue, isEditing, type]);
 
-    const handleEdit = () => {
-      console.log("✏️ EditableField - handleEdit called:", {
-        type,
-        initialValue,
-        timestamp: new Date().toISOString()
-      });
-      if (type === "multiselect" || type === "multiselectwithsearch") {
-        const transformedValue = (initialValue || []).map((val) => 
-          typeof val === "object" && val !== null ? val._id || val.id || val : val
-        );
-        console.log("✏️ EditableField - transformed value:", {
-          transformedValue,
-          timestamp: new Date().toISOString()
-        });
-        setCurrentValue(transformedValue);
-      }
-      setIsEditing(true);
-    };
-
-    const handleCancel = () => {
-      console.log("❌ EditableField - handleCancel called:", {
-        type,
-        initialValue,
-        currentValue,
-        timestamp: new Date().toISOString()
-      });
-      setCurrentValue(initialValue);
-      setIsEditing(false);
-    };
-
-    const handleSave = async () => {
-      console.log("💾 EditableField - handleSave called:", {
-        type,
-        currentValue,
-        timestamp: new Date().toISOString()
-      });
-      setIsSaving(true);
-      try {
-        await onSave(currentValue);
-        setIsEditing(false);
-      } finally {
-        setIsSaving(false);
+    const handleValueChange = (val) => {
+      setCurrentValue(val);
+      if (onChange) {
+        onChange(val);
       }
     };
 
     const defaultInputClassName =
       "w-full bg-transparent border-0 text-[0.781rem] lg:text-[8.5px] xl:text-[9.5px] 2xl:text-[10.5px] 3xl:text-[13px] text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 p-0 min-h-0";
     const defaultTextareaClassName =
-      "w-full h-full bg-transparent border-0 text-[0.781rem] lg:text-[8.5px] xl:text-[9.5px] 2xl:text-[10.5px] 3xl:text-[13px] text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 p-0 resize-none leading-normal";
+      "w-full h-full bg-transparent border-0 text-[0.781rem] lg:text-[8.5px] xl:text-[9.5px] 2xl:text-[10.5px] 3xl:text-[13px] text-foreground placeholder-gray-400 focus:outline-none focus:ring-0 p-0 resize-none leading-normal custom-scrollbar";
     const defaultLabelClassName =
-      "block text-[0.781rem] lg:text-[7px] xl:text-[9px] 2xl:text-[10.5px] 3xl:text-[13px] font-bold text-base-color mb-0";
+      labelClassName || "block text-[0.781rem] lg:text-[7px] xl:text-[9px] 2xl:text-[10.5px] 3xl:text-[13px] font-bold text-base-color mb-0";
     const defaultContainerClassName = "relative mb-0 lg:mb-0 xl:mb-0 2xl:mb-0 3xl:mb-0";
 
     const formatDateDisplay = (dateStr) => {
@@ -371,8 +325,8 @@ export const EditableField = React.forwardRef(
         <div className="flex items-center justify-between mb-1 min-h-[26px] md:min-h-auto">
           <label
             htmlFor={id}
-             ref={ref}
-            className={`${defaultLabelClassName || defaultContainerClassName} transition-colors cursor-pointer ${isSelected ? "dark:bg-primary/10  rounded-lg w-full" : ""}`}
+            ref={ref}
+            className={`${defaultLabelClassName || defaultContainerClassName} transition-colors cursor-pointer ${isSelected ? "dark:bg-primary/10 rounded-lg w-full" : ""}`}
             onClick={onFieldClick}
             style={{
               cursor: isNotAvailable
@@ -389,72 +343,35 @@ export const EditableField = React.forwardRef(
           >
             {label}
           </label>
-
-          {canEdit && (
-            <div className="flex items-center gap-2 pl-6">
-              {!isEditing ? (
-                <button
-                  type="button"
-                  onClick={handleEdit} 
-                  disabled={isLoading || isSaving}
-                  className="p-px transition-colors border rounded text-logo hover:opacity-80 border-nav-highlight/30"
-                  aria-label={`Edit ${label}`}
-                >
-                  <MdOutlineEdit className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    disabled={isSaving}
-                    className="p-1 transition-colors rounded text-logo hover:opacity-80"
-                    aria-label="Cancel edit"
-                  >
-                    <X className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="p-px transition-colors border rounded text-logo hover:opacity-80 border-nav-highlight/30"
-                    aria-label="Save changes"
-                  >
-                    <IoSaveOutline className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4" />
-                  </button>
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         {!isEditing ? (
           <div
-            className={`px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-2 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5 border border-nav-highlight/30 rounded-lg lg:rounded-sm xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body ${type === "textarea" ? "min-h-[100px] lg:min-h-[53px] xl:min-h-[71px] 2xl:min-h-[80px] 3xl:min-h-[100px] py-3 overflow-y-auto" : "min-h-7 lg:min-h-5 xl:min-h-5 2xl:min-h-5.5 3xl:min-h-7 flex items-center"} ${type === "multiselect" ? "overflow-hidden" : ""} ${isNotAvailable ? "bg-muted/30" : hasDisplayColors() ? "font-medium" : "bg-primary-shade-2/20 text-foreground"}`}
+            className={`px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-2 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5 border border-nav-highlight/30 rounded-lg lg:rounded-sm xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body ${type === "textarea" ? "min-h-[100px] lg:min-h-[53px] xl:min-h-[71px] 2xl:min-h-[80px] 3xl:min-h-[100px] py-3 overflow-y-auto custom-scrollbar" : "min-h-7 lg:min-h-5 xl:min-h-5 2xl:min-h-5.5 3xl:min-h-7 flex items-center"} ${type === "multiselect" ? "overflow-hidden" : ""} ${isNotAvailable ? "bg-muted/30" : hasDisplayColors() ? "font-medium" : "bg-primary-shade-2/20 text-foreground"}`}
             style={hasDisplayColors() ? getDisplayContainerStyle() : {}}
           >
             {getDisplayValue()}
           </div>
         ) : (
-          <div className={`relative ${type === "select" || type === "asyncselect" || type === "multiselect" ? "" : "px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-2 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5"} bg-primary-shade-2 border border-nav-highlight/30 rounded-lg text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body text-foreground w-full overflow-visible ${type === "textarea" ? "min-h-[100px] md:min-h-[100px] max-h-[100px] md:max-h-[100px] py-3 overflow-y-auto" : "min-h-7 lg:min-h-5 xl:min-h-5 2xl:min-h-5.5 3xl:min-h-7 flex items-center"}`}>
+          <div className={`relative ${type === "select" || type === "asyncselect" || type === "multiselect" ? "" : "px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-2 lg:py-[2.5px] xl:py-[4px] 2xl:py-[4.5px] 3xl:py-1.5"} bg-primary-shade-2 border border-nav-highlight/30 rounded-lg text-[0.781rem] lg:text-[8.5px] xl:text-[11px] 2xl:text-[13px] 3xl:text-body text-foreground w-full overflow-visible ${type === "textarea" ? "min-h-[100px] md:min-h-[100px] max-h-[100px] md:max-h-[100px] py-3" : "min-h-7 lg:min-h-5 xl:min-h-5 2xl:min-h-5.5 3xl:min-h-7 flex items-center"}`}>
             {type === "textarea" ? (
               <textarea
                 id={id}
-                value={currentValue}
-                onChange={(e) => setCurrentValue(e.target.value)}
+                value={currentValue !== undefined && currentValue !== null ? currentValue : ""}
+                onChange={(e) => handleValueChange(e.target.value)}
                 placeholder={placeholder}
-                rows={4}
+                rows={rows || 4}
                 className={inputClassName || defaultTextareaClassName}
-                disabled={isSaving}
+                disabled={isLoading}
               />
             ) : type === "select" ? (
               <CustomSelect
                 id={id}
                 value={currentValue || ""}
-                onChange={(val) => setCurrentValue(val)}
+                onChange={handleValueChange}
                 options={options}
                 placeholder={placeholder}
-                disabled={isSaving}
+                disabled={isLoading}
               />
             ) : type === "date" ? (
               <DatePicker
@@ -472,7 +389,7 @@ export const EditableField = React.forwardRef(
                   } else {
                     dateValue = String(eventOrValue);
                   }
-                  setCurrentValue(dateValue);
+                  handleValueChange(dateValue);
                 }}
                 placeholder={placeholder}
                 transparent={true}
@@ -480,8 +397,8 @@ export const EditableField = React.forwardRef(
              ) : type === "userselect" ? (
               <UserSelect
                 value={currentValue || ""}
-                onChange={(val) => setCurrentValue(val)}
-                disabled={isSaving}
+                onChange={handleValueChange}
+                disabled={isLoading}
                 placeholder={placeholder}
                 transparent={true}
               />
@@ -490,10 +407,13 @@ export const EditableField = React.forwardRef(
                 <AccordionSelect
                   id={id}
                   value={currentValue || ""}
-                  onChange={(e) => setCurrentValue(e.target.value)}
+                  onChange={(e) => {
+                    const val = e?.target?.value !== undefined ? e.target.value : e;
+                    handleValueChange(val);
+                  }}
                   options={options || []}
                   placeholder={placeholder || "Search and select..."}
-                  disabled={isSaving}
+                  disabled={isLoading}
                   searchable={true}
                   onSearchChange={onSearchChange}
                   maxHeight="max-h-[120px]"
@@ -504,12 +424,12 @@ export const EditableField = React.forwardRef(
                 <MultiSelect
                   value={currentValue || []}
                   onChange={(e) => {
-                    const selectedIds = e.target.value;
-                    setCurrentValue(selectedIds);
+                    const selectedIds = e?.target?.value !== undefined ? e.target.value : e;
+                    handleValueChange(selectedIds);
                   }}
                   options={options || []}
                   placeholder={placeholder || "Search and select..."}
-                  disabled={isSaving}
+                  disabled={isLoading}
                   maxHeight="max-h-[120px]"
                 />
               </div>
@@ -518,18 +438,12 @@ export const EditableField = React.forwardRef(
                 <MultiSelectWithSearch
                   value={currentValue || []}
                   onChange={(e) => {
-                    const selectedIds = e.target.value;
-                    console.log("📝 EditableField - onChange triggered:", {
-                      selectedIds,
-                      previousValue: currentValue,
-                      type,
-                      timestamp: new Date().toISOString()
-                    });
-                    setCurrentValue(selectedIds);
+                    const selectedIds = e?.target?.value !== undefined ? e.target.value : e;
+                    handleValueChange(selectedIds);
                   }}
                   options={options || []}
                   placeholder={placeholder || "Search and select..."}
-                  disabled={isSaving}
+                  disabled={isLoading}
                   onSearchChange={onSearchChange}
                   allowCreate={allowCreateOption}
                   createLabel={createOptionLabel}
@@ -543,9 +457,9 @@ export const EditableField = React.forwardRef(
                   type="checkbox"
                   id={id}
                   checked={currentValue || false}
-                  onChange={(e) => setCurrentValue(e.target.checked)}
+                  onChange={(e) => handleValueChange(e.target.checked)}
                   className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 border-gray-300 rounded text-primary focus:ring-primary accent-primary"
-                  disabled={isSaving}
+                  disabled={isLoading}
                 />
                 <label
                   htmlFor={id}
@@ -558,11 +472,11 @@ export const EditableField = React.forwardRef(
               <input
                 id={id}
                 type={type}
-                value={currentValue}
-                onChange={(e) => setCurrentValue(e.target.value)}
+                value={currentValue !== undefined && currentValue !== null ? currentValue : ""}
+                onChange={(e) => handleValueChange(e.target.value)}
                 placeholder={placeholder}
                 className={inputClassName || defaultInputClassName}
-                disabled={isSaving}
+                disabled={isLoading}
               />
             )}
           </div>

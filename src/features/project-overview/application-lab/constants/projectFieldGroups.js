@@ -9,7 +9,33 @@ import {
 } from "./projectOptions";
 
 export const projectFieldGroups = [
-  // 1. Application Brief (Full Width)
+  // 1. Project Brief (Full Width)
+  [
+    {
+      id: "brief",
+      label: "Project Brief",
+      type: "textarea",
+      rows: 4,
+      path: "masterProject.brief",
+      canEdit: true,
+      fullWidth: true,
+    },
+  ],
+
+  // 2. BD or CRO Brief (Full Width)
+  [
+    {
+      id: "bdOrCROBrief",
+      label: "BD/CRO Brief",
+      type: "textarea",
+      rows: 4,
+      path: "masterProject.bdOrCROBrief",
+      canEdit: true,
+      fullWidth: true,
+    },
+  ],
+
+  // 3. Application Brief (Full Width)
   [
     {
       id: "applicationBrief",
@@ -218,7 +244,7 @@ export const projectFieldGroups = [
     {
       id: "applicationTag",
       label: "Application Tag",
-      type: "multiselect",
+      type: "multiselectwithsearch",
       asyncType: "tags",
       path: "applicationLab.tags",
       canEdit: true,
