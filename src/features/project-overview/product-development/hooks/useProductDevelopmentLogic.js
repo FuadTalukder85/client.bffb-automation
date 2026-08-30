@@ -3,8 +3,6 @@ import { useNavigate } from "react-router";
 import { useProductDevelopmentProjects } from "@/hooks/useMasterProject";
 import { useDebounce } from "@/hooks/useDebounce";
 import { productDevelopmentStatusFilterOptions as statusOptions } from "../constants/projectOptions";
-import { purposeFilterOptions } from "../../shared/constants/projectOptions";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
 
 export const useProductDevelopmentLogic = () => {
     const navigate = useNavigate();
@@ -14,17 +12,9 @@ export const useProductDevelopmentLogic = () => {
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [sorting, setSorting] = useState([]);
 
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedSubcategory, setSelectedSubcategory] = useState("");
-    const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-    const [selectedCreator, setSelectedCreator] = useState("");
-    const [selectedPurpose, setSelectedPurpose] = useState("");
-    const [dateFrom, setDateFrom] = useState("");
-    const [dateTo, setDateTo] = useState("");
-
     useEffect(() => {
         setSelectedProjectIds([]);
-    }, [currentPage, searchTerm, selectedStatus, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, dateFrom, dateTo]);
+    }, [currentPage, searchTerm, selectedStatus]);
 
     const [columnVisibility, setColumnVisibility] = useState({});
     const [columnPinning, setColumnPinning] = useState({});
@@ -48,16 +38,7 @@ export const useProductDevelopmentLogic = () => {
         limit: itemsPerPage,
         sortBy,
         sortOrder,
-        category: selectedCategory,
-        subcategory: selectedSubcategory,
-        subSubcategory: selectedSubSubcategory,
-        createdBy: selectedCreator,
-        purpose: selectedPurpose,
-        dateFrom,
-        dateTo,
     });
-
-    const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsData?.filterOptions);
 
     const projects = projectsData?.data ?? [];
     const pagination = projectsData?.pagination;
@@ -72,44 +53,6 @@ export const useProductDevelopmentLogic = () => {
         setCurrentPage(1);
     };
 
-    const handleCategoryChange = useCallback((value) => {
-        setSelectedCategory(value);
-        setSelectedSubcategory("");
-        setSelectedSubSubcategory("");
-        setCurrentPage(1);
-    }, []);
-
-    const handleSubcategoryChange = useCallback((value) => {
-        setSelectedSubcategory(value);
-        setSelectedSubSubcategory("");
-        setCurrentPage(1);
-    }, []);
-
-    const handleSubSubcategoryChange = useCallback((value) => {
-        setSelectedSubSubcategory(value);
-        setCurrentPage(1);
-    }, []);
-
-    const handleCreatorChange = useCallback((value) => {
-        setSelectedCreator(value);
-        setCurrentPage(1);
-    }, []);
-
-    const handlePurposeChange = useCallback((value) => {
-        setSelectedPurpose(value);
-        setCurrentPage(1);
-    }, []);
-
-    const handleDateFromChange = useCallback((value) => {
-        setDateFrom(value);
-        setCurrentPage(1);
-    }, []);
-
-    const handleDateToChange = useCallback((value) => {
-        setDateTo(value);
-        setCurrentPage(1);
-    }, []);
-
     const handleViewProjectDetails = (project) => {
         navigate(`/project-overview/product-development/${project._id}`);
     };
@@ -122,44 +65,10 @@ export const useProductDevelopmentLogic = () => {
                 value: selectedStatus,
                 options: statusOptions,
                 onChange: handleStatusChange,
-            },
-            {
-                id: "category",
-                value: selectedCategory,
-                onChange: handleCategoryChange,
-                options: [{ label: "All Categories", value: "" }, ...categories],
-                placeholder: "All Categories",
-            },
-            {
-                id: "subcategory",
-                value: selectedSubcategory,
-                onChange: handleSubcategoryChange,
-                options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-                placeholder: "All Subcategories",
-            },
-            {
-                id: "subSubcategory",
-                value: selectedSubSubcategory,
-                onChange: handleSubSubcategoryChange,
-                options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-                placeholder: "All Sub-Subcategories",
-            },
-            {
-                id: "creator",
-                value: selectedCreator,
-                onChange: handleCreatorChange,
-                options: [{ label: "All Creators", value: "" }, ...users],
-                placeholder: "All Creators",
-            },
-            {
-                id: "purpose",
-                value: selectedPurpose,
-                onChange: handlePurposeChange,
-                options: purposeFilterOptions,
-                placeholder: "All Purpose",
+                placeholder: "All Status",
             },
         ],
-        [selectedStatus, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, handleStatusChange, handleCategoryChange, handleSubcategoryChange, handleSubSubcategoryChange, handleCreatorChange, handlePurposeChange, categories, subcategories, subSubcategories, users]
+        [selectedStatus, handleStatusChange]
     );
 
     return {
@@ -185,19 +94,5 @@ export const useProductDevelopmentLogic = () => {
         handleStatusChange,
         handleViewProjectDetails,
         filters,
-        selectedCategory,
-        selectedSubcategory,
-        selectedSubSubcategory,
-        selectedCreator,
-        selectedPurpose,
-        dateFrom,
-        dateTo,
-        handleCategoryChange,
-        handleSubcategoryChange,
-        handleSubSubcategoryChange,
-        handleCreatorChange,
-        handlePurposeChange,
-        handleDateFromChange,
-        handleDateToChange,
     };
 };

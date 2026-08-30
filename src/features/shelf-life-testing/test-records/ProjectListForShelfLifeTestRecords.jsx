@@ -13,8 +13,6 @@ import { useDebounce } from "@/hooks/useDebounce";
 import DesktopProjectListView from "./components/project-list/DesktopProjectListView";
 import MobileProjectListView from "./components/project-list/MobileProjectListView";
 import { hasPermission } from "@/lib/utils";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 
 const statusOptions = createFilterOptions(
   buildStatusOptions([
@@ -35,11 +33,6 @@ export default function ProjectListForShelfLifeTestRecords() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [runToggle, setRunToggle] = useState("running");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState("");
-  const [selectedPurpose, setSelectedPurpose] = useState("");
 
   const runOptions = [
     { label: "Running", value: "running" },
@@ -74,16 +67,9 @@ export default function ProjectListForShelfLifeTestRecords() {
     isFeasible: "all",
     page: currentPage,
     limit: itemsPerPage,
-    category: selectedCategory,
-    subcategory: selectedSubcategory,
-    subSubcategory: selectedSubSubcategory,
-    createdBy: selectedCreator,
-    purpose: selectedPurpose,
     sortBy,
     sortOrder,
   });
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
 
   const projects = projectsResponse?.data ?? [];
   const pagination = projectsResponse?.pagination ?? {
@@ -108,87 +94,26 @@ export default function ProjectListForShelfLifeTestRecords() {
     setCurrentPage(1);
   };
 
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
-    setCurrentPage(1);
-  }, []);
-
   const handleViewDetails = (record) => {
     navigate(`/shelf-life-testing/test-records/${record._id}`, { state: { record } });
   };
 
   const filters = [
     {
-      id: "run-toggle",
-      label: "Run Type",
-      value: runToggle,
-      options: filteredRunOptions,
-      onChange: handleRunToggleChange,
-    },
-    {
       id: "status-filter",
       label: "Status",
       value: selectedStatus,
       options: statusOptions,
       onChange: handleStatusChange,
+      placeholder: "All Status",
     },
     {
-      id: "category",
-      value: selectedCategory,
-      onChange: handleCategoryChange,
-      options: [{ label: "All Categories", value: "" }, ...categories],
-      placeholder: "All Categories",
-    },
-    {
-      id: "subcategory",
-      value: selectedSubcategory,
-      onChange: handleSubcategoryChange,
-      options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-      placeholder: "All Subcategories",
-    },
-    {
-      id: "subSubcategory",
-      value: selectedSubSubcategory,
-      onChange: handleSubSubcategoryChange,
-      options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-      placeholder: "All Sub-Subcategories",
-    },
-    {
-      id: "creator",
-      value: selectedCreator,
-      onChange: handleCreatorChange,
-      options: [{ label: "All Creators", value: "" }, ...users],
-      placeholder: "All Creators",
-    },
-    {
-      id: "purpose",
-      value: selectedPurpose,
-      onChange: handlePurposeChange,
-      options: purposeFilterOptions,
-      placeholder: "All Purpose",
+      id: "run-toggle",
+      label: "Run Type",
+      value: runToggle,
+      options: filteredRunOptions,
+      onChange: handleRunToggleChange,
+      placeholder: "Running",
     },
   ];
 

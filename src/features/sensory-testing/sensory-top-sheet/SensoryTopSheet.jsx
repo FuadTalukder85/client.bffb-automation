@@ -10,8 +10,6 @@ import MobileSensoryTopSheetPage from "./components/MobileSensoryTopSheetPage";
 import { buildStatusOptions, createFilterOptions } from "@/config/statusConfig";
 
 import { hasPermission } from "@/lib/utils";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 
 const statusOptions = createFilterOptions(
   buildStatusOptions([
@@ -43,11 +41,6 @@ export default function SensoryTopSheet() {
   const [selectedType, setSelectedType] = useState("running");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState("");
-  const [selectedPurpose, setSelectedPurpose] = useState("");
   const [sorting, setSorting] = useState([]);
 
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
@@ -65,16 +58,9 @@ export default function SensoryTopSheet() {
     isFeasible: "all",
     page: currentPage,
     limit: itemsPerPage,
-    category: selectedCategory,
-    subcategory: selectedSubcategory,
-    subSubcategory: selectedSubSubcategory,
-    createdBy: selectedCreator,
-    purpose: selectedPurpose,
     sortBy,
     sortOrder,
   });
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
 
   const getErrorMessage = (error) =>
     error?.response?.data?.error ||
@@ -118,34 +104,6 @@ export default function SensoryTopSheet() {
     setCurrentPage(1);
   };
 
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
-    setCurrentPage(1);
-  }, []);
-
   // hide "All" option when user lacks view-all permission
   const canViewAll = hasPermission(permissions, PERMISSIONS.SENSORY_TOP_SHEET.VIEW_ALL_SENSORY_TOP_SHEET_PROJECTS);
   const typeOptionsFiltered = canViewAll ? typeOptions : typeOptions.filter(o => o.value !== "all");
@@ -157,43 +115,17 @@ export default function SensoryTopSheet() {
       value: selectedStatus,
       options: statusOptions,
       onChange: handleStatusChange,
+      placeholder: "All Status",
     },
     {
-      id: "category",
-      value: selectedCategory,
-      onChange: handleCategoryChange,
-      options: [{ label: "All Categories", value: "" }, ...categories],
-      placeholder: "All Categories",
+      id: "type",
+      label: "Type",
+      value: selectedType,
+      options: typeOptionsFiltered,
+      onChange: handleTypeChange,
+      placeholder: "Select type...",
     },
-    {
-      id: "subcategory",
-      value: selectedSubcategory,
-      onChange: handleSubcategoryChange,
-      options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-      placeholder: "All Subcategories",
-    },
-    {
-      id: "subSubcategory",
-      value: selectedSubSubcategory,
-      onChange: handleSubSubcategoryChange,
-      options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-      placeholder: "All Sub-Subcategories",
-    },
-    {
-      id: "creator",
-      value: selectedCreator,
-      onChange: handleCreatorChange,
-      options: [{ label: "All Creators", value: "" }, ...users],
-      placeholder: "All Creators",
-    },
-    {
-      id: "purpose",
-      value: selectedPurpose,
-      onChange: handlePurposeChange,
-      options: purposeFilterOptions,
-      placeholder: "All Purpose",
-    },
-  ], [selectedStatus, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, handleStatusChange, handleCategoryChange, handleSubcategoryChange, handleSubSubcategoryChange, handleCreatorChange, handlePurposeChange, categories, subcategories, subSubcategories, users]);
+  ], [selectedStatus, selectedType, typeOptionsFiltered, handleStatusChange]);
 
   const filteredData = useMemo(() => {
     return projects.map((proj) => ({
