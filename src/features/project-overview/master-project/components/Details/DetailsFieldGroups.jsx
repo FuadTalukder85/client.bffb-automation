@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { EditableField } from "@/components/editable-field";
 import { EditableFieldGroup } from "@/components/editable-field-group";
+import { Button } from "@/components/ui/Button";
+import { Save, X, Loader2, SquarePen } from "lucide-react";
 import { useActiveCategories, useSubCategoriesByCategory, useSubSubCategoriesBySubCategory, useTagsBySubCategory, useBFFFlavors, useBFFColors, useBFFIngredients, useAllBFFProductCodes } from "@/hooks/useAsyncSelectData";
 import { useCreateBFFProductCode } from "@/hooks/mutations/useBFFProductCodeMutations";
 import { getDynamicMasterProjectStatusOptions } from "../../constants/projectOptions";
@@ -23,6 +25,10 @@ export const DetailsFieldGroups = ({
   permissionWarnings,
   registerField,
 }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draftValues, setDraftValues] = useState({});
+  const [isSavingAll, setIsSavingAll] = useState(false);
+
   const [localValues, setLocalValues] = useState({
     category: null,
     subcategory: null,
@@ -47,7 +53,6 @@ export const DetailsFieldGroups = ({
     bffAllProductCodes: "",
   });
 
-  const [currentlyEditingField, setCurrentlyEditingField] = useState(null);
   const [createdOptions, setCreatedOptions] = useState({
     bffFlavor: [],
     bffColor: [],
@@ -77,6 +82,7 @@ export const DetailsFieldGroups = ({
   useEffect(() => {
     if (projectResponseData?.applicationLab) {
       const appLab = projectResponseData.applicationLab;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalValues(prev => ({
         ...prev,
         category: appLab.category?._id || appLab.category || null,
@@ -140,11 +146,6 @@ export const DetailsFieldGroups = ({
   };
 
   const getAsyncOptions = (asyncType) => {
-    console.log("🔍 DetailsFieldGroups - getAsyncOptions called:", {
-      asyncType,
-      timestamp: new Date().toISOString()
-    });
-
     let result;
     switch (asyncType) {
       case "category":
@@ -177,13 +178,6 @@ export const DetailsFieldGroups = ({
       default:
         result = [];
     }
-
-    console.log("🔍 DetailsFieldGroups - getAsyncOptions result:", {
-      asyncType,
-      optionsCount: result.length,
-      firstFew: result.slice(0, 3),
-      timestamp: new Date().toISOString()
-    });
 
     const inlineCreated = createdOptions[asyncType] || [];
     if (inlineCreated.length === 0) {
@@ -223,11 +217,14 @@ export const DetailsFieldGroups = ({
       subsubcategory: [],
       tags: [],
     }));
-    handleSave("applicationLab.category")(value);
-    handleSave("applicationLab.subcategory")(null);
-    handleSave("applicationLab.subSubcategory")([]);
-    handleSave("applicationLab.tags")([]);
-  }, [handleSave]);
+    setDraftValues(prev => ({
+      ...prev,
+      "applicationLab.category": value,
+      "applicationLab.subcategory": null,
+      "applicationLab.subSubcategory": [],
+      "applicationLab.tags": [],
+    }));
+  }, []);
 
   const handleSubCategoryChange = useCallback((value) => {
     setLocalValues(prev => ({
@@ -236,18 +233,25 @@ export const DetailsFieldGroups = ({
       subsubcategory: [],
       tags: [],
     }));
-    handleSave("applicationLab.subcategory")(value);
-    handleSave("applicationLab.subSubcategory")([]);
-    handleSave("applicationLab.tags")([]);
-  }, [handleSave]);
+    setDraftValues(prev => ({
+      ...prev,
+      "applicationLab.subcategory": value,
+      "applicationLab.subSubcategory": [],
+      "applicationLab.tags": [],
+    }));
+  }, []);
 
   const handleSubSubCategoryChange = useCallback((value) => {
+    const sscVal = Array.isArray(value) ? value : [value];
     setLocalValues(prev => ({
       ...prev,
-      subsubcategory: Array.isArray(value) ? value : [value],
+      subsubcategory: sscVal,
     }));
-    handleSave("applicationLab.subSubcategory")(value);
-  }, [handleSave]);
+    setDraftValues(prev => ({
+      ...prev,
+      "applicationLab.subSubcategory": sscVal,
+    }));
+  }, []);
 
   const handleAsyncSelectChange = useCallback((config, value) => {
     if (config.asyncType === "category") {
@@ -257,53 +261,113 @@ export const DetailsFieldGroups = ({
     } else if (config.asyncType === "subsubcategory") {
       handleSubSubCategoryChange(value);
     } else if (config.asyncType === "tags") {
+      const tagVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        tags: Array.isArray(value) ? value : [value],
+        tags: tagVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: tagVal,
       }));
     } else if (config.asyncType === "bffFlavor") {
+      const fVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffFlavors: Array.isArray(value) ? value : [value],
+        bffFlavors: fVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: fVal,
       }));
     } else if (config.asyncType === "bffColor") {
+      const cVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffColors: Array.isArray(value) ? value : [value],
+        bffColors: cVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: cVal,
       }));
     } else if (config.asyncType === "bffIngredient") {
+      const iVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffIngredients: Array.isArray(value) ? value : [value],
+        bffIngredients: iVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: iVal,
       }));
     } else if (config.asyncType === "bffAllProductCodes" && config.path === "common.productsUsed") {
+      const pVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffProductsUsed: Array.isArray(value) ? value : [value],
+        bffProductsUsed: pVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: pVal,
       }));
     } else if (config.asyncType === "bffAllProductCodes" && config.path === "common.flavorProfile") {
+      const fVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffFlavors: Array.isArray(value) ? value : [value],
+        bffFlavors: fVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: fVal,
       }));
     } else if (config.asyncType === "bffAllProductCodes" && config.path === "common.coatingUpperLayer") {
+      const cVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        coatingUpperLayer: Array.isArray(value) ? value : [value],
+        coatingUpperLayer: cVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: cVal,
       }));
     } else if (config.asyncType === "bffAllProductCodes" && config.path === "common.filling") {
+      const fVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        filling: Array.isArray(value) ? value : [value],
+        filling: fVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: fVal,
       }));
     } else if (config.asyncType === "bffAllProductCodes" && config.path === "common.ingredients") {
+      const iVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        bffIngredients: Array.isArray(value) ? value : [value],
+        bffIngredients: iVal,
+      }));
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: iVal,
+      }));
+    } else {
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: value,
       }));
     }
-    handleSave(config.path)(value);
-  }, [handleCategoryChange, handleSubCategoryChange, handleSubSubCategoryChange, handleSave]);
+  }, [handleCategoryChange, handleSubCategoryChange, handleSubSubCategoryChange]);
+
+  const handleFieldDraftChange = (config, val) => {
+    if (config.type === "number") {
+      const numValue = val === "" ? null : Number(val);
+      setDraftValues(prev => ({ ...prev, [config.path]: numValue }));
+    } else if (config.asyncType) {
+      handleAsyncSelectChange(config, val);
+    } else {
+      setDraftValues(prev => ({ ...prev, [config.path]: val }));
+    }
+  };
 
   const handleSearchChange = useCallback((asyncType, searchTerm) => {
     setSearchTerms(prev => ({
@@ -376,13 +440,67 @@ export const DetailsFieldGroups = ({
     setLocalValues((prev) => {
       const current = Array.isArray(prev[localKey]) ? prev[localKey] : [];
       const next = current.includes(createdId) ? current : [...current, createdId];
-      handleSave(config.path)(next);
+      setDraftValues(d => ({ ...d, [config.path]: next }));
       return {
         ...prev,
         [localKey]: next,
       };
     });
-  }, [createBFFProductCode, getLocalStateKeyFromAsyncType, getSegmentFromAsyncType, handleSave]);
+  }, [createBFFProductCode, getLocalStateKeyFromAsyncType, getSegmentFromAsyncType]);
+
+  const handleEnterEditMode = () => {
+    setDraftValues({});
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setDraftValues({});
+    if (projectResponseData?.applicationLab) {
+      const appLab = projectResponseData.applicationLab;
+      setLocalValues(prev => ({
+        ...prev,
+        category: appLab.category?._id || appLab.category || null,
+        subcategory: appLab.subcategory?._id || appLab.subcategory || null,
+        subsubcategory: Array.isArray(appLab.subSubcategory)
+          ? appLab.subSubcategory.map(t => t._id || t.id || t)
+          : (appLab.subSubcategory ? [appLab.subSubcategory._id || appLab.subSubcategory] : []),
+        tags: Array.isArray(appLab.tags) ? appLab.tags.map(t => t._id || t.id || t) : [],
+      }));
+    }
+    setIsEditMode(false);
+  };
+
+  const handleSaveAll = async () => {
+    if (Object.keys(draftValues).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+    setIsSavingAll(true);
+    try {
+      if (handleSave) {
+        await handleSave(draftValues)();
+      }
+      setDraftValues({});
+      setIsEditMode(false);
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+    } finally {
+      setIsSavingAll(false);
+    }
+  };
+
+  const hasEditableFields = useMemo(() => {
+    return fieldGroups.flat().some(f => {
+      let canRead = true;
+      try {
+        canRead = canReadField ? canReadField(f.path) : true;
+      } catch {
+        canRead = true;
+      }
+      if (!canRead) return false;
+      return f.canEdit && (canUpdateField ? canUpdateField(f.path) : false);
+    });
+  }, [fieldGroups, canReadField, canUpdateField]);
 
   const renderField = (config) => {
     if (!config || !config.path) {
@@ -392,32 +510,34 @@ export const DetailsFieldGroups = ({
     let canRead = true;
     try {
       canRead = canReadField ? canReadField(config.path) : true;
-    } catch (error) {
+    } catch {
       canRead = true;
     }
 
-    let value = getNestedValue(projectResponseData, config.path);
+    let value = draftValues[config.path] !== undefined 
+      ? draftValues[config.path] 
+      : getNestedValue(projectResponseData, config.path);
 
     if (!canRead) {
       value = null;
     } else if (config.type === "userselect") {
       value = getUserDisplayName(value);
     } else if (config.path === "applicationLab.category") {
-      value = localValues.category !== null && localValues.category !== undefined
-        ? localValues.category
-        : value;
-      if (value && typeof value === "object") {
-        value = value.name || value.label || value.title || value._id || value.id || "";
-      }
+      value = draftValues[config.path] !== undefined 
+        ? draftValues[config.path] 
+        : (localValues.category !== null && localValues.category !== undefined 
+            ? localValues.category 
+            : (value && typeof value === "object" ? value._id || value.id || value : value));
     } else if (config.path === "applicationLab.subcategory") {
-      value = localValues.subcategory !== null && localValues.subcategory !== undefined
-        ? localValues.subcategory
-        : value;
-      if (value && typeof value === "object") {
-        value = value.name || value.label || value.title || value._id || value.id || "";
-      }
+      value = draftValues[config.path] !== undefined 
+        ? draftValues[config.path] 
+        : (localValues.subcategory !== null && localValues.subcategory !== undefined 
+            ? localValues.subcategory 
+            : (value && typeof value === "object" ? value._id || value.id || value : value));
     } else if (config.path === "applicationLab.subSubcategory") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const sscIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -428,7 +548,9 @@ export const DetailsFieldGroups = ({
         value = sscObjects.length > 0 ? sscObjects : sscIds;
       }
     } else if (config.path === "applicationLab.tags") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const tagIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -436,12 +558,12 @@ export const DetailsFieldGroups = ({
           return item;
         });
         const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
-        // Prefer full tag objects for display so labels render without
-        // depending on the currently search-scoped async options list.
         value = tagObjects.length > 0 ? tagObjects : tagIds;
       }
     } else if (config.path === "common.productsUsed") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const productIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -449,9 +571,19 @@ export const DetailsFieldGroups = ({
           return item;
         });
         value = Array.isArray(localValues.bffProductsUsed) ? localValues.bffProductsUsed : productIds;
+      } else if (typeof value === "string") {
+        const productValues = value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        value = Array.isArray(localValues.bffProductsUsed) ? localValues.bffProductsUsed : productValues;
+      } else {
+        value = Array.isArray(localValues.bffProductsUsed) ? localValues.bffProductsUsed : [];
       }
     } else if (config.path === "common.flavorProfile") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const flavorIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -459,30 +591,26 @@ export const DetailsFieldGroups = ({
           return item;
         });
         value = Array.isArray(localValues.bffFlavors) ? localValues.bffFlavors : flavorIds;
-      }
-    } else if (config.path === "common.color") {
-      if (Array.isArray(value)) {
-        const colorIds = value.map((item) => {
-          if (typeof item === "object" && item !== null) {
-            return item._id || item.id || item;
-          }
-          return item;
-        });
-        value = Array.isArray(localValues.bffColors) ? localValues.bffColors : colorIds;
-      }
-    } else if (config.path === "common.ingredients") {
-      if (Array.isArray(value)) {
-        const ingredientIds = value.map((item) => {
-          if (typeof item === "object" && item !== null) {
-            return item._id || item.id || item;
-          }
-          return item;
-        });
-        value = Array.isArray(localValues.bffIngredients) ? localValues.bffIngredients : ingredientIds;
+      } else if (typeof value === "string") {
+        const flavorValues = value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+        value = Array.isArray(localValues.bffFlavors) ? localValues.bffFlavors : flavorValues;
+      } else {
+        value = Array.isArray(localValues.bffFlavors) ? localValues.bffFlavors : [];
       }
     } else if (config.path === "common.coatingUpperLayer") {
-      if (Array.isArray(value)) {
-        value = Array.isArray(localValues.coatingUpperLayer) ? localValues.coatingUpperLayer : value;
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
+        const coatingIds = value.map((item) => {
+          if (typeof item === "object" && item !== null) {
+            return item._id || item.id || item;
+          }
+          return item;
+        });
+        value = Array.isArray(localValues.coatingUpperLayer) ? localValues.coatingUpperLayer : coatingIds;
       } else if (typeof value === "string") {
         const coatingValues = value
           .split(",")
@@ -493,7 +621,9 @@ export const DetailsFieldGroups = ({
         value = Array.isArray(localValues.coatingUpperLayer) ? localValues.coatingUpperLayer : [];
       }
     } else if (config.path === "common.filling") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const fillingIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -512,11 +642,9 @@ export const DetailsFieldGroups = ({
       }
     }
 
-    // Normalize boolean values for select fields with boolean options
     if (config.type === "select" && config.options && config.options.some(opt => typeof opt.value === "boolean")) {
       if (value === "true") value = true;
       else if (value === "false") value = false;
-      // If value is empty for boolean fields, default to false
       if (value === null || value === undefined || value === "") {
         value = false;
       }
@@ -526,7 +654,7 @@ export const DetailsFieldGroups = ({
     if (canRead) {
       try {
         canEdit = config.canEdit && (canUpdateField ? canUpdateField(config.path) : false);
-      } catch (error) {
+      } catch {
         canEdit = false;
       }
     }
@@ -549,17 +677,6 @@ export const DetailsFieldGroups = ({
         : options;
     const isLoading = updatingFields.has(config.path) || (config.asyncType ? isAsyncLoading(config.asyncType) : false);
 
-    const handleFieldSave = (val) => {
-      if (config.type === "number") {
-        const numValue = val === "" ? null : Number(val);
-        handleSave(config.path)(numValue);
-      } else if (config.asyncType) {
-        handleAsyncSelectChange(config, val);
-      } else {
-        handleSave(config.path)(val);
-      }
-    };
-
     return (
       <EditableField
         key={config.id}
@@ -570,7 +687,7 @@ export const DetailsFieldGroups = ({
         type={config.type}
         options={resolvedOptions}
         rows={config.rows}
-        onSave={handleFieldSave}
+        onChange={(val) => handleFieldDraftChange(config, val)}
         onFieldClick={() => canRead && toggleFieldSelection(config.path)}
         isLoading={isLoading}
         placeholder={config.placeholder}
@@ -583,8 +700,7 @@ export const DetailsFieldGroups = ({
         }
         onSearchChange={config.asyncType ? (term) => handleSearchChange(config.asyncType, term) : undefined}
         ref={(el) => registerField && registerField(config.id, el)}
-        isEditing={currentlyEditingField === config.id}
-        onEditChange={(editing) => setCurrentlyEditingField(editing ? config.id : null)}
+        isEditing={Boolean(isEditMode && canEdit)}
         allowCreateOption={config.type === "multiselectwithsearch" && ["bffFlavor", "bffColor", "bffIngredient"].includes(config.asyncType)}
         createOptionLabel="Create"
         onCreateOption={config.type === "multiselectwithsearch" && ["bffFlavor", "bffColor", "bffIngredient"].includes(config.asyncType)
@@ -613,6 +729,54 @@ export const DetailsFieldGroups = ({
 
   return (
     <div className="grow overflow-y-auto custom-scrollbar max-h-[90dvh] 3xl:max-h-[90dvh] ms-0 lg:ms-2 xl:ms-3 2xl:ms-4 3xl:ms-5 bg-background pt-2 md:pt-0 rounded-2xl px-0 lg:px-2 xl:px-3 2xl:px-4 3xl:px-6 md:pb-12">
+      {/* Top Action Bar with Single Edit / Save / Cancel Button */}
+      {hasEditableFields && (
+        <div className="flex items-center justify-end px-4 py-2 sticky top-0 bg-background/95 backdrop-blur z-10 border-b border-border/40 mb-2">
+          {!isEditMode ? (
+            <div className="desktop-page-btn-wrapper flex items-center gap-0 rounded-full overflow-hidden shadow-sm border border-border">
+              <Button
+                type="button"
+                onClick={handleEnterEditMode}
+                title="Edit"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                <SquarePen className="desktop-page-btn m-0!" />
+                Edit
+              </Button>
+            </div>
+          ) : (
+            <div className="desktop-page-btn-wrapper flex items-center gap-0 rounded-full overflow-hidden shadow-sm border border-border">
+              <Button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={isSavingAll}
+                title="Save"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors disabled:opacity-50 text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                {isSavingAll ? (
+                  <Loader2 className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 animate-spin" />
+                ) : (
+                  <Save className="desktop-page-btn m-0!" />
+                )}
+                {isSavingAll ? "Saving..." : "Save"}
+              </Button>
+
+              <div className="w-px h-4 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 bg-border" />
+
+              <Button
+                type="button"
+                onClick={handleCancelEdit}
+                disabled={isSavingAll}
+                title="Cancel"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                <X className="desktop-page-btn m-0!" />
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       {fieldGroups.map(renderGroup)}
     </div>
   );

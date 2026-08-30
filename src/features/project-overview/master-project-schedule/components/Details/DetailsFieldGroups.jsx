@@ -1,11 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { EditableField } from "@/components/editable-field";
 import { EditableFieldGroup } from "@/components/editable-field-group";
+import { Button } from "@/components/ui/Button";
+import { Save, X, Loader2, SquarePen } from "lucide-react";
 import { useActiveCategories, useSubCategoriesByCategory, useSubSubCategoriesBySubCategory, useTagsBySubCategory } from "@/hooks/useAsyncSelectData";
 
 const getNestedValue = (obj, path) => {
   if (!obj || !path) return "";
   return path.split(".").reduce((acc, part) => acc && acc[part], obj) || "";
+};
+
+const getBffProductDisplayValue = (item) => {
+  if (!item || typeof item !== "object") return String(item || "");
+
+  const name = item.name || item.label || item.title;
+  const code = item.displayProductCode || item.commercializedProductCode || item.productCode || item.code;
+
+  if (name && code) return `${name} (${code})`;
+  if (name) return name;
+  if (code) return code;
+
+  return item._id || item.id || String(item);
 };
 
 export const DetailsFieldGroups = ({
@@ -21,6 +36,10 @@ export const DetailsFieldGroups = ({
   permissionWarnings,
   registerField,
 }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [draftValues, setDraftValues] = useState({});
+  const [isSavingAll, setIsSavingAll] = useState(false);
+
   const [localValues, setLocalValues] = useState({
     category: null,
     subcategory: null,
@@ -34,9 +53,6 @@ export const DetailsFieldGroups = ({
     subsubcategory: "",
     tags: "",
   });
-
-  const [currentlyEditingField, setCurrentlyEditingField] = useState(null);
-
 
   const { options: categoryOptions, isLoading: categoriesLoading } = useActiveCategories(searchTerms.category);
   const { options: subCategoryOptions, isLoading: subCategoriesLoading } = useSubCategoriesByCategory(
@@ -55,6 +71,7 @@ export const DetailsFieldGroups = ({
   useEffect(() => {
     if (projectResponseData?.applicationLab) {
       const appLab = projectResponseData.applicationLab;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocalValues(prev => ({
         ...prev,
         category: appLab.category?._id || appLab.category || null,
@@ -119,10 +136,13 @@ export const DetailsFieldGroups = ({
         subsubcategory: [],
         tags: [],
       }));
-      handleSave("applicationLab.category")(value);
-      handleSave("applicationLab.subcategory")(null);
-      handleSave("applicationLab.subSubcategory")([]);
-      handleSave("applicationLab.tags")([]);
+      setDraftValues(prev => ({
+        ...prev,
+        "applicationLab.category": value,
+        "applicationLab.subcategory": null,
+        "applicationLab.subSubcategory": [],
+        "applicationLab.tags": [],
+      }));
     } else if (config.asyncType === "subcategory") {
       setLocalValues(prev => ({
         ...prev,
@@ -130,21 +150,48 @@ export const DetailsFieldGroups = ({
         subsubcategory: [],
         tags: [],
       }));
-      handleSave("applicationLab.subcategory")(value);
-      handleSave("applicationLab.subSubcategory")([]);
-      handleSave("applicationLab.tags")([]);
+      setDraftValues(prev => ({
+        ...prev,
+        "applicationLab.subcategory": value,
+        "applicationLab.subSubcategory": [],
+        "applicationLab.tags": [],
+      }));
     } else if (config.asyncType === "subsubcategory") {
+      const sscVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        subsubcategory: Array.isArray(value) ? value : [value],
+        subsubcategory: sscVal,
       }));
-      handleSave("applicationLab.subSubcategory")(value);
+      setDraftValues(prev => ({
+        ...prev,
+        "applicationLab.subSubcategory": sscVal,
+      }));
     } else if (config.asyncType === "tags") {
+      const tagVal = Array.isArray(value) ? value : [value];
       setLocalValues(prev => ({
         ...prev,
-        tags: Array.isArray(value) ? value : [value],
+        tags: tagVal,
       }));
-      handleSave(config.path)(value);
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: tagVal,
+      }));
+    } else {
+      setDraftValues(prev => ({
+        ...prev,
+        [config.path]: value,
+      }));
+    }
+  };
+
+  const handleFieldDraftChange = (config, val) => {
+    if (config.type === "number") {
+      const numValue = val === "" ? null : Number(val);
+      setDraftValues(prev => ({ ...prev, [config.path]: numValue }));
+    } else if (config.asyncType) {
+      handleAsyncSelectChange(config, val);
+    } else {
+      setDraftValues(prev => ({ ...prev, [config.path]: val }));
     }
   };
 
@@ -155,6 +202,59 @@ export const DetailsFieldGroups = ({
     }));
   };
 
+  const handleEnterEditMode = () => {
+    setDraftValues({});
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setDraftValues({});
+    if (projectResponseData?.applicationLab) {
+      const appLab = projectResponseData.applicationLab;
+      setLocalValues({
+        category: appLab.category?._id || appLab.category || null,
+        subcategory: appLab.subcategory?._id || appLab.subcategory || null,
+        subsubcategory: Array.isArray(appLab.subSubcategory)
+          ? appLab.subSubcategory.map(t => t._id || t.id || t)
+          : (appLab.subSubcategory ? [appLab.subSubcategory._id || appLab.subSubcategory] : []),
+        tags: Array.isArray(appLab.tags) ? appLab.tags.map(t => t._id || t.id || t) : [],
+      });
+    }
+    setIsEditMode(false);
+  };
+
+  const handleSaveAll = async () => {
+    if (Object.keys(draftValues).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+    setIsSavingAll(true);
+    try {
+      if (handleSave) {
+        await handleSave(draftValues)();
+      }
+      setDraftValues({});
+      setIsEditMode(false);
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+    } finally {
+      setIsSavingAll(false);
+    }
+  };
+
+  const hasEditableFields = useMemo(() => {
+    return fieldGroups.flat().some(f => {
+      let canRead = true;
+      try {
+        canRead = canReadField ? canReadField(f.path) : true;
+      } catch {
+        canRead = true;
+      }
+      if (!canRead) return false;
+      return f.canEdit && (canUpdateField ? canUpdateField(f.path) : false);
+    });
+  }, [fieldGroups, canReadField, canUpdateField]);
+
   const renderField = (config) => {
     if (!config || !config.path) {
       return null;
@@ -163,11 +263,13 @@ export const DetailsFieldGroups = ({
     let canRead = true;
     try {
       canRead = canReadField ? canReadField(config.path) : true;
-    } catch (error) {
+    } catch {
       canRead = true;
     }
 
-    let value = getNestedValue(projectResponseData, config.path);
+    let value = draftValues[config.path] !== undefined
+      ? draftValues[config.path]
+      : getNestedValue(projectResponseData, config.path);
 
     if (!canRead) {
       value = null;
@@ -187,15 +289,21 @@ export const DetailsFieldGroups = ({
         value = String(value);
       }
     } else if (config.path === "applicationLab.category") {
-      value = localValues.category !== null && localValues.category !== undefined
-        ? localValues.category
-        : (value && typeof value === "object" ? value._id || value.id || value : value);
+      value = draftValues[config.path] !== undefined
+        ? draftValues[config.path]
+        : (localValues.category !== null && localValues.category !== undefined
+          ? localValues.category
+          : (value && typeof value === "object" ? value._id || value.id || value : value));
     } else if (config.path === "applicationLab.subcategory") {
-      value = localValues.subcategory !== null && localValues.subcategory !== undefined
-        ? localValues.subcategory
-        : (value && typeof value === "object" ? value._id || value.id || value : value);
+      value = draftValues[config.path] !== undefined
+        ? draftValues[config.path]
+        : (localValues.subcategory !== null && localValues.subcategory !== undefined
+          ? localValues.subcategory
+          : (value && typeof value === "object" ? value._id || value.id || value : value));
     } else if (config.path === "applicationLab.subSubcategory") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const sscIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -206,7 +314,9 @@ export const DetailsFieldGroups = ({
         value = sscObjects.length > 0 ? sscObjects : sscIds;
       }
     } else if (config.path === "applicationLab.tags") {
-      if (Array.isArray(value)) {
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
         const tagIds = value.map((item) => {
           if (typeof item === "object" && item !== null) {
             return item._id || item.id || item;
@@ -214,8 +324,6 @@ export const DetailsFieldGroups = ({
           return item;
         });
         const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
-        // Prefer full tag objects for display so labels render without
-        // depending on the currently search-scoped async options list.
         value = tagObjects.length > 0 ? tagObjects : tagIds;
       }
     }
@@ -224,24 +332,13 @@ export const DetailsFieldGroups = ({
     if (canRead) {
       try {
         canEdit = config.canEdit && (canUpdateField ? canUpdateField(config.path) : false);
-      } catch (error) {
+      } catch {
         canEdit = false;
       }
     }
 
     const options = config.asyncType ? getAsyncOptions(config.asyncType) : config.options || [];
     const isLoading = updatingFields.has(config.path) || (config.asyncType ? isAsyncLoading(config.asyncType) : false);
-
-    const handleFieldSave = (val) => {
-      if (config.type === "number") {
-        const numValue = val === "" ? null : Number(val);
-        handleSave(config.path)(numValue);
-      } else if (config.asyncType) {
-        handleAsyncSelectChange(config, val);
-      } else {
-        handleSave(config.path)(val);
-      }
-    };
 
     return (
       <EditableField
@@ -253,7 +350,7 @@ export const DetailsFieldGroups = ({
         type={config.type}
         options={options}
         rows={config.rows}
-        onSave={handleFieldSave}
+        onChange={(val) => handleFieldDraftChange(config, val)}
         onFieldClick={() => canRead && toggleFieldSelection(config.path)}
         isLoading={isLoading}
         placeholder={config.placeholder}
@@ -266,8 +363,7 @@ export const DetailsFieldGroups = ({
         }
         onSearchChange={config.asyncType ? (searchTerm) => handleSearchChange(config.asyncType, searchTerm) : undefined}
         ref={(el) => registerField && registerField(config.id, el)}
-        isEditing={currentlyEditingField === config.id}
-        onEditChange={(editing) => setCurrentlyEditingField(editing ? config.id : null)}
+        isEditing={Boolean(isEditMode && canEdit)}
       />
     );
   };
@@ -290,6 +386,54 @@ export const DetailsFieldGroups = ({
 
   return (
     <div className="flex-grow overflow-y-auto custom-scrollbar max-h-[90dvh] 3xl:max-h-[90dvh] ms-0 lg:ms-5 bg-background rounded-2xl md:px-6 md:pb-12">
+      {/* Top Action Bar with Single Edit / Save / Cancel Button */}
+      {hasEditableFields && (
+        <div className="flex items-center justify-end px-4 py-2 sticky top-0 bg-background/95 backdrop-blur z-10 border-b border-border/40 mb-2">
+          {!isEditMode ? (
+            <div className="desktop-page-btn-wrapper flex items-center gap-0 rounded-full overflow-hidden shadow-sm border border-border">
+              <Button
+                type="button"
+                onClick={handleEnterEditMode}
+                title="Edit"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                <SquarePen className="desktop-page-btn m-0!" />
+                Edit
+              </Button>
+            </div>
+          ) : (
+            <div className="desktop-page-btn-wrapper flex items-center gap-0 rounded-full overflow-hidden shadow-sm border border-border">
+              <Button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={isSavingAll}
+                title="Save"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors disabled:opacity-50 text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                {isSavingAll ? (
+                  <Loader2 className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 animate-spin" />
+                ) : (
+                  <Save className="desktop-page-btn m-0!" />
+                )}
+                {isSavingAll ? "Saving..." : "Save"}
+              </Button>
+
+              <div className="w-px h-4 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 bg-border" />
+
+              <Button
+                type="button"
+                onClick={handleCancelEdit}
+                disabled={isSavingAll}
+                title="Cancel"
+                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm cursor-pointer"
+              >
+                <X className="desktop-page-btn m-0!" />
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       {fieldGroups.map(renderGroup)}
     </div>
   );

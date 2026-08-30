@@ -29,11 +29,25 @@ export const useMasterProjectScheduleDetailsLogic = () => {
     };
 
     const handleSave = (fieldPath) => async (value) => {
+        if (typeof fieldPath === 'object' && fieldPath !== null) {
+            const keys = Object.keys(fieldPath);
+            setUpdatingFields(new Set(keys));
+            try {
+                await updateProject({ id: projectId, data: fieldPath });
+            } catch (err) {
+                console.error("Failed to update project:", err);
+                throw err;
+            } finally {
+                setUpdatingFields(new Set());
+            }
+            return;
+        }
         setUpdatingFields(prev => new Set(prev).add(fieldPath));
         try {
             await updateProject({ id: projectId, data: { [fieldPath]: value } });
         } catch (err) {
             console.error("Failed to update field:", err);
+            throw err;
         } finally {
             setUpdatingFields(prev => {
                 const newSet = new Set(prev);

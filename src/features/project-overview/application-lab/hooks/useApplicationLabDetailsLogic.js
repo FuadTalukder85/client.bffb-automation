@@ -35,6 +35,7 @@ export const useApplicationLabDetailsLogic = () => {
     const projectResponseData = projectResponse?.data || projectResponse || {};
 
     useEffect(() => {
+        /* eslint-disable react-hooks/set-state-in-effect */
         if (projectResponseData?.applicationLab) {
             const appLab = projectResponseData.applicationLab;
             if (appLab.category) {
@@ -50,6 +51,7 @@ export const useApplicationLabDetailsLogic = () => {
                 setSubSubCategoryId(subSubCatId);
             }
         }
+        /* eslint-enable react-hooks/set-state-in-effect */
     }, [projectResponseData]);
 
     const handleCategoryChange = useCallback((value) => {
@@ -160,6 +162,29 @@ export const useApplicationLabDetailsLogic = () => {
 
     const handleSave = (fieldPath) => async (value) => {
         clearMessages();
+        if (typeof fieldPath === 'object' && fieldPath !== null) {
+            const keys = Object.keys(fieldPath);
+            setUpdatingFields(new Set(keys));
+            try {
+                let updateData = { ...fieldPath };
+                if (updateData['applicationLab.recipeCode']) {
+                    const recipe = await fetchRecipeByCode(updateData['applicationLab.recipeCode']);
+                    if (recipe) {
+                        updateData['applicationLab.recipeName'] = recipe.name || recipe.recipeName;
+                        updateData['applicationLab.recipeRef'] = recipe._id || recipe.id;
+                    }
+                }
+                await updateProject({ id: projectId, data: updateData });
+                showSuccess("Project details updated successfully");
+            } catch (err) {
+                console.error('Error saving project details:', err);
+                showError(err.message || "Failed to update project. Please try again.");
+                throw err;
+            } finally {
+                setUpdatingFields(new Set());
+            }
+            return;
+        }
         setUpdatingFields(prev => new Set(prev).add(fieldPath));
         try {
             if (fieldPath === 'applicationLab.recipeCode' && value) {
@@ -194,6 +219,7 @@ export const useApplicationLabDetailsLogic = () => {
         } catch (err) {
             console.error('Error saving field:', err);
             showError(err.message || "Failed to update field. Please try again.");
+            throw err;
         } finally {
             setUpdatingFields(prev => {
                 const newSet = new Set(prev);

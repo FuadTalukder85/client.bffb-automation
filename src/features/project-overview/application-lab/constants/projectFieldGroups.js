@@ -244,7 +244,7 @@ export const projectFieldGroups = [
     {
       id: "applicationTag",
       label: "Application Tag",
-      type: "multiselect",
+      type: "multiselectwithsearch",
       asyncType: "tags",
       path: "applicationLab.tags",
       canEdit: true,

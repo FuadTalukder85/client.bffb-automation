@@ -51,6 +51,20 @@ export const useSensoryDetailsLogic = () => {
 
     const handleSave = (fieldPath) => async (value) => {
         clearMessages();
+        if (typeof fieldPath === 'object' && fieldPath !== null) {
+            const keys = Object.keys(fieldPath);
+            setUpdatingFields(new Set(keys));
+            try {
+                await updateProject({ id: projectId, data: fieldPath });
+                showSuccess("Project details updated successfully");
+            } catch (err) {
+                showError(err.message || "Failed to update project. Please try again.");
+                throw err;
+            } finally {
+                setUpdatingFields(new Set());
+            }
+            return;
+        }
         setUpdatingFields(prev => new Set(prev).add(fieldPath));
         try {
             await updateProject({ id: projectId, data: { [fieldPath]: value } });
@@ -58,6 +72,7 @@ export const useSensoryDetailsLogic = () => {
             showSuccess(`${fieldName.replace(/([A-Z])/g, ' $1').trim()} updated successfully`);
         } catch (err) {
             showError(err.message || "Failed to update field. Please try again.");
+            throw err;
         } finally {
             setUpdatingFields(prev => {
                 const newSet = new Set(prev);
