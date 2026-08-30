@@ -460,6 +460,12 @@ export const PROJECT_PRODUCT_DEVELOPMENT_FIELDS = [
 ];
 
 export const PROJECT_APPLICATION_LAB_FIELDS = [
+  // Project Brief
+  'masterProject.brief',
+
+  // BD or CRO Brief
+  'masterProject.bdOrCROBrief',
+
   // Application Brief
   'applicationLab.brief',
 
