@@ -1,6 +1,7 @@
 import React from "react";
 import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
-import { Eye, AlertCircle, Trash2 } from "lucide-react";
+import { Eye, AlertCircle, Trash2, ChefHat } from "lucide-react";
+import { GoPlus } from "react-icons/go";
 import GlobalStatusBadge from "@/components/ui/StatusBadge";
 import { applicationLabStatusOptions } from "../constants/projectOptions";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
@@ -41,6 +42,8 @@ export default function DesktopApplicationLabTable({
     onPageChange,
     onItemsPerPageChange,
     onViewDetails,
+    onCreateRecipe,
+    onViewRecipe,
     onArchive,
     onRestore,
     sorting,
@@ -58,7 +61,7 @@ export default function DesktopApplicationLabTable({
     const { permissions } = useUserPermissions();
     const canArchive = hasPermission(permissions, PERMISSIONS.PROJECT.DELETE);
     const canRestore = hasPermission(permissions, PERMISSIONS.PROJECT.UPDATE);
-    
+
     const serialOffset = (currentPage - 1) * itemsPerPage;
 
     const columns = [
@@ -286,6 +289,12 @@ export default function DesktopApplicationLabTable({
             enablePinning: true,
             cell: ({ row }) => {
                 const project = row.original;
+                const hasRecipe = Boolean(
+                    project.latestRecipe ||
+                    project.applicationLab?.recipeRef ||
+                    project.applicationLab?.recipeCode ||
+                    project.applicationLab?.recipeName
+                );
 
                 return (
                     <div className="flex items-center justify-center gap-0">
@@ -297,7 +306,26 @@ export default function DesktopApplicationLabTable({
                         >
                             <Eye className="action-button-icon" />
                         </button>
-                        <ProjectTaskStatsButton projectId={project._id} className="rounded-r-md lg:rounded-r-sm 3xl:rounded-r-md rounded-l-none" />
+                        <ProjectTaskStatsButton projectId={project._id} className="rounded-none" />
+                        {hasRecipe ? (
+                            <button
+                                onClick={() => onViewRecipe?.(project)}
+                                title="View Recipe Details"
+                                aria-label="View Recipe Details"
+                                className="action-button flex items-center justify-center gap-1.5 rounded-r-md lg:rounded-r-sm 3xl:rounded-r-md rounded-l-none hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
+                            >
+                                <ChefHat className="action-button-icon" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => onCreateRecipe?.(project)}
+                                title="Create Recipe"
+                                aria-label="Create Recipe"
+                                className="action-button flex items-center justify-center gap-1.5 rounded-r-md lg:rounded-r-sm 3xl:rounded-r-md rounded-l-none border border-[#EEEBF4] dark:border-primary-shade-2 hover:bg-purple-200 bg-primary-shade-2 transition-colors cursor-pointer"
+                            >
+                                <GoPlus className="action-button-icon" />
+                            </button>
+                        )}
                         {/* {canArchive && (
                             <button
                                 onClick={() => onArchive?.(project)}
@@ -311,7 +339,7 @@ export default function DesktopApplicationLabTable({
                     </div>
                 );
             },
-            size: getResponsiveSize({ lg: 53, xl: 71, '2xl': 80, '3xl': 100 }),
+            size: getResponsiveSize({ lg: 75, xl: 100, '2xl': 112, '3xl': 140 }),
             enableSorting: false,
             enableHiding: false,
         },

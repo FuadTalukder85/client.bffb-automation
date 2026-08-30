@@ -115,25 +115,28 @@ export const SearchFilterBar = ({
 
             {hasMultipleFilters && (
               <>
-                {filters.map((filter) => (
-                  <div
-                    key={filter.id}
-                    className="flex-1 min-w-0"
-                  >
-                    <FilterInput
-                      id={filter.id}
-                      isOpen={openFilterId === filter.id}
-                      onToggle={handleFilterToggle}
-                      config={{
-                        options: filter.options,
-                        value: filter.value,
-                        onValueChange: filter.onChange,
-                        placeholder: filter.placeholder || "Select...",
-                        defaultValue: filter.defaultValue,
-                      }}
-                    />
-                  </div>
-                ))}
+                {filters.map((filter) => {
+                  const filterId = filter.id || filter.key;
+                  return (
+                    <div
+                      key={filterId}
+                      className="flex-1 min-w-0"
+                    >
+                      <FilterInput
+                        id={filterId}
+                        isOpen={openFilterId === filterId}
+                        onToggle={handleFilterToggle}
+                        config={{
+                          options: filter.options,
+                          value: filter.value,
+                          onValueChange: filter.onChange,
+                          placeholder: filter.placeholder || filter.label || "Select...",
+                          defaultValue: filter.defaultValue,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
               </>
             )}
           </div>

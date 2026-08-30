@@ -6,8 +6,6 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NoData } from "@/components/ui/NoData";
 import { useInDevelopmentRecipes } from "@/hooks/useRecipes";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 import { useDebounce } from "@/hooks/useDebounce";
 import { recipeAPI } from "@/services/recipeService";
 import DesktopInDevelopmentRecipeTable from "./components/DesktopInDevelopmentRecipeTable";
@@ -56,11 +54,6 @@ export default function IndevelopmentRecipes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipeType, setSelectedRecipeType] = useState("all");
   const [selectedState, setSelectedState] = useState("true");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState("");
-  const [selectedPurpose, setSelectedPurpose] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -70,7 +63,7 @@ export default function IndevelopmentRecipes() {
 
   React.useEffect(() => {
     setSelectedRowIds([]);
-  }, [currentPage, searchTerm, selectedRecipeType, selectedState, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose]);
+  }, [currentPage, searchTerm, selectedRecipeType, selectedState]);
 
   const [sorting, setSorting] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState(() => {
@@ -116,15 +109,6 @@ export default function IndevelopmentRecipes() {
     );
   }, [columnSizing]);
 
-  // const handleResetStyling = () => {
-  //   setColumnVisibility({});
-  //   setColumnPinning({});
-  //   setColumnSizing({});
-  //   sessionStorage.removeItem("inDevelopmentRecipes_visibility");
-  //   sessionStorage.removeItem("inDevelopmentRecipes_pinning");
-  //   sessionStorage.removeItem("inDevelopmentRecipes_sizing");
-  // };
-
   // Convert TanStack Table sorting format to API format
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
   const sortOrder =
@@ -139,18 +123,11 @@ export default function IndevelopmentRecipes() {
     searchTerm: debouncedSearchTerm,
     recipeType: selectedRecipeType,
     isActive: selectedState,
-    category: selectedCategory,
-    subCategory: selectedSubcategory,
-    subSubCategory: selectedSubSubcategory,
-    createdBy: selectedCreator,
-    purpose: selectedPurpose,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
     sortOrder,
   });
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, recipesData?.filterOptions);
 
   // Extract recipes array and pagination from the query result
   const recipes = recipesData?.data ?? [];
@@ -174,34 +151,6 @@ export default function IndevelopmentRecipes() {
 
   const handleStateChange = useCallback((value) => {
     setSelectedState(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
     setCurrentPage(1);
   }, []);
 
@@ -347,64 +296,10 @@ export default function IndevelopmentRecipes() {
         value: selectedState,
         onChange: handleStateChange,
         options: stateOptions,
-        placeholder: "All",
-      },
-      {
-        id: "category",
-        value: selectedCategory,
-        onChange: handleCategoryChange,
-        options: [{ label: "All Categories", value: "" }, ...categories],
-        placeholder: "All Categories",
-      },
-      {
-        id: "subcategory",
-        value: selectedSubcategory,
-        onChange: handleSubcategoryChange,
-        options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-        placeholder: "All Subcategories",
-      },
-      {
-        id: "subSubcategory",
-        value: selectedSubSubcategory,
-        onChange: handleSubSubcategoryChange,
-        options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-        placeholder: "All Sub-Subcategories",
-      },
-      {
-        id: "creator",
-        value: selectedCreator,
-        onChange: handleCreatorChange,
-        options: [{ label: "All Creators", value: "" }, ...users],
-        placeholder: "All Creators",
-      },
-      {
-        id: "purpose",
-        value: selectedPurpose,
-        onChange: handlePurposeChange,
-        options: purposeFilterOptions,
-        placeholder: "All Purpose",
+        placeholder: "Active",
       },
     ],
-    [
-      selectedRecipeType,
-      selectedState,
-      selectedCategory,
-      selectedSubcategory,
-      selectedSubSubcategory,
-      selectedCreator,
-      selectedPurpose,
-      categories,
-      subcategories,
-      subSubcategories,
-      users,
-      handleRecipeTypeChange,
-      handleStateChange,
-      handleCategoryChange,
-      handleSubcategoryChange,
-      handleSubSubcategoryChange,
-      handleCreatorChange,
-      handlePurposeChange,
-    ]
+    [selectedRecipeType, selectedState, handleRecipeTypeChange, handleStateChange]
   );
 
   const handleBackToApplicationRecipes = () => {

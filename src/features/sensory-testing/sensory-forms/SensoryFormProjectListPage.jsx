@@ -10,8 +10,6 @@ import MobileSensoryFormProjectListPage from "./components/MobileSensoryFormProj
 import { buildStatusOptions, createFilterOptions } from "@/config/statusConfig";
 
 import { hasPermission } from "@/lib/utils";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 
 const statusOptions = createFilterOptions(
   buildStatusOptions([
@@ -47,11 +45,6 @@ export default function SensoryFormProjectListPage() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
   const [columnSizing, setColumnSizing] = useState({});
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState("");
-  const [selectedPurpose, setSelectedPurpose] = useState("");
 
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
   const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
@@ -68,16 +61,9 @@ export default function SensoryFormProjectListPage() {
     isFeasible: "all",
     page: currentPage,
     limit: itemsPerPage,
-    category: selectedCategory,
-    subcategory: selectedSubcategory,
-    subSubcategory: selectedSubSubcategory,
-    createdBy: selectedCreator,
-    purpose: selectedPurpose,
     sortBy,
     sortOrder,
   });
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, projectsResponse?.filterOptions);
 
   const getErrorMessage = (error) =>
     error?.response?.data?.error ||
@@ -112,34 +98,6 @@ export default function SensoryFormProjectListPage() {
     setCurrentPage(1);
   };
 
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
-    setCurrentPage(1);
-  }, []);
-
   const handleViewProjectDetails = (project) => {
     navigate(`/sensory-testing/sensory-forms/${project._id}`, { state: { project } });
   };
@@ -160,6 +118,7 @@ export default function SensoryFormProjectListPage() {
       value: selectedStatus,
       options: statusOptions,
       onChange: handleStatusChange,
+      placeholder: "All Status",
     },
     {
       id: "period",
@@ -167,43 +126,9 @@ export default function SensoryFormProjectListPage() {
       value: selectedPeriod,
       options: periodOptionsFiltered,
       onChange: handlePeriodChange,
+      placeholder: "Select period...",
     },
-    {
-      id: "category",
-      value: selectedCategory,
-      onChange: handleCategoryChange,
-      options: [{ label: "All Categories", value: "" }, ...categories],
-      placeholder: "All Categories",
-    },
-    {
-      id: "subcategory",
-      value: selectedSubcategory,
-      onChange: handleSubcategoryChange,
-      options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-      placeholder: "All Subcategories",
-    },
-    {
-      id: "subSubcategory",
-      value: selectedSubSubcategory,
-      onChange: handleSubSubcategoryChange,
-      options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-      placeholder: "All Sub-Subcategories",
-    },
-    {
-      id: "creator",
-      value: selectedCreator,
-      onChange: handleCreatorChange,
-      options: [{ label: "All Creators", value: "" }, ...users],
-      placeholder: "All Creators",
-    },
-    {
-      id: "purpose",
-      value: selectedPurpose,
-      onChange: handlePurposeChange,
-      options: purposeFilterOptions,
-      placeholder: "All Purpose",
-    },
-  ], [selectedStatus, selectedPeriod, periodOptionsFiltered, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose, categories, subcategories, subSubcategories, users]);
+  ], [selectedStatus, selectedPeriod, periodOptionsFiltered, handleStatusChange, handlePeriodChange]);
 
   const normalizedProjects = useMemo(() => {
     return projects.map((proj) => ({

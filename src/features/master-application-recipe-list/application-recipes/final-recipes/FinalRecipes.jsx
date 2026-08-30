@@ -6,8 +6,6 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { NoData } from "@/components/ui/NoData";
 import { useFinalRecipes } from "@/hooks/useRecipes";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
 import { useDebounce } from "@/hooks/useDebounce";
 import { recipeAPI } from "@/services/recipeService";
 import DesktopFinalRecipeTable from "./components/DesktopFinalRecipeTable";
@@ -61,11 +59,6 @@ export default function FinalRecipes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipeType, setSelectedRecipeType] = useState("all");
   const [selectedState, setSelectedState] = useState("true");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = useState("");
-  const [selectedCreator, setSelectedCreator] = useState("");
-  const [selectedPurpose, setSelectedPurpose] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -75,7 +68,7 @@ export default function FinalRecipes() {
 
   React.useEffect(() => {
     setSelectedRowIds([]);
-  }, [currentPage, searchTerm, selectedRecipeType, selectedState, selectedCategory, selectedSubcategory, selectedSubSubcategory, selectedCreator, selectedPurpose]);
+  }, [currentPage, searchTerm, selectedRecipeType, selectedState]);
 
   const [sorting, setSorting] = useState([]);
   const [isCreateRecipeModalOpen, setIsCreateRecipeModalOpen] = useState(false);
@@ -138,18 +131,11 @@ export default function FinalRecipes() {
     searchTerm: debouncedSearchTerm,
     recipeType: selectedRecipeType,
     isActive: selectedState,
-    category: selectedCategory,
-    subCategory: selectedSubcategory,
-    subSubCategory: selectedSubSubcategory,
-    createdBy: selectedCreator,
-    purpose: selectedPurpose,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
     sortOrder,
   });
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, recipesData?.filterOptions);
 
   // Extract recipes array and pagination from the query result
   const recipes = recipesData?.data ?? [];
@@ -175,37 +161,9 @@ export default function FinalRecipes() {
     setCurrentPage(1);
   }, []);
 
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, []);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
-    setCurrentPage(1);
-  }, []);
-
   const handleSortingChange = useCallback((newSorting) => {
     setSorting(newSorting);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when sorting changes
   }, []);
 
   const handleColumnVisibilityChange = useCallback((updater) => {
@@ -344,64 +302,10 @@ export default function FinalRecipes() {
         value: selectedState,
         onChange: handleStateChange,
         options: stateOptions,
-        placeholder: "All",
-      },
-      {
-        id: "category",
-        value: selectedCategory,
-        onChange: handleCategoryChange,
-        options: [{ label: "All Categories", value: "" }, ...categories],
-        placeholder: "All Categories",
-      },
-      {
-        id: "subcategory",
-        value: selectedSubcategory,
-        onChange: handleSubcategoryChange,
-        options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-        placeholder: "All Subcategories",
-      },
-      {
-        id: "subSubcategory",
-        value: selectedSubSubcategory,
-        onChange: handleSubSubcategoryChange,
-        options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-        placeholder: "All Sub-Subcategories",
-      },
-      {
-        id: "creator",
-        value: selectedCreator,
-        onChange: handleCreatorChange,
-        options: [{ label: "All Creators", value: "" }, ...users],
-        placeholder: "All Creators",
-      },
-      {
-        id: "purpose",
-        value: selectedPurpose,
-        onChange: handlePurposeChange,
-        options: purposeFilterOptions,
-        placeholder: "All Purpose",
+        placeholder: "Active",
       },
     ],
-    [
-      selectedRecipeType,
-      selectedState,
-      selectedCategory,
-      selectedSubcategory,
-      selectedSubSubcategory,
-      selectedCreator,
-      selectedPurpose,
-      categories,
-      subcategories,
-      subSubcategories,
-      users,
-      handleRecipeTypeChange,
-      handleStateChange,
-      handleCategoryChange,
-      handleSubcategoryChange,
-      handleSubSubcategoryChange,
-      handleCreatorChange,
-      handlePurposeChange,
-    ]
+    [selectedRecipeType, selectedState, handleRecipeTypeChange, handleStateChange]
   );
 
   const handleBackToApplicationRecipes = () => {

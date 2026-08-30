@@ -14,17 +14,9 @@ import { MobileSamplePreparationCardSkeleton } from "./components/MobileSamplePr
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Pagination } from "@/components/ui/Pagination";
 import { NoData } from "@/components/ui/NoData";
-import { useProjectFilterOptions } from "@/hooks/useProjectFilters";
-import { purposeFilterOptions } from "@/features/project-overview/shared/constants/projectOptions";
-
 const SamplePreparationAndPackagingPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [selectedCategory, setSelectedCategory] = React.useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = React.useState("");
-  const [selectedSubSubcategory, setSelectedSubSubcategory] = React.useState("");
-  const [selectedCreator, setSelectedCreator] = React.useState("");
-  const [selectedPurpose, setSelectedPurpose] = React.useState("");
 
   const {
     projects,
@@ -43,10 +35,7 @@ const SamplePreparationAndPackagingPage = () => {
     totalPages,
     filters,
     filteredPeriodOptions,
-    filterOptions,
   } = useSamplePreparationLogic();
-
-  const { categories, subcategories, subSubcategories, users } = useProjectFilterOptions(selectedCategory, selectedSubcategory, filterOptions);
 
   const getErrorMessage = (error) =>
     error?.response?.data?.error ||
@@ -72,76 +61,9 @@ const SamplePreparationAndPackagingPage = () => {
     setCurrentPage(1);
   };
 
-  const handleCategoryChange = useCallback((value) => {
-    setSelectedCategory(value);
-    setSelectedSubcategory("");
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, [setCurrentPage]);
-
-  const handleSubcategoryChange = useCallback((value) => {
-    setSelectedSubcategory(value);
-    setSelectedSubSubcategory("");
-    setCurrentPage(1);
-  }, [setCurrentPage]);
-
-  const handleSubSubcategoryChange = useCallback((value) => {
-    setSelectedSubSubcategory(value);
-    setCurrentPage(1);
-  }, [setCurrentPage]);
-
-  const handleCreatorChange = useCallback((value) => {
-    setSelectedCreator(value);
-    setCurrentPage(1);
-  }, [setCurrentPage]);
-
-  const handlePurposeChange = useCallback((value) => {
-    setSelectedPurpose(value);
-    setCurrentPage(1);
-  }, [setCurrentPage]);
-
   const handleViewProjectDetails = (project) => {
     navigate(`/application-lab/sample-preparation-and-packaging/${project._id}`, { state: { project } });
   };
-
-  const allFilters = [
-    ...filters,
-    {
-      id: "category",
-      value: selectedCategory,
-      onChange: handleCategoryChange,
-      options: [{ label: "All Categories", value: "" }, ...categories],
-      placeholder: "All Categories",
-    },
-    {
-      id: "subcategory",
-      value: selectedSubcategory,
-      onChange: handleSubcategoryChange,
-      options: [{ label: "All Subcategories", value: "" }, ...subcategories],
-      placeholder: "All Subcategories",
-    },
-    {
-      id: "subSubcategory",
-      value: selectedSubSubcategory,
-      onChange: handleSubSubcategoryChange,
-      options: [{ label: "All Sub-Subcategories", value: "" }, ...subSubcategories],
-      placeholder: "All Sub-Subcategories",
-    },
-    {
-      id: "creator",
-      value: selectedCreator,
-      onChange: handleCreatorChange,
-      options: [{ label: "All Creators", value: "" }, ...users],
-      placeholder: "All Creators",
-    },
-    {
-      id: "purpose",
-      value: selectedPurpose,
-      onChange: handlePurposeChange,
-      options: purposeFilterOptions,
-      placeholder: "All Purpose",
-    },
-  ];
 
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
@@ -168,7 +90,7 @@ const SamplePreparationAndPackagingPage = () => {
         onSearchChange={(e) => handleSearchChange(e.target.value)}
         searchPlaceholder="Search projects..."
         hideOnDesktop={true}
-        filters={allFilters}
+        filters={filters}
       />
 
       {/* Status Filter Tabs - Desktop */}
