@@ -120,8 +120,8 @@ const ProductionSchedulePage = () => {
             code: project.masterProject?.code || project.code || 'Unknown',
             name: project.masterProject?.title || project.title || '',
             purposeName: project.masterProject?.purposeDetails || project.masterProject?.purposeName || project.masterProject?.purpose || project.purposeDetails || project.purposeName || project.applicationLab?.purposeName || '',
-            objectiveDetails: project.masterProject?.objectiveDetails || project.masterProject?.objective || project.objectiveDetails || project.productDevelopment?.objectiveDetails || '',
             recipeCode: project.applicationLab?.recipeCode || '',
+            recipeName: project.applicationLab?.recipeName || '',
         }));
     }, [projectsData]);
 
@@ -299,6 +299,7 @@ const ProductionSchedulePage = () => {
         const projectRecipes = (allRecipes || []).filter(r => r.project?._id === project.id || r.project === project.id);
         const defaultRecipe = projectRecipes[0];
         const defaultRecipeCode = defaultRecipe?.recipeCode || project.recipeCode || '';
+        const defaultRecipeName = defaultRecipe?.recipeName || defaultRecipe?.name || project.recipeName || '';
         const defaultRecipeId = defaultRecipe?._id || null;
 
         setNewRow(prev => {
@@ -309,8 +310,8 @@ const ProductionSchedulePage = () => {
                 projectCode: project.code,
                 projectName: project.name,
                 purposeName: project.purposeName,
-                objectiveDetails: project.objectiveDetails,
                 recipeCode: defaultRecipeCode,
+                recipeName: defaultRecipeName,
                 recipeId: defaultRecipeId,
             };
         });
@@ -384,8 +385,8 @@ const ProductionSchedulePage = () => {
             projectCode: '',
             projectName: '',
             purposeName: '',
-            objectiveDetails: '',
             recipeCode: '',
+            recipeName: '',
             schedule: {},
             scheduleEntries: [],
             isNewRow: true,

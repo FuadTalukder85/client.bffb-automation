@@ -64,6 +64,7 @@ const transformSchedulesToRows = (schedules) => {
       : "";
     const recipeId = schedule.recipeId?._id || schedule.recipeId || null;
     const recipeCode = schedule.recipeCode || schedule.recipeId?.recipeCode || project.applicationLab?.recipeCode || '';
+    const recipeName = schedule.recipeId?.recipeName || schedule.recipeId?.name || project.applicationLab?.recipeName || '';
 
     return {
       id: schedule._id,
@@ -71,8 +72,8 @@ const transformSchedulesToRows = (schedules) => {
       projectCode: masterProject.code || 'Unknown',
       projectName: masterProject.title || '',
       purposeName: masterProject.purposeDetails || masterProject.purposeName || masterProject.purpose || project.purposeDetails || project.purposeName || project.applicationLab?.purposeName || '',
-      objectiveDetails: masterProject.objectiveDetails || masterProject.objective || project.objectiveDetails || project.productDevelopment?.objectiveDetails || '',
       recipeCode: recipeCode,
+      recipeName: recipeName,
       recipeId: recipeId,
       responsiblePersons: responsiblePersons,
       responsiblePersonNames: responsiblePersonNames,

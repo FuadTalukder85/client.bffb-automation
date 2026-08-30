@@ -459,7 +459,7 @@ export default function ProductionScheduleTable({
                 <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>Purpose Name</span>
               </th>
               <th className={`text-left font-medium dark:bg-gray-800 overflow-hidden whitespace-nowrap transition-all duration-700 ease-in-out ${isExpanded ? "border-b border-primary px-4 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 w-37.5 lg:w-20 xl:w-26 2xl:w-30 3xl:w-37.5 opacity-100" : "px-0 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 max-w-0 opacity-0"}`} style={{ transitionDelay: isExpanded ? "100ms" : "0ms" }}>
-                <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>Objective Details</span>
+                <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>Recipe Name</span>
               </th>
               <th className={`text-left font-medium dark:bg-gray-800 overflow-hidden whitespace-nowrap transition-all duration-700 ease-in-out ${isExpanded ? "border-b border-primary px-4 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 w-37.5 lg:w-20 xl:w-26 2xl:w-30 3xl:w-37.5 opacity-100" : "px-0 py-3 lg:py-1.5 xl:py-1.5 2xl:py-2 3xl:py-3 max-w-0 opacity-0"}`} style={{ transitionDelay: isExpanded ? "150ms" : "0ms" }}>
                 <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>Recipe Code</span>
@@ -539,7 +539,20 @@ export default function ProductionScheduleTable({
                         <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>{row.purposeName}</span>
                       </td>
                       <td className={`dark:bg-gray-900 overflow-hidden whitespace-nowrap transition-all duration-700 ease-in-out ${isExpanded ? "border-b border-border px-4 lg:px-2 xl:px-2.5 2xl:px-3.5 3xl:px-4 py-2 lg:py-0.5 xl:py-1 2xl:py-1.5 3xl:py-2 w-37.5 lg:w-20 xl:w-26 2xl:w-30 3xl:w-37.5 opacity-100" : "px-0 py-2 lg:py-0.5 xl:py-1 2xl:py-1.5 3xl:py-2 max-w-0 opacity-0"}`} style={{ transitionDelay: isExpanded ? "100ms" : "0ms" }}>
-                        <span className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>{row.objectiveDetails}</span>
+                        <div className={`transition-opacity duration-700 ${isExpanded ? "opacity-100" : "opacity-0"}`}>
+                          {row.recipeName ? (
+                            <button
+                              type="button"
+                              onClick={() => handleRecipeClick(row)}
+                              className="text-primary hover:underline font-semibold cursor-pointer text-left transition-colors"
+                              title="Click to view recipe details"
+                            >
+                              {row.recipeName}
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 italic">-</span>
+                          )}
+                        </div>
                       </td>
                       
                       {/* Recipe Code Column */}

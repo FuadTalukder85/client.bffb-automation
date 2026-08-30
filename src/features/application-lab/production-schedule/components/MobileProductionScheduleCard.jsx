@@ -558,11 +558,21 @@ export default function MobileProductionScheduleCard({
                   </tr>
                   <tr className="bg-white dark:bg-gray-800">
                     <th className="border-b border-r border-gray-200 dark:border-gray-700 px-3 py-2.5 text-left font-normal text-xs whitespace-nowrap sticky left-0 bg-white dark:bg-gray-800 z-30" style={{ top: "102px" }}>
-                      Objective Details
+                      Recipe Name
                     </th>
                     {scheduleData.map((row) => (
-                      <td key={row.id} className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2.5 text-center text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap sticky bg-white dark:bg-gray-800 z-20" style={{ top: "102px" }}>
-                        <div className="max-w-25 truncate mx-auto">{row.objectiveDetails}</div>
+                      <td key={row.id} className="border-b border-r border-gray-200 dark:border-gray-700 px-2 py-2.5 text-center text-xs whitespace-nowrap sticky bg-white dark:bg-gray-800 z-20" style={{ top: "102px" }}>
+                        {row.recipeName ? (
+                          <button
+                            type="button"
+                            onClick={() => handleRecipeClick(row)}
+                            className="text-primary hover:underline font-semibold cursor-pointer truncate max-w-25 mx-auto block"
+                          >
+                            {row.recipeName}
+                          </button>
+                        ) : (
+                          <span className="text-gray-400 italic">-</span>
+                        )}
                       </td>
                     ))}
                   </tr>
