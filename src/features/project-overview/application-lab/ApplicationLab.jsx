@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
@@ -8,11 +11,17 @@ import DesktopApplicationLabTable from "./components/DesktopApplicationLabTable"
 import MobileApplicationLabCard from "./components/MobileApplicationLabCard";
 import { ApplicationLabTableSkeleton } from "./components/ApplicationLabTableSkeleton";
 import { MobileApplicationLabCardSkeleton } from "./components/MobileApplicationLabCardSkeleton";
+import CreateRecipeModal from "@/features/application-lab/application-recipes/components/CreateRecipeModal";
 import { useApplicationLabLogic } from "./hooks/useApplicationLabLogic";
 import { applicationLabStatusFilterOptions as statusOptions } from "./constants/projectOptions";
 import { NoData } from "@/components/ui/NoData";
 
 export default function ApplicationLab() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+
   const {
     searchTerm,
     selectedStatus,
@@ -46,6 +55,24 @@ export default function ApplicationLab() {
 
   const errorMessage = error ? getErrorMessage(error) : "";
   const hasError = Boolean(errorMessage);
+
+  const handleCreateRecipe = (project) => {
+    setSelectedProject({
+      ...project,
+      projectName: project?.projectName || project?.masterProject?.title || project?.name || "",
+      projectCode: project?.projectCode || project?.masterProject?.code || project?.code || "",
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleViewRecipe = (project) => {
+    navigate(`/application-lab/application-recipes/${project._id}`, { state: { project } });
+  };
+
+  const handleCreateRecipeConfirm = (data) => {
+    setIsCreateModalOpen(false);
+    queryClient.invalidateQueries({ queryKey: queryKeys.applicationLabProjects.all });
+  };
 
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
@@ -128,6 +155,8 @@ export default function ApplicationLab() {
                     project={project}
                     serialNumber={(currentPage - 1) * itemsPerPage + index + 1}
                     onViewDetails={handleViewProjectDetails}
+                    onCreateRecipe={handleCreateRecipe}
+                    onViewRecipe={handleViewRecipe}
                   />
                 ))
               ) : (
@@ -152,6 +181,8 @@ export default function ApplicationLab() {
                   setCurrentPage(1);
                 }}
                 onViewDetails={handleViewProjectDetails}
+                onCreateRecipe={handleCreateRecipe}
+                onViewRecipe={handleViewRecipe}
                 sorting={sorting}
                 onSortingChange={setSorting}
                 columnVisibility={columnVisibility}
@@ -189,6 +220,15 @@ export default function ApplicationLab() {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <CreateRecipeModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        project={selectedProject}
+        onConfirm={handleCreateRecipeConfirm}
+      />
     </section>
   );
 }
+

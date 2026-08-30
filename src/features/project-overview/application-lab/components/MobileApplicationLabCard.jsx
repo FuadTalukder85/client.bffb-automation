@@ -1,5 +1,6 @@
 import React from "react";
-import { Eye, AlertCircle } from "lucide-react";
+import { Eye, AlertCircle, ChefHat } from "lucide-react";
+import { GoPlus } from "react-icons/go";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { hasSection } from "../../product-development/components/ProductDevelopmentShared";
@@ -12,8 +13,17 @@ export default function MobileApplicationLabCard({
     project, 
     serialNumber, 
     onViewDetails,
+    onCreateRecipe,
+    onViewRecipe,
     className 
 }) {
+    const hasRecipe = Boolean(
+        project.latestRecipe ||
+        project.applicationLab?.recipeRef ||
+        project.applicationLab?.recipeCode ||
+        project.applicationLab?.recipeName
+    );
+
     // Check which sections are accessible
     const hasMasterProject = hasSection(project, "masterProject");
     const hasProductDevelopment = hasSection(project, "productDevelopment");
@@ -183,14 +193,37 @@ export default function MobileApplicationLabCard({
                             onClick={() => onViewDetails?.(project)}
                             title="View Details"
                             aria-label="View Details"
-                            className="flex-1 flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-semibold rounded-l-md rounded-r-none text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                            className="flex-1 flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-semibold rounded-l-md rounded-r-none text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
                         >
                             <Eye className="w-5 h-5 action-button-icon" />
                         </Button>
                         <ProjectTaskStatsButton
                             projectId={project._id}
-                            className="flex-1 h-9 px-3 text-sm font-semibold rounded-r-md rounded-l-none border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none border-y border-r border-r-nav-highlight/15"
+                            className="flex-1 h-9 px-3 text-sm font-semibold rounded-none border border-nav-highlight/15 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none border-y border-r border-r-nav-highlight/15"
                         />
+                        {hasRecipe ? (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onViewRecipe?.(project)}
+                                title="View Recipe Details"
+                                aria-label="View Recipe Details"
+                                className="flex-1 flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-semibold rounded-r-md rounded-l-none text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
+                            >
+                                <ChefHat className="w-5 h-5 action-button-icon" />
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onCreateRecipe?.(project)}
+                                title="Create Recipe"
+                                aria-label="Create Recipe"
+                                className="flex-1 flex items-center justify-center gap-1.5 h-9 px-3 text-sm font-semibold rounded-r-md rounded-l-none border border-[#EEEBF4] dark:border-primary-shade-2 hover:bg-purple-200 bg-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none cursor-pointer"
+                            >
+                                <GoPlus className="w-5 h-5 action-button-icon" />
+                            </Button>
+                        )}
                     </div>
                 </ExpandableCard.FooterLeft>
                 <ExpandableCard.FooterRight>
@@ -200,3 +233,4 @@ export default function MobileApplicationLabCard({
         </ExpandableCard>
     );
 }
+
