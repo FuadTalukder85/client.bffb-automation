@@ -249,10 +249,12 @@ export const EditableField = React.forwardRef(
         const selectedLabels = (Array.isArray(currentValue) ? currentValue : [currentValue])
           .map((val) => {
             if (typeof val === "object" && val !== null) {
-              return val.name || val.label || val.title || String(val);
+              const id = val._id || val.id || val.value;
+              const matchedOpt = id ? options.find((o) => String(o.value) === String(id)) : null;
+              return val.name || val.label || val.title || matchedOpt?.label || "";
             }
-            const opt = options.find((o) => o.value === val);
-            return opt?.label || (looksLikeObjectId(val) ? "" : val);
+            const opt = options.find((o) => String(o.value) === String(val));
+            return opt?.label || (looksLikeObjectId(val) ? "" : String(val));
           })
           .filter(Boolean)
           .join(", ");
