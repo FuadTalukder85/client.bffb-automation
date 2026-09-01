@@ -152,16 +152,24 @@ export default function BasicInformation({
       </div>
 
       {/* Application Category */}
-      {renderField("Application Category", "independentRecipeApplicationCategory", typeof recipe?.project?.category === 'object' ? recipe?.project?.category?.name : recipe?.project?.category || "N/A")}
+      {renderField("Application Category", "independentRecipeApplicationCategory", typeof recipe?.project?.category === 'object' && recipe?.project?.category !== null ? recipe?.project?.category?.name || "N/A" : recipe?.project?.category || "N/A")}
 
       {/* Application Subcategory */}
-      {renderField("Application Subcategory", "independentRecipeApplicationSubcategory", typeof recipe?.project?.subCategory === 'object' ? recipe?.project?.subCategory?.name : recipe?.project?.subCategory || "N/A")}
+      {renderField("Application Subcategory", "independentRecipeApplicationSubcategory", typeof recipe?.project?.subCategory === 'object' && recipe?.project?.subCategory !== null ? recipe?.project?.subCategory?.name || "N/A" : recipe?.project?.subCategory || "N/A")}
 
       {/* Application Sub-subcategory */}
-      {renderField("Application Sub-subcategory", "independentRecipeApplicationSubSubcategory", typeof recipe?.project?.subSubCategory === 'object' ? recipe?.project?.subSubCategory?.name : recipe?.project?.subSubCategory || "N/A")}
+      {renderField(
+        "Application Sub-subcategory",
+        "independentRecipeApplicationSubSubcategory",
+        Array.isArray(recipe?.project?.subSubCategory)
+          ? recipe?.project?.subSubCategory.map(s => (typeof s === 'object' && s !== null ? s?.name : s)).filter(Boolean).join(", ") || "N/A"
+          : typeof recipe?.project?.subSubCategory === 'object' && recipe?.project?.subSubCategory !== null
+          ? recipe?.project?.subSubCategory?.name || "N/A"
+          : recipe?.project?.subSubCategory || "N/A"
+      )}
 
       {/* Application Tags */}
-      {renderField("Application Tags", "independentRecipeTags", recipe?.project?.tags?.map(tag => typeof tag === 'object' ? tag.name : tag).join(', ') || "N/A")}
+      {renderField("Application Tags", "independentRecipeTags", Array.isArray(recipe?.project?.tags) ? recipe.project.tags.map(tag => typeof tag === 'object' && tag !== null ? tag.name : tag).filter(Boolean).join(', ') || "N/A" : "N/A")}
 
       {/* Target Cost */}
       {renderField("Target Cost", "independentRecipeTargetCost", recipe?.project?.targetCost || "N/A")}

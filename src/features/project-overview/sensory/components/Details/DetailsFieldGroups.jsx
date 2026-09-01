@@ -317,27 +317,17 @@ export const DetailsFieldGroups = ({
       if (draftValues[config.path] !== undefined) {
         value = draftValues[config.path];
       } else if (Array.isArray(value)) {
-        const sscIds = value.map((item) => {
-          if (typeof item === "object" && item !== null) {
-            return item._id || item.id || item;
-          }
-          return item;
-        });
-        const sscObjects = value.filter((item) => typeof item === "object" && item !== null);
-        value = sscObjects.length > 0 ? sscObjects : sscIds;
+        value = value.map((item) => (typeof item === "object" && item !== null ? item._id || item.id || item : item));
+      } else if (typeof value === "object" && value !== null) {
+        value = [value._id || value.id || value];
       }
     } else if (config.path === "applicationLab.tags") {
       if (draftValues[config.path] !== undefined) {
         value = draftValues[config.path];
       } else if (Array.isArray(value)) {
-        const tagIds = value.map((item) => {
-          if (typeof item === "object" && item !== null) {
-            return item._id || item.id || item;
-          }
-          return item;
-        });
-        const tagObjects = value.filter((item) => typeof item === "object" && item !== null);
-        value = tagObjects.length > 0 ? tagObjects : tagIds;
+        value = value.map((item) => (typeof item === "object" && item !== null ? item._id || item.id || item : item));
+      } else if (typeof value === "object" && value !== null) {
+        value = [value._id || value.id || value];
       }
     }
 

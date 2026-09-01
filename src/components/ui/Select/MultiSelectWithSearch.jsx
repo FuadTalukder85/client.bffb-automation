@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { X, Search, ChevronDown, ChevronUp, Check } from "lucide-react";
-import { createPortal } from "react-dom";
+import { Search, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const MultiSelectWithSearch = ({
@@ -19,26 +18,29 @@ export const MultiSelectWithSearch = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef(null);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
   const listRef = useRef(null);
+
   // Accumulates option labels across search terms so a previously selected
   // option doesn't disappear from the display just because a later search
   // no longer includes it in `options`.
   const [labelCache, setLabelCache] = useState(() => new Map());
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLabelCache(prev => {
       let changed = false;
       const next = new Map(prev);
       options.forEach(option => {
-        const key = String(option.value);
-        if (next.get(key) !== option) {
-          next.set(key, option);
-          changed = true;
+        if (option && option.value !== undefined && option.value !== null) {
+          const key = String(option.value);
+          if (next.get(key) !== option) {
+            next.set(key, option);
+            changed = true;
+          }
         }
       });
       return changed ? next : prev;
@@ -46,40 +48,59 @@ export const MultiSelectWithSearch = ({
   }, [options]);
 
   const selectedValues = useMemo(() => {
-    return Array.isArray(value) ? value : [];
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((v) => {
+        if (typeof v === "object" && v !== null) {
+          return String(v._id || v.id || v.value || "");
+        }
+        return String(v ?? "");
+      })
+      .filter(Boolean);
   }, [value]);
 
   // Create a Map for faster option lookup by value
   const optionsMap = useMemo(() => {
     const map = new Map();
-    options.forEach(option => {
-      // Use string comparison for robust matching
-      map.set(String(option.value), option);
+    options.forEach((option) => {
+      if (option && option.value !== undefined && option.value !== null) {
+        if (typeof option.value === "object") {
+          const id = String(option.value._id || option.value.id || "");
+          if (id) map.set(id, option);
+        } else {
+          map.set(String(option.value), option);
+        }
+      }
     });
     return map;
   }, [options]);
 
   const selectedOptions = useMemo(() => {
-    return selectedValues.map(val => {
-      const key = String(val);
-      return optionsMap.get(key) || labelCache.get(key) || { value: val, label: key };
-    });
-  }, [selectedValues, optionsMap, labelCache]);
+    const rawList = Array.isArray(value) ? value : [];
+    return rawList
+      .map((val) => {
+        const isObj = typeof val === "object" && val !== null;
+        const key = isObj ? String(val._id || val.id || val.value || "") : String(val ?? "");
+        const matched = (key && optionsMap.get(key)) || (key && labelCache.get(key));
+        if (matched) return matched;
+        if (isObj) {
+          const objLabel = val.name || val.label || val.title || "";
+          if (objLabel) return { value: key || val, label: objLabel };
+        }
+        const looksLikeId = typeof key === "string" && /^[0-9a-fA-F]{24}$/.test(key);
+        return { value: val, label: looksLikeId ? "" : key };
+      })
+      .filter((opt) => opt && opt.label);
+  }, [value, optionsMap, labelCache]);
 
   const filteredOptions = useMemo(() => {
     const searchLower = searchTerm.toLowerCase().trim();
-    const result = !searchLower ? options : options.filter(option => 
-      option.label?.toLowerCase().includes(searchLower) ||
-      option.searchText?.toLowerCase().includes(searchLower)
-    );
-    console.log("🔄 MultiSelectWithSearch - filteredOptions:", {
-      searchTerm,
-      searchLower,
-      totalOptions: options.length,
-      filteredCount: result.length,
-      firstFewOptions: result.slice(0, 3).map(o => ({ value: o.value, label: o.label })),
-      timestamp: new Date().toISOString()
-    });
+    const result = !searchLower
+      ? options
+      : options.filter((option) =>
+          String(option.label || "").toLowerCase().includes(searchLower) ||
+          String(option.searchText || "").toLowerCase().includes(searchLower)
+        );
     return result;
   }, [options, searchTerm]);
 
@@ -96,7 +117,10 @@ export const MultiSelectWithSearch = ({
 
   const displayValue = useMemo(() => {
     if (selectedOptions.length === 0) return "";
-    return selectedOptions.map(opt => opt.label).join(", ");
+    return selectedOptions
+      .map((opt) => (typeof opt.label === "object" ? opt.label?.name || opt.label?.label || "" : String(opt.label || "")))
+      .filter(Boolean)
+      .join(", ");
   }, [selectedOptions]);
 
   const handleSearchChange = useCallback((term) => {
@@ -104,47 +128,6 @@ export const MultiSelectWithSearch = ({
       onSearchChange(term);
     }
   }, [onSearchChange]);
-
-  const updateDropdownPosition = useCallback(() => {
-    if (!containerRef.current || !isOpen) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const dropdownHeight = Math.min(filteredOptions.length * 40 + 48, 250);
-    
-    let top = rect.bottom;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-      top = rect.top - dropdownHeight;
-    }
-    
-    setDropdownPos({
-      top: top + window.scrollY,
-      left: rect.left + window.scrollX,
-      width: rect.width,
-    });
-  }, [isOpen, filteredOptions.length]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    updateDropdownPosition();
-
-    const handleScroll = () => updateDropdownPosition();
-    const handleResize = () => updateDropdownPosition();
-
-    window.addEventListener("scroll", handleScroll, true);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [isOpen, updateDropdownPosition]);
 
   useEffect(() => {
     if (highlightedIndex >= 0 && listRef.current) {
@@ -157,16 +140,16 @@ export const MultiSelectWithSearch = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const clickedOutsideContainer = containerRef.current && !containerRef.current.contains(event.target);
-      const clickedOutsideDropdown = !dropdownRef.current || !dropdownRef.current.contains(event.target);
-      
-      if (clickedOutsideContainer && clickedOutsideDropdown) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
         setSearchTerm("");
         setHighlightedIndex(-1);
       }
     };
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -179,7 +162,9 @@ export const MultiSelectWithSearch = ({
       ? selectedValues.filter(v => String(v) !== optionValueStr)
       : [...selectedValues, optionValue];
 
-    onChange({ target: { value: newValue } });
+    if (onChange) {
+      onChange({ target: { value: newValue } });
+    }
     setHighlightedIndex(-1);
   }, [selectedValues, onChange]);
 
@@ -206,8 +191,10 @@ export const MultiSelectWithSearch = ({
 
   const handleContainerClick = () => {
     if (!disabled) {
-      setIsOpen(true);
-      inputRef.current?.focus();
+      setIsOpen(!isOpen);
+      if (!isOpen) {
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
     }
   };
 
@@ -219,55 +206,45 @@ export const MultiSelectWithSearch = ({
     <div className="relative w-full" ref={containerRef}>
       <div
         className={cn(
-          "w-full  flex items-center gap-2 cursor-text rounded-md overflow-hidden",
-          isOpen && "",
+          "w-full flex items-center gap-2 cursor-pointer rounded-md overflow-hidden",
+          disabled && "opacity-50 cursor-not-allowed pointer-events-none",
           className
         )}
-        // className={cn(
-        //   "min-h-10 w-full bg-background px-3 py-2 text-sm  placeholder:text-muted-foreground  flex items-center gap-2 cursor-text rounded-md overflow-hidden",
-        //   isOpen && "",
-        //   className
-        // )}
         onClick={handleContainerClick}
       >
         <div className="flex-1 flex items-center gap-2 min-w-0 overflow-hidden">
           {selectedOptions.length > 0 ? (
-            <span className="text-sm truncate flex-1" title={displayValue}>
+            <span className="text-xs lg:text-[7.5px] xl:text-[10px] 2xl:text-[11px] 3xl:text-sm truncate flex-1 text-foreground" title={displayValue}>
               {displayValue}
             </span>
           ) : (
-            <span className="text-sm text-muted-foreground truncate flex-1">
+            <span className="text-xs lg:text-[7.5px] xl:text-[10px] 2xl:text-[11px] 3xl:text-sm text-muted-foreground truncate flex-1">
               {placeholder}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {selectedValues.length > 0 && (
-            <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+            <span className="text-[10px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded font-medium">
               {selectedValues.length}
             </span>
           )}
           {isOpen ? (
-            <ChevronUp size={16} className="text-muted-foreground" />
+            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
           ) : (
-            <ChevronDown size={16} className="text-muted-foreground" />
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           )}
         </div>
       </div>
 
-      {isOpen && createPortal(
+      {isOpen && (
         <div
           ref={dropdownRef}
-          className="fixed z-9999 bg-background text-foreground border border-border rounded-md shadow-lg overflow-hidden"
-          style={{
-            top: `${dropdownPos.top}px`,
-            left: `${dropdownPos.left}px`,
-            width: `${dropdownPos.width}px`,
-          }}
+          className="absolute z-50 left-0 top-full mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden flex flex-col"
         >
-          <div className="border-b border-border p-2 shrink-0">
+          <div className="border-b border-gray-100 dark:border-white/10 p-2 shrink-0">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 ref={inputRef}
                 type="text"
@@ -277,18 +254,19 @@ export const MultiSelectWithSearch = ({
                   handleSearchChange(e.target.value);
                 }}
                 placeholder={effectiveSearchPlaceholder}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-muted/50 border-0 rounded-md outline-none placeholder:text-muted-foreground"
+                className="w-full pl-8 pr-2.5 py-1 text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm bg-muted/40 border border-gray-200 dark:border-white/10 rounded-md outline-none placeholder:text-muted-foreground text-foreground"
                 autoFocus
+                onClick={(e) => e.stopPropagation()}
                 onKeyDown={handleInputKeyDown}
               />
             </div>
           </div>
           <div 
             ref={listRef}
-            className="overflow-y-auto max-h-[200px] py-1"
+            className="overflow-y-auto max-h-[180px] lg:max-h-[120px] xl:max-h-[140px] 2xl:max-h-[160px] 3xl:max-h-[200px] py-1 custom-scrollbar"
           >
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+              <div className="px-3 py-3 text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm text-muted-foreground text-center">
                 {searchTerm ? "No options found" : "No options available"}
               </div>
             ) : (
@@ -300,21 +278,27 @@ export const MultiSelectWithSearch = ({
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => handleSelect(option.value)}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelect(option.value);
+                    }}
                     className={cn(
-                      "w-full px-3 py-2.5 text-left text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors flex items-center gap-3",
+                      "w-full px-3 py-1.5 lg:py-1 xl:py-1.5 text-left text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors flex items-center gap-2.5",
                       index === highlightedIndex && "bg-accent text-foreground",
-                      isSelected && "bg-primary/10"
+                      isSelected && "bg-primary/10 text-primary font-medium"
                     )}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
                     <div className={cn(
-                      "w-4 h-4 border rounded flex items-center justify-center shrink-0 transition-colors",
+                      "w-3.5 h-3.5 lg:w-3 lg:h-3 xl:w-3.5 xl:h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors",
                       isSelected 
                         ? "bg-primary border-primary text-white" 
-                        : "border-input"
+                        : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
                     )}>
-                      {isSelected && <Check size={12} className="text-primary-foreground" />}
+                      {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                     </div>
                     <span className="truncate flex-1" title={option.label}>
                       {option.label}
@@ -328,14 +312,13 @@ export const MultiSelectWithSearch = ({
                 type="button"
                 onClick={() => onCreateOption && onCreateOption(searchTerm.trim())}
                 disabled={isCreating}
-                className="w-full px-3 py-2.5 text-left text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors border-t border-border text-primary disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-left text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors border-t border-border text-primary disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isCreating ? "Creating..." : `${createLabel} \"${searchTerm.trim()}\"`}
+                {isCreating ? "Creating..." : `${createLabel} "${searchTerm.trim()}"`}
               </button>
             )}
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );

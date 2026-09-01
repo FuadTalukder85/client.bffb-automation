@@ -366,18 +366,12 @@ export const DetailsFieldGroups = ({
             ? localValues.subcategory 
             : (value && typeof value === "object" ? value._id || value.id || value : value));
     } else if (config.path === "applicationLab.subSubcategory") {
-      value = draftValues[config.path] !== undefined 
-        ? draftValues[config.path] 
-        : value;
-      if (Array.isArray(value)) {
-        const sscIds = value.map((item) => {
-          if (typeof item === "object" && item !== null) {
-            return item._id || item.id || item;
-          }
-          return item;
-        });
-        const sscObjects = value.filter((item) => typeof item === "object" && item !== null);
-        value = sscObjects.length > 0 ? sscObjects : sscIds;
+      if (draftValues[config.path] !== undefined) {
+        value = draftValues[config.path];
+      } else if (Array.isArray(value)) {
+        value = value.map((item) => (typeof item === "object" && item !== null ? item._id || item.id || item : item));
+      } else if (typeof value === "object" && value !== null) {
+        value = [value._id || value.id || value];
       }
     }
 

@@ -16,10 +16,12 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { objectiveOptions, purposeOptions, getObjectiveByPurpose } from "../../constants/projectOptions";
-import { formatNumberWithCommas, parseFormattedNumber } from "@/utils/numberFormatter";
+import { parseFormattedNumber } from "@/utils/numberFormatter";
 import { getApiErrorMessage } from "@/utils";
 import { MultiSelect } from "@/components/ui/Select/MultiSelect";
+import { MultiSelectWithSearch } from "@/components/ui/Select/MultiSelectWithSearch";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useActiveCategories, useSubCategoriesByCategory, useSubSubCategoriesBySubCategory } from "@/hooks/useAsyncSelectData";
 
 const responsibilityOptions = [
   { label: "Project Overview", value: "Project Overview" },
@@ -189,9 +191,16 @@ function AddResponsibilityMenu({ memberId, existingResponsibilities, isCreator, 
     );
 }
 
-function DesktopProjectDetailsStep({ register, errors, raisedDate, setRaisedDate, control }) {
+function DesktopProjectDetailsStep({ register, errors, control, watch, setValue }) {
     const inputClass = "placeholder:text-xs lg:placeholder:text-[8px] xl:placeholder:text-[10px] 2xl:placeholder:text-xs 3xl:placeholder:text-sm text-sm lg:text-[7.5px] xl:text-[10px] 2xl:text-[11px] 3xl:text-sm h-5 lg:h-6 xl:h-7.5 2xl:h-8.5 3xl:h-11";
     const wrapperClass = "rounded-lg bg-primary-shade-2/10 border-0";
+
+    const selectedCategory = watch ? watch("category") : "";
+    const selectedSubCategory = watch ? watch("subcategory") : "";
+
+    const { options: categoryOptions, isLoading: isCategoriesLoading } = useActiveCategories();
+    const { options: subCategoryOptions, isLoading: isSubCategoriesLoading } = useSubCategoriesByCategory(selectedCategory);
+    const { options: subSubCategoryOptions, isLoading: isSubSubCategoriesLoading } = useSubSubCategoriesBySubCategory(selectedSubCategory);
 
     return (
         <div className="space-y-3 lg:space-y-1.5 xl:space-y-2 2xl:space-y-2.5 3xl:space-y-3 py-1">
@@ -210,7 +219,6 @@ function DesktopProjectDetailsStep({ register, errors, raisedDate, setRaisedDate
                                 value={field.value || ""}
                                 onChange={(e) => {
                                     field.onChange(e.target.value);
-                                    setRaisedDate(e.target.value);
                                 }}
                                 placeholder="Select date"
                                 className={`${wrapperClass} w-full h-5 lg:h-6 xl:h-7.5 2xl:h-8.5 3xl:h-11 bg-primary-shade-2`}
@@ -347,7 +355,86 @@ function DesktopProjectDetailsStep({ register, errors, raisedDate, setRaisedDate
                     />
                 </div>
 
+                {/* Category */}
+                <div className="flex flex-col gap-0">
+                    <label className="text-[8px] lg:text-[8px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-normal text-lighter-text">
+                        Category
+                    </label>
+                    <Controller
+                        name="category"
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                            <Select
+                                options={categoryOptions}
+                                placeholder={isCategoriesLoading ? "Loading..." : "Select Category"}
+                                className={`${wrapperClass} w-full h-5 lg:h-6 xl:h-7.5 2xl:h-8.5 3xl:h-11 bg-primary-shade-2`}
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    if (setValue) {
+                                        setValue("subcategory", "");
+                                        setValue("subSubcategory", []);
+                                    }
+                                }}
+                                searchable={true}
+                            />
+                        )}
+                    />
+                </div>
 
+                {/* Sub-category */}
+                <div className="flex flex-col gap-0">
+                    <label className="text-[8px] lg:text-[8px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-normal text-lighter-text">
+                        Sub-category
+                    </label>
+                    <Controller
+                        name="subcategory"
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                            <Select
+                                options={subCategoryOptions}
+                                placeholder={!selectedCategory ? "Select Category first" : isSubCategoriesLoading ? "Loading..." : "Select Sub-category"}
+                                className={`${wrapperClass} w-full h-5 lg:h-6 xl:h-7.5 2xl:h-8.5 3xl:h-11 bg-primary-shade-2`}
+                                value={field.value || ""}
+                                onChange={(e) => {
+                                    field.onChange(e.target.value);
+                                    if (setValue) {
+                                        setValue("subSubcategory", []);
+                                    }
+                                }}
+                                disabled={!selectedCategory}
+                                searchable={true}
+                            />
+                        )}
+                    />
+                </div>
+
+                {/* Sub-Sub Category */}
+                <div className="flex flex-col gap-0">
+                    <label className="text-[8px] lg:text-[8px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-normal text-lighter-text">
+                        Sub-Sub Category
+                    </label>
+                    <Controller
+                        name="subSubcategory"
+                        control={control}
+                        defaultValue={[]}
+                        render={({ field }) => (
+                            <MultiSelectWithSearch
+                                options={subSubCategoryOptions}
+                                placeholder={!selectedSubCategory ? "Select Sub-category first" : isSubSubCategoriesLoading ? "Loading..." : "Select Sub-Sub Category"}
+                                className={`${wrapperClass} w-full h-5 lg:h-6 xl:h-7.5 2xl:h-8.5 3xl:h-11 bg-primary-shade-2 px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm`}
+                                value={Array.isArray(field.value) ? field.value : (field.value ? [field.value] : [])}
+                                onChange={(e) => {
+                                    const val = e?.target?.value !== undefined ? e.target.value : e;
+                                    field.onChange(val);
+                                }}
+                                disabled={!selectedSubCategory}
+                            />
+                        )}
+                    />
+                </div>
 
             </div>
 
@@ -386,6 +473,7 @@ function DesktopAddMembersStep({
 
     // Reset responsibility when selected member changes
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentResponsibility([]);
     }, [currentMemberId]);
 
@@ -601,7 +689,6 @@ export function DesktopCreateProjectWithMemberModal({
 }) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [raisedDate, setRaisedDate] = useState("");
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [projectData, setProjectData] = useState(null);
@@ -632,9 +719,19 @@ export function DesktopCreateProjectWithMemberModal({
             // Transition from closed to open
             setCurrentStep(1);
             setProjectData(null);
-            setRaisedDate("");
             reset({
-                raisedDate: ""
+                raisedDate: "",
+                projectTitle: "",
+                purpose: "",
+                purposeDetails: "",
+                objective: "",
+                objectiveDetails: "",
+                raisedBy: "",
+                targetCost: "",
+                category: "",
+                subcategory: "",
+                subSubcategory: [],
+                projectBrief: ""
             });
             setError(null);
             if (user) {
@@ -731,9 +828,9 @@ export function DesktopCreateProjectWithMemberModal({
                                 <DesktopProjectDetailsStep
                                     register={register}
                                     errors={errors}
-                                    raisedDate={raisedDate}
-                                    setRaisedDate={setRaisedDate}
                                     control={control}
+                                    watch={watch}
+                                    setValue={setValue}
                                 />
                             </div>
 
