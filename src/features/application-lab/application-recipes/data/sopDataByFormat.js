@@ -46,6 +46,19 @@ const CONFECTIONERY_BENCHMARK_PARAMS = [
   { label: "Acidity", unit: "" },
 ];
 
+export const CONFECTIONERY_PROCEDURE_PARAMS = [
+  { label: "Cooking pH", value: "24", unit: "" },
+  { label: "Final pH", value: "1.12", unit: "" },
+  { label: "Brix", value: "1.12", unit: "" },
+  { label: "Cooking Temperature", value: "24", unit: "°C" },
+  { label: "Depositing Temperature", value: "24", unit: "°C" },
+  { label: "Cooking Time", value: "24", unit: "min" },
+  { label: "Gel Forming Time", value: "24", unit: "min" },
+];
+
+export const CONFECTIONERY_DEFAULT_PROCEDURE =
+  "Mix all dry ingredients in the primary bowl for 2 minutes on low speed. Gradually add chilled water and liquid yeast while mixing on medium speed for an additional 8 minutes. Ensure dough windowpane test passes before transferring to the resting vat. Rest for 45 minutes at room temperature.";
+
 /**
  * Convert backend benchmarkParameters array to UI analyticalReport shape.
  * Backend format: [{ parameterName, parameterValue, parameterUnit }]
@@ -82,6 +95,9 @@ export function mapUIParamsToBackend(uiParams = []) {
  */
 export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
   const isBakery = format === "bakery";
+  const isConfectionary =
+    String(format || "").toLowerCase().includes("confection") ||
+    String(recipe?.recipeType || "").toLowerCase().includes("confection");
 
   // Benchmark
   const benchmark = {
@@ -100,13 +116,12 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
   const productDevelopmentFeedback = recipe.benchmarkPDFeedback || "";
 
   // Procedure
-  const procedureSOP = recipe.procedureSOP || "";
+  const rawProcedure =
+    recipe.procedureSOP || (isConfectionary ? CONFECTIONERY_DEFAULT_PROCEDURE : "");
   const procedure = {
     title: "Standard Operating Procedure",
-    raw: procedureSOP,
-    steps: procedureSOP
-      ? procedureSOP.split("\n")
-      : [],
+    raw: rawProcedure,
+    steps: rawProcedure ? rawProcedure.split("\n") : [],
   };
 
   // Procedure Parameters
@@ -114,6 +129,12 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
   if (isBakery) {
     procedureParameters = {
       analyticalReport: mapBackendParamsToUI(recipe.procedureParameters),
+    };
+  } else if (isConfectionary) {
+    const backendParams = mapBackendParamsToUI(recipe.procedureParameters);
+    procedureParameters = {
+      analyticalReport:
+        backendParams.length > 0 ? backendParams : CONFECTIONERY_PROCEDURE_PARAMS,
     };
   } else {
     // Other formats: generic analyticalReport from procedureParameters

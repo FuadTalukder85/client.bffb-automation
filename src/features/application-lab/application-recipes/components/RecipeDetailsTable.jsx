@@ -29,6 +29,7 @@ function VersionColumn({
   onEditRow,
   onSaveSpecificFields,
   recipeFormat = "bakery",
+  isConfectionary = false,
   isFinalized = false,
 }) {
   const versionNumStr = String(Number(vItem?.version ?? 0) + 1).padStart(2, "0");
@@ -56,13 +57,17 @@ function VersionColumn({
 
   // Batch Summary Independent Edit Mode states for THIS version
   const [isBatchSummaryEditing, setIsBatchSummaryEditing] = useState(false);
-  const [draftYield, setDraftYield] = useState(vItem?.outputYield ?? data?.outputYield ?? 0);
-  const [draftServingSize, setDraftServingSize] = useState(vItem?.outputServingSize ?? data?.outputServingSize ?? 0);
+  const [draftYield, setDraftYield] = useState(
+    vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0)
+  );
+  const [draftServingSize, setDraftServingSize] = useState(
+    vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0)
+  );
 
   useEffect(() => {
-    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? 0);
-    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? 0);
-  }, [vItem?.outputYield, data?.outputYield, vItem?.outputServingSize, data?.outputServingSize]);
+    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0));
+    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0));
+  }, [vItem?.outputYield, data?.outputYield, vItem?.outputServingSize, data?.outputServingSize, isConfectionary]);
 
   // Compute calculated metrics dynamically for this specific version
   const vComputedData = useMemo(
@@ -128,7 +133,7 @@ function VersionColumn({
   }, [globalIngredients, vIngredients]);
 
   return (
-    <div className="w-[300px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col">
+    <div className="w-[400px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col">
       {/* 1. INGREDIENT TABLE SECTION */}
       <IngredientTable
         vItem={vItem}
@@ -160,6 +165,7 @@ function VersionColumn({
         isBatchSummaryEditing={isBatchSummaryEditing}
         setIsBatchSummaryEditing={setIsBatchSummaryEditing}
         onSaveSpecificFields={onSaveSpecificFields}
+        isConfectionary={isConfectionary}
       />
 
       {/* 3. STANDARD OPERATING PROCEDURE SECTION */}
@@ -171,6 +177,7 @@ function VersionColumn({
         isFirstVersion={isFirstVersion}
         sopRef={sopRef}
         onSaveSpecificFields={onSaveSpecificFields}
+        isConfectionary={isConfectionary}
       />
 
       {/* 4. SENSORY FEEDBACK SECTION */}
@@ -428,6 +435,7 @@ export default function RecipeDetailsTable({
                 onEditRow={handleEditRow}
                 onSaveSpecificFields={onSaveSpecificFields}
                 recipeFormat={recipeFormat}
+                isConfectionary={isConfectionary}
                 isFinalized={isFinalized}
               />
             ))}

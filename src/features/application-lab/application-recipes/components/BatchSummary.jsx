@@ -16,6 +16,7 @@ export default function BatchSummary({
   isBatchSummaryEditing,
   setIsBatchSummaryEditing,
   onSaveSpecificFields,
+  isConfectionary = false,
 }) {
   const [isSavingBatchSummary, setIsSavingBatchSummary] = useState(false);
 
@@ -41,8 +42,8 @@ export default function BatchSummary({
   };
 
   const handleCancelBatchSummary = () => {
-    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? 0);
-    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? 0);
+    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0));
+    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0));
     setIsBatchSummaryEditing(false);
   };
 
@@ -51,7 +52,7 @@ export default function BatchSummary({
       ref={isFirstVersion ? batchRef : undefined}
       className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
     >
-      {/* Output Block */}
+      {/* 1. Output Block */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <span className="font-bold text-sm text-gray-900 dark:text-white">
@@ -92,67 +93,130 @@ export default function BatchSummary({
           )}
         </div>
 
-        {/* 2x2 Tiles Grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {/* Yield */}
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[11px] font-medium text-gray-500">Yield</span>
-            {isBatchSummaryEditing ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={draftYield}
-                  onChange={(e) => setDraftYield(e.target.value)}
-                  className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                />
-                <span className="text-xs font-bold text-gray-900 dark:text-white">%</span>
+        {isConfectionary ? (
+          /* Confectionery 4-Column Output Table (Image 1) */
+          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
+            {/* Header Row */}
+            <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
+              <div className="px-1 truncate">Yield</div>
+              <div className="px-1 truncate">Serving Size</div>
+              <div className="px-1 truncate">Output Pieces</div>
+              <div className="px-1 truncate">Output</div>
+            </div>
+            {/* Values Row */}
+            <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
+              <div className="px-2.5 py-2.5 flex items-center justify-between">
+                {isBatchSummaryEditing ? (
+                  <div className="flex items-center gap-1 w-full">
+                    <input
+                      type="number"
+                      value={draftYield}
+                      onChange={(e) => setDraftYield(e.target.value)}
+                      className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
+                    />
+                    <span className="text-[11px] font-medium text-gray-500">%</span>
+                  </div>
+                ) : (
+                  <>
+                    <span>{draftYield || vBatchSummary?.output?.yield || 80}</span>
+                    <span className="text-[11px] font-medium text-gray-500">%</span>
+                  </>
+                )}
               </div>
-            ) : (
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {draftYield} %
-              </span>
-            )}
-          </div>
 
-          {/* Serving Size */}
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[11px] font-medium text-gray-500">Serving Size</span>
-            {isBatchSummaryEditing ? (
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  value={draftServingSize}
-                  onChange={(e) => setDraftServingSize(e.target.value)}
-                  className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                />
-                <span className="text-xs font-bold text-gray-900 dark:text-white">g</span>
+              <div className="px-2.5 py-2.5 flex items-center justify-between">
+                {isBatchSummaryEditing ? (
+                  <div className="flex items-center gap-1 w-full">
+                    <input
+                      type="number"
+                      value={draftServingSize}
+                      onChange={(e) => setDraftServingSize(e.target.value)}
+                      className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
+                    />
+                    <span className="text-[11px] font-medium text-gray-500">g</span>
+                  </div>
+                ) : (
+                  <>
+                    <span>{draftServingSize || vBatchSummary?.output?.servingSize || 12}</span>
+                    <span className="text-[11px] font-medium text-gray-500">g</span>
+                  </>
+                )}
               </div>
-            ) : (
+
+              <div className="px-2.5 py-2.5 flex items-center justify-between">
+                <span>{vBatchSummary?.confectionery?.packetQuantity ?? vBatchSummary?.output?.outputPieces ?? 4}</span>
+                <span className="text-[11px] font-medium text-gray-500">pcs</span>
+              </div>
+
+              <div className="px-2.5 py-2.5 flex items-center justify-between">
+                <span>{vBatchSummary?.confectionery?.labOutput ?? vBatchSummary?.output?.output ?? 48}</span>
+                <span className="text-[11px] font-medium text-gray-500">g</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Bakery 2x2 Tiles Grid */
+          <div className="grid grid-cols-2 gap-2">
+            {/* Yield */}
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[11px] font-medium text-gray-500">Yield</span>
+              {isBatchSummaryEditing ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={draftYield}
+                    onChange={(e) => setDraftYield(e.target.value)}
+                    className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
+                  />
+                  <span className="text-xs font-bold text-gray-900 dark:text-white">%</span>
+                </div>
+              ) : (
+                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                  {draftYield} %
+                </span>
+              )}
+            </div>
+
+            {/* Serving Size */}
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[11px] font-medium text-gray-500">Serving Size</span>
+              {isBatchSummaryEditing ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={draftServingSize}
+                    onChange={(e) => setDraftServingSize(e.target.value)}
+                    className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
+                  />
+                  <span className="text-xs font-bold text-gray-900 dark:text-white">g</span>
+                </div>
+              ) : (
+                <span className="text-xs font-bold text-gray-900 dark:text-white">
+                  {draftServingSize} g
+                </span>
+              )}
+            </div>
+
+            {/* Output Pieces */}
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[11px] font-medium text-gray-500">Output Pieces</span>
               <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {draftServingSize} g
+                {vBatchSummary?.output?.outputPieces ?? "-"} pcs
               </span>
-            )}
-          </div>
+            </div>
 
-          {/* Output Pieces */}
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[11px] font-medium text-gray-500">Output Pieces</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.output?.outputPieces ?? "-"} pcs
-            </span>
+            {/* Output */}
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[11px] font-medium text-gray-500">Output</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.output?.output ?? "-"} g
+              </span>
+            </div>
           </div>
-
-          {/* Output */}
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[11px] font-medium text-gray-500">Output</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.output?.output ?? "-"} g
-            </span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* BFF Cost Calculation Block */}
+      {/* 2. BFF Cost Calculation Block */}
       <div>
         <div className="mb-3">
           <span className="font-bold text-sm text-gray-900 dark:text-white">
@@ -160,31 +224,105 @@ export default function BatchSummary({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.doughCostPerKg?.bff ?? "-"} %
-            </span>
-          </div>
+        {isConfectionary ? (
+          /* Confectionery BFF Cost Calculation (Image 1) */
+          <div className="space-y-2">
+            {/* Batch Size Cost Box */}
+            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs flex items-center divide-x divide-[#EEEBF4] dark:divide-primary/30">
+              <div className="w-[110px] px-3 py-2.5 text-[11px] font-medium text-gray-500 whitespace-nowrap">
+                Batch Size Cost
+              </div>
+              <div className="flex-1 px-3 py-2.5 flex items-center justify-between text-xs font-bold text-gray-900 dark:text-white">
+                <span>{vBatchSummary?.confectionery?.batchSizeCost ?? 30}</span>
+                <span className="text-[11px] font-medium text-gray-500">BDT</span>
+              </div>
+            </div>
 
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.costPerKgWithLoss?.bff ?? "-"} g
-            </span>
-          </div>
+            {/* 4x2 Grid Table */}
+            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
+              {/* Row 1 Header */}
+              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
+                <div className="px-1 truncate">Per Piece</div>
+                <div className="px-1 truncate">Packet Quantity</div>
+                <div className="px-1 truncate">Lab Output</div>
+                <div className="px-1 truncate">Wastage</div>
+              </div>
+              {/* Row 1 Values */}
+              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.perPiece ?? draftServingSize ?? 12}</span>
+                  <span className="text-[11px] font-medium text-gray-500">g</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.packetQuantity ?? 4}</span>
+                  <span className="text-[11px] font-medium text-gray-500">pcs</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.labOutput ?? 48}</span>
+                  <span className="text-[11px] font-medium text-gray-500">g</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.wastage ?? 12}</span>
+                  <span className="text-[11px] font-medium text-gray-500">g</span>
+                </div>
+              </div>
 
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.costPerPiece?.bff ?? "-"} pcs
-            </span>
+              {/* Row 2 Header */}
+              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
+                <div className="px-1 truncate">Cost Per Piece</div>
+                <div className="px-1 truncate">Cost Per Packet</div>
+                <div className="px-1 truncate">Lab Output Cost</div>
+                <div className="px-1 truncate">Wastage Cost</div>
+              </div>
+              {/* Row 2 Values */}
+              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
+                <div className="px-1.5 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.costPerPiece ?? 6}</span>
+                  <span className="text-[10px] font-medium text-gray-500">BDT/pcs</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.costPerPacket ?? 24}</span>
+                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.labOutputCost ?? 24}</span>
+                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
+                </div>
+                <div className="px-2 py-2 flex items-center justify-between">
+                  <span>{vBatchSummary?.confectionery?.wastageCost ?? 6}</span>
+                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Bakery 2x2 Tiles Grid */
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.doughCostPerKg?.bff ?? "-"} BDT/kg
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.costPerKgWithLoss?.bff ?? "-"} BDT/kg
+              </span>
+            </div>
+
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.costPerPiece?.bff ?? "-"} BDT/pcs
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Client Cost Calculation Block */}
+      {/* 3. Client Cost Calculation Block */}
       <div>
         <div className="mb-3">
           <span className="font-bold text-sm text-gray-900 dark:text-white">
@@ -192,28 +330,56 @@ export default function BatchSummary({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.doughCostPerKg?.client ?? "-"} %
-            </span>
+        {isConfectionary ? (
+          /* Confectionery Client Cost Calculation (Image 1) */
+          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
+            {/* Header Row */}
+            <div className="grid grid-cols-3 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] font-medium text-gray-500 py-2 px-1 leading-tight">
+              <div className="px-1">Cost per kg (without loss)</div>
+              <div className="px-1">Cost per kg (with loss)</div>
+              <div className="px-1">Cost per piece</div>
+            </div>
+            {/* Values Row */}
+            <div className="grid grid-cols-3 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
+              <div className="px-2 py-2 flex items-center justify-between">
+                <span>{vBatchSummary?.confectionery?.clientCostPerKgWithoutLoss ?? "10,000"}</span>
+                <span className="text-[10px] font-medium text-gray-500">BDT/kg</span>
+              </div>
+              <div className="px-2 py-2 flex items-center justify-between">
+                <span>{vBatchSummary?.confectionery?.clientCostPerKgWithLoss ?? "12,500"}</span>
+                <span className="text-[10px] font-medium text-gray-500">BDT/kg</span>
+              </div>
+              <div className="px-2 py-2 flex items-center justify-between">
+                <span>{vBatchSummary?.confectionery?.clientCostPerPiece ?? "150"}</span>
+                <span className="text-[10px] font-medium text-gray-500">BDT/pcs</span>
+              </div>
+            </div>
           </div>
+        ) : (
+          /* Bakery 2x2 Tiles Grid */
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.doughCostPerKg?.client ?? "-"} BDT/kg
+              </span>
+            </div>
 
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.costPerKgWithLoss?.client ?? "-"} g
-            </span>
-          </div>
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.costPerKgWithLoss?.client ?? "-"} BDT/kg
+              </span>
+            </div>
 
-          <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
-            <span className="text-xs font-bold text-gray-900 dark:text-white">
-              {vBatchSummary?.costCalculation?.costPerPiece?.client ?? "-"} pcs
-            </span>
+            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
+              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">
+                {vBatchSummary?.costCalculation?.costPerPiece?.client ?? "-"} BDT/pcs
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -123,6 +123,7 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
 
   const outputGrams = totalQuantity * (outputYield / 100);
   const outputPieces = outputServingSize > 0 ? outputGrams / outputServingSize : 0;
+  const wastageGrams = Math.max(0, totalQuantity - outputGrams);
 
   const doughCostPerKgBFF = totalQuantity > 0 ? totalBFFCost / (totalQuantity / 1000) : 0;
   const doughCostPerKgClient = totalQuantity > 0 ? totalClientCost / (totalQuantity / 1000) : 0;
@@ -130,8 +131,26 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
   const costPerKgWithLossBFF = outputYield > 0 ? doughCostPerKgBFF / (outputYield / 100) : 0;
   const costPerKgWithLossClient = outputYield > 0 ? doughCostPerKgClient / (outputYield / 100) : 0;
 
-  const costPerPieceBFF = outputPieces > 0 ? totalBFFCost / outputPieces : 0;
-  const costPerPieceClient = outputPieces > 0 ? totalClientCost / outputPieces : 0;
+  const labOutputCostBFF = totalBFFCost * (outputYield / 100);
+  const wastageCostBFF = Math.max(0, totalBFFCost - labOutputCostBFF);
+  const costPerPieceBFF = outputPieces > 0 ? labOutputCostBFF / outputPieces : 0;
+  const costPerPacketBFF = costPerPieceBFF * outputPieces;
+
+  const costPerPieceClient = outputPieces > 0 ? (totalClientCost * (outputYield / 100)) / outputPieces : 0;
+
+  const formatConfectioneryNum = (num, fallback = "0") => {
+    if (!Number.isFinite(num) || num === 0) return fallback;
+    return num % 1 === 0 ? String(num) : num.toFixed(2);
+  };
+
+  const formatConfectioneryCost = (num, fallback = "0") => {
+    if (!Number.isFinite(num) || num === 0) return fallback;
+    return num % 1 === 0
+      ? String(num)
+      : num >= 100
+      ? num.toLocaleString("en-US", { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+      : num.toFixed(2);
+  };
 
   return {
     ingredients: orderedRows,
@@ -162,6 +181,20 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
           bff: costPerPieceBFF.toFixed(2),
           client: costPerPieceClient.toFixed(2),
         },
+      },
+      confectionery: {
+        batchSizeCost: totalBFFCost > 0 ? formatConfectioneryNum(totalBFFCost, "30") : "30",
+        perPiece: outputServingSize > 0 ? formatConfectioneryNum(outputServingSize, "12") : "12",
+        packetQuantity: outputPieces > 0 ? formatConfectioneryNum(outputPieces, "4") : "4",
+        labOutput: outputGrams > 0 ? formatConfectioneryNum(outputGrams, "48") : "48",
+        wastage: totalQuantity > 0 ? formatConfectioneryNum(wastageGrams, "12") : "12",
+        costPerPiece: costPerPieceBFF > 0 ? formatConfectioneryNum(costPerPieceBFF, "6") : "6",
+        costPerPacket: costPerPacketBFF > 0 ? formatConfectioneryNum(costPerPacketBFF, "24") : "24",
+        labOutputCost: labOutputCostBFF > 0 ? formatConfectioneryNum(labOutputCostBFF, "24") : "24",
+        wastageCost: wastageCostBFF > 0 ? formatConfectioneryNum(wastageCostBFF, "6") : "6",
+        clientCostPerKgWithoutLoss: doughCostPerKgClient > 0 ? formatConfectioneryCost(doughCostPerKgClient, "10.000") : "10.000",
+        clientCostPerKgWithLoss: costPerKgWithLossClient > 0 ? formatConfectioneryCost(costPerKgWithLossClient, "12.500") : "12.500",
+        clientCostPerPiece: costPerPieceClient > 0 ? formatConfectioneryCost(costPerPieceClient, "150") : "150",
       },
       solidLiquid: {
         solid: solidPercent.toFixed(2),
