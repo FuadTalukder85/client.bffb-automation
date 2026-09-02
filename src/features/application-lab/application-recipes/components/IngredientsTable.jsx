@@ -1194,7 +1194,7 @@ export default function IngredientsTable({
   const HIDDEN_TYPE_SOLID_LIQUID_RECIPES = ["beverage", "beverage psd"];
   const recipeTypeLower = data?.recipeType?.toLowerCase() || recipeFormat || "";
   const isHiddenTypeAndSolidLiquid = HIDDEN_TYPE_SOLID_LIQUID_RECIPES.includes(recipeTypeLower);
-  const isConfectionary = isConfectionaryRecipe(data?.recipeType);
+  const isConfectionary = isConfectionaryRecipe(data?.recipeType) || isConfectionaryRecipe(recipeFormat);
   const showSolidLiquidColumn = !isHiddenTypeAndSolidLiquid && !isConfectionary;
 
   const baseComputed = useMemo(() => buildIngredientsDisplayData(data), [data]);
@@ -1353,6 +1353,7 @@ export default function IngredientsTable({
   };
 
   const hasHorizontalScroll = scrollWidth > clientWidth + 10;
+  const leftColWidth = isConfectionary ? 420 : 340;
 
   return (
     <div className="flex flex-col w-full relative">
@@ -1364,7 +1365,12 @@ export default function IngredientsTable({
       >
         <div className="flex min-w-max">
           {/* ================= LEFT CONTINUOUS SOLID FIXED COLUMN ================= */}
-          <div className="sticky left-0 z-20 bg-white dark:bg-[#0D0B14] border-r border-[#EEEBF4] dark:border-primary/40 flex-none w-[340px] shadow-[4px_0_10px_rgba(0,0,0,0.02)] flex flex-col">
+          <div
+            className={cn(
+              "sticky left-0 z-20 bg-white dark:bg-[#0D0B14] border-r border-[#EEEBF4] dark:border-primary/40 flex-none shadow-[4px_0_10px_rgba(0,0,0,0.02)] flex flex-col",
+              isConfectionary ? "w-[420px]" : "w-[340px]"
+            )}
+          >
             {/* 1. Ingredient Table Left Header & Rows */}
             <div className="flex flex-col border-b border-[#EEEBF4] dark:border-primary/40">
               <div className="h-[150px] p-6 flex items-end border-b border-[#EEEBF4] dark:border-primary/40">
@@ -1378,6 +1384,11 @@ export default function IngredientsTable({
                 <div className="w-14 text-center border-r border-[#EEEBF4] dark:border-primary/30">SL</div>
                 <div className="w-20 text-center border-r border-[#EEEBF4] dark:border-primary/30">Role</div>
                 <div className="flex-1 pl-4 text-left">Ingredients</div>
+                {isConfectionary && (
+                  <div className="w-20 text-center border-l border-[#EEEBF4] dark:border-primary/30">
+                    Process
+                  </div>
+                )}
               </div>
 
               {/* Left Ingredient Rows */}
@@ -1401,6 +1412,11 @@ export default function IngredientsTable({
                     <div className="flex-1 pl-4 font-bold text-gray-900 dark:text-white truncate">
                       {item.name}
                     </div>
+                    {isConfectionary && (
+                      <div className="w-20 h-full flex items-center justify-center border-l border-[#EEEBF4] dark:border-primary/30 text-gray-800 dark:text-gray-200 font-semibold text-center">
+                        {item.process || "-"}
+                      </div>
+                    )}
                   </div>
                 ))}
 
@@ -1409,6 +1425,11 @@ export default function IngredientsTable({
                   <div className="w-14 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">-</div>
                   <div className="w-20 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">-</div>
                   <div className="flex-1 text-center pr-6">Total</div>
+                  {isConfectionary && (
+                    <div className="w-20 h-full flex items-center justify-center border-l border-[#EEEBF4] dark:border-primary/30">
+                      -
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1493,15 +1514,15 @@ export default function IngredientsTable({
       {/* Static / Sticky Horizontal Scrollbar Pinned at Bottom of Viewport (Matching Screenshot) */}
       {hasHorizontalScroll && (
         <div className="sticky bottom-0 z-40 w-full bg-white/95 dark:bg-[#0D0B14]/95 backdrop-blur-md border-t border-[#EEEBF4] dark:border-primary/40 py-2.5 px-4 flex items-center shadow-[0_-4px_12px_rgba(0,0,0,0.04)] rounded-b-3xl">
-          {/* Left 340px fixed column offset so the scrollbar track starts after the left column */}
-          <div className="w-[340px] flex-none hidden md:block" />
+          {/* Left fixed column offset so the scrollbar track starts after the left column */}
+          <div className={cn("flex-none hidden md:block", isConfectionary ? "w-[420px]" : "w-[340px]")} />
           <div
             ref={scrollbarTrackRef}
             onScroll={handleBottomScroll}
             className="flex-1 overflow-x-auto custom-scrollbar h-3 cursor-pointer"
           >
             <div
-              style={{ width: `${Math.max(scrollWidth - 340, 100)}px` }}
+              style={{ width: `${Math.max(scrollWidth - leftColWidth, 100)}px` }}
               className="h-1"
             />
           </div>
