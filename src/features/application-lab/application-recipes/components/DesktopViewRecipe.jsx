@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import BasicInformation from "./BasicInformation";
 import BenchmarkCard from "./BenchmarkCard";
-import IngredientsTable from "./IngredientsTable";
+import RecipeDetailsTable from "./RecipeDetailsTable";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { BackButton } from "@/components/ui/BackButton";
 
@@ -238,8 +238,8 @@ export default function DesktopViewRecipe({
             </div>
           </div>
 
-          {/* The Two-Section Ingredients Table & Versions Content */}
-          <IngredientsTable
+          {/* The Multi-Section Recipe Details Table & Versions Content */}
+          <RecipeDetailsTable
             data={recipe}
             versions={versions}
             currentVersion={currentVersion}
