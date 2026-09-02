@@ -1,5 +1,6 @@
-import React from "react";
-import { ChevronLeft, ChevronRight, Plus, GitFork } from "lucide-react";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, GitFork, GitCompare, LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import BasicInformation from "./BasicInformation";
@@ -44,6 +45,11 @@ export default function DesktopViewRecipe({
   handlePrepareSample,
   handleViewDownloadHistory,
 }) {
+  const [isSelectingForCompare, setIsSelectingForCompare] = useState(false);
+  const [isCompareConfirmed, setIsCompareConfirmed] = useState(false);
+  const [selectedCompareVersionIds, setSelectedCompareVersionIds] = useState([]);
+  const [selectedScaleBatchVersionId, setSelectedScaleBatchVersionId] = useState(null);
+
   const toUiVersionNumber = (version) => {
     const numericVersion = Number(version);
     return Number.isFinite(numericVersion) ? numericVersion + 1 : version;
@@ -74,6 +80,73 @@ export default function DesktopViewRecipe({
 
   const currentRecipeCode = recipe?.recipeCode || "-";
   const formatLabel = (recipeFormat || recipe?.recipeType || "bakery").toLowerCase();
+
+  const isCompareActive = isSelectingForCompare || isCompareConfirmed;
+
+  // Compare Recipe Handlers
+  const handleStartCompare = () => {
+    setIsSelectingForCompare(true);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleCancelCompare = () => {
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleConfirmCompare = () => {
+    if (selectedCompareVersionIds.length === 0) {
+      toast.error("Please select at least one version to compare");
+      return;
+    }
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(true);
+    const firstSelectedId = selectedCompareVersionIds[0];
+    if (!selectedScaleBatchVersionId || !selectedCompareVersionIds.includes(selectedScaleBatchVersionId)) {
+      setSelectedScaleBatchVersionId(firstSelectedId);
+    }
+  };
+
+  const handleSelectRecipeBack = () => {
+    setIsSelectingForCompare(true);
+    setIsCompareConfirmed(false);
+  };
+
+  const handleLeaveCompare = () => {
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleToggleSelectCompareVersion = (vItem) => {
+    const vId = vItem._id ?? vItem.version;
+    setSelectedCompareVersionIds((prev) => {
+      if (prev.includes(vId)) {
+        return prev.filter((id) => id !== vId);
+      }
+      if (prev.length >= 3) {
+        toast.error("You can select a maximum of 3 versions");
+        return prev;
+      }
+      return [...prev, vId];
+    });
+  };
+
+  const handleSelectScaleBatchVersion = (vItem) => {
+    const vId = vItem._id ?? vItem.version;
+    setSelectedScaleBatchVersionId(vId);
+  };
+
+  const activeScaleBatchVersion = React.useMemo(() => {
+    if (!isCompareConfirmed) return null;
+    return versions?.find((v) => (v._id ?? v.version) === selectedScaleBatchVersionId) || null;
+  }, [isCompareConfirmed, versions, selectedScaleBatchVersionId]);
+
+  const activeVersionToHighlight = isCompareConfirmed
+    ? (activeScaleBatchVersion?.version ?? currentVersion)
+    : currentVersion;
 
   return (
     <div className="flex flex-col w-full min-h-full space-y-6">
@@ -160,7 +233,7 @@ export default function DesktopViewRecipe({
                 <button
                   type="button"
                   onClick={() => setCurrentVersion?.(Math.max(minVersion, (currentVersion ?? 0) - 1))}
-                  disabled={(currentVersion ?? 0) <= minVersion}
+                  disabled={isCompareActive || (currentVersion ?? 0) <= minVersion}
                   className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -169,14 +242,20 @@ export default function DesktopViewRecipe({
                 <div className="flex items-center gap-1 px-1">
                   {versionNumbers.length > 0 ? (
                     versionNumbers.map((v) => {
-                      const isActive = v === currentVersion;
+                      const isActive = v === activeVersionToHighlight;
                       return (
                         <button
                           key={v}
                           type="button"
-                          onClick={() => setCurrentVersion?.(v)}
+                          onClick={() => {
+                            if (!isCompareActive) {
+                              setCurrentVersion?.(v);
+                            }
+                          }}
+                          disabled={isCompareActive}
                           className={cn(
-                            "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer",
+                            "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all",
+                            isCompareActive ? "cursor-not-allowed opacity-40 hover:bg-transparent" : "cursor-pointer",
                             isActive
                               ? "bg-[#4B208B] text-white shadow-sm"
                               : "bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9]"
@@ -199,7 +278,7 @@ export default function DesktopViewRecipe({
                 <button
                   type="button"
                   onClick={() => setCurrentVersion?.(Math.min(maxVersion, (currentVersion ?? 0) + 1))}
-                  disabled={(currentVersion ?? 0) >= maxVersion}
+                  disabled={isCompareActive || (currentVersion ?? 0) >= maxVersion}
                   className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -207,35 +286,87 @@ export default function DesktopViewRecipe({
               </div>
             </div>
 
-            {/* Right: Actions (Version, Compare Recipe, Change Recipe Format) */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleCreateVersion}
-                disabled={isEditMode}
-                className="px-4 py-2 rounded-full border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Version
-              </button>
+            {/* Middle: Selection Counter (Image 1 & 2) */}
+            {(isSelectingForCompare || isCompareConfirmed) && (
+              <div className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                Selected {selectedCompareVersionIds.length}/3
+              </div>
+            )}
 
-              <button
-                type="button"
-                className="px-4 py-2 rounded-full bg-[#4B208B] text-white font-bold text-xs flex items-center gap-1.5 hover:bg-[#3E1B77] transition-all shadow-sm cursor-pointer"
-              >
-                <GitFork className="w-3.5 h-3.5 rotate-90" />
-                Compare Recipe
-              </button>
+            {/* Right: Actions */}
+            {isSelectingForCompare ? (
+              /* Selection Mode Buttons (Image 1) */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelCompare}
+                  className="px-5 py-2 rounded-xl border border-[#9079BC] dark:border-primary/40 bg-[#FCFBFD] dark:bg-[#151221] text-[#4B208B] dark:text-purple-300 font-bold text-xs hover:bg-[#EFEAF9] transition-all shadow-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
 
-              <button
-                type="button"
-                onClick={onChangeRecipeType}
-                disabled={isEditMode || !isTypeChangeEligible}
-                className="px-4 py-2 rounded-full border border-gray-200 dark:border-primary/30 bg-gray-100/50 dark:bg-[#121019] text-gray-400 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Change Recipe Format
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleConfirmCompare}
+                  disabled={selectedCompareVersionIds.length === 0}
+                  className="px-5 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm
+                </button>
+              </div>
+            ) : isCompareConfirmed ? (
+              /* Confirmed Comparison Mode Buttons (Image 2) */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSelectRecipeBack}
+                  className="px-4 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                  Select Recipe
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLeaveCompare}
+                  className="px-4 py-2 rounded-xl border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Leave Comparison
+                </button>
+              </div>
+            ) : (
+              /* Default Standard Mode Buttons */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCreateVersion}
+                  disabled={isEditMode}
+                  className="px-4 py-2 rounded-full border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Version
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleStartCompare}
+                  className="px-4 py-2 rounded-full bg-[#4B208B] text-white font-bold text-xs flex items-center gap-1.5 hover:bg-[#3E1B77] transition-all shadow-sm cursor-pointer"
+                >
+                  <GitFork className="w-3.5 h-3.5 rotate-90" />
+                  Compare Recipe
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onChangeRecipeType}
+                  disabled={isEditMode || !isTypeChangeEligible}
+                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-primary/30 bg-gray-100/50 dark:bg-[#121019] text-gray-400 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Change Recipe Format
+                </button>
+              </div>
+            )}
           </div>
 
           {/* The Multi-Section Recipe Details Table & Versions Content */}
@@ -256,9 +387,16 @@ export default function DesktopViewRecipe({
             formatDate={formatDate}
             recipeFormat={recipeFormat}
             isFinalized={isFinalized}
+            isSelectingForCompare={isSelectingForCompare}
+            isCompareConfirmed={isCompareConfirmed}
+            selectedCompareVersionIds={selectedCompareVersionIds}
+            onToggleSelectCompareVersion={handleToggleSelectCompareVersion}
+            selectedScaleBatchVersionId={selectedScaleBatchVersionId}
+            onSelectScaleBatchVersion={handleSelectScaleBatchVersion}
           />
         </div>
       </div>
     </div>
   );
 }
+

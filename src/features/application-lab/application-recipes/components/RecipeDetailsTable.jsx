@@ -10,6 +10,8 @@ import ArchiveIngredientModal from "./ArchiveIngredientModal";
 import { useDeleteRecipeIngredient } from "@/hooks/mutations/useRecipeMutations";
 import { cn } from "@/lib/utils";
 import { buildIngredientsDisplayData, isConfectionaryRecipe } from "../data/ingredientsCalculations";
+import ScaleBatchColumn from "./ScaleBatchColumn";
+import { useRecipeById } from "@/hooks/useRecipes";
 
 // ================= INDEPENDENT VERSION COLUMN COMPONENT =================
 // Each VersionColumn coordinates its 4 sub-sections: IngredientTable, BatchSummary, SOP, SensoryFeedback
@@ -31,28 +33,46 @@ function VersionColumn({
   recipeFormat = "bakery",
   isConfectionary = false,
   isFinalized = false,
+  isSelectingForCompare = false,
+  isSelectedForCompare = false,
+  onToggleSelectCompare,
 }) {
   const versionNumStr = String(Number(vItem?.version ?? 0) + 1).padStart(2, "0");
   const vIsFinalized = vItem?.recipeStatus === "final" || isFinalized;
 
-  // Ensure version ingredients are sourced properly from vItem or fallback to data
+  const isCurrentData =
+    vItem?._id === data?._id ||
+    (vItem?.version !== undefined && data?.version !== undefined && vItem?.version === data?.version);
+  const targetId = vItem?._id;
+
+  const { data: fetchedDetail } = useRecipeById(targetId, {
+    enabled: !isCurrentData && !!targetId && (!Array.isArray(vItem?.ingredients) || vItem.ingredients.length === 0),
+  });
+
+  const effectiveVersionData = useMemo(() => {
+    if (isCurrentData && data) return data;
+    if (fetchedDetail) return { ...vItem, ...fetchedDetail };
+    return vItem || {};
+  }, [isCurrentData, data, fetchedDetail, vItem]);
+
+  // Ensure version ingredients are sourced properly from vItem or fetched details
   const versionIngredients = useMemo(() => {
-    if (Array.isArray(vItem?.ingredients) && vItem.ingredients.length > 0) {
-      return vItem.ingredients;
+    if (Array.isArray(effectiveVersionData?.ingredients) && effectiveVersionData.ingredients.length > 0) {
+      return effectiveVersionData.ingredients;
     }
-    if (Array.isArray(data?.ingredients) && data.ingredients.length > 0) {
+    if (isCurrentData && Array.isArray(data?.ingredients) && data.ingredients.length > 0) {
       return data.ingredients;
     }
     return [];
-  }, [vItem?.ingredients, data?.ingredients]);
+  }, [effectiveVersionData?.ingredients, isCurrentData, data?.ingredients]);
 
   const normalizedVItem = useMemo(
     () => ({
-      ...vItem,
-      recipeType: vItem?.recipeType || data?.recipeType,
+      ...effectiveVersionData,
+      recipeType: effectiveVersionData?.recipeType || data?.recipeType,
       ingredients: versionIngredients,
     }),
-    [data, vItem, versionIngredients]
+    [data?.recipeType, effectiveVersionData, versionIngredients]
   );
 
   // Batch Summary Independent Edit Mode states for THIS version
@@ -133,7 +153,12 @@ function VersionColumn({
   }, [globalIngredients, vIngredients]);
 
   return (
-    <div className="w-[400px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col">
+    <div
+      className={cn(
+        "w-[400px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col transition-all",
+        isSelectingForCompare && !isSelectedForCompare && "opacity-40 bg-gray-100/50 dark:bg-[#151221]/80 select-none"
+      )}
+    >
       {/* 1. INGREDIENT TABLE SECTION */}
       <IngredientTable
         vItem={vItem}
@@ -149,6 +174,9 @@ function VersionColumn({
         onPrepareSample={onPrepareSample}
         onEditRow={onEditRow}
         formatDate={formatDate}
+        isSelectingForCompare={isSelectingForCompare}
+        isSelectedForCompare={isSelectedForCompare}
+        onToggleSelectCompare={onToggleSelectCompare}
       />
 
       {/* 2. BATCH SUMMARY SECTION */}
@@ -206,6 +234,12 @@ export default function RecipeDetailsTable({
   formatDate = (d) => d || "-",
   recipeFormat = "bakery",
   isFinalized = false,
+  isSelectingForCompare = false,
+  isCompareConfirmed = false,
+  selectedCompareVersionIds = [],
+  onToggleSelectCompareVersion,
+  selectedScaleBatchVersionId,
+  onSelectScaleBatchVersion,
 }) {
   const [isBFFModalOpen, setIsBFFModalOpen] = useState(false);
   const [isStandardIngredientModalOpen, setIsStandardIngredientModalOpen] = useState(false);
@@ -223,7 +257,69 @@ export default function RecipeDetailsTable({
   const isConfectionary = isConfectionaryRecipe(data?.recipeType) || isConfectionaryRecipe(recipeFormat);
   const showSolidLiquidColumn = !isHiddenTypeAndSolidLiquid && !isConfectionary;
 
-  const baseComputed = useMemo(() => buildIngredientsDisplayData(data), [data]);
+  const displayVersions = useMemo(() => {
+    if (Array.isArray(versions) && versions.length > 0) {
+      return versions;
+    }
+    return [
+      {
+        _id: data?._id,
+        version: currentVersion ?? data?.version ?? 0,
+        createdAt: data?.createdAt,
+        recipeCode: data?.recipeCode || "-",
+        recipeStatus: data?.recipeStatus,
+        ingredients: data?.ingredients,
+        outputYield: data?.outputYield ?? 0,
+        outputServingSize: data?.outputServingSize ?? 0,
+      },
+    ];
+  }, [versions, data, currentVersion]);
+
+  const visibleVersions = useMemo(() => {
+    if (isCompareConfirmed) {
+      return displayVersions.filter((v) =>
+        selectedCompareVersionIds.includes(v._id ?? v.version)
+      );
+    }
+    return displayVersions;
+  }, [isCompareConfirmed, displayVersions, selectedCompareVersionIds]);
+
+  const scaleBatchVersion = useMemo(() => {
+    if (!isCompareConfirmed) return null;
+    const found = displayVersions.find(
+      (v) => (v._id ?? v.version) === selectedScaleBatchVersionId
+    );
+    return found || visibleVersions[0] || displayVersions[0] || null;
+  }, [isCompareConfirmed, displayVersions, selectedScaleBatchVersionId, visibleVersions]);
+
+  const activeCompareVersion = useMemo(() => {
+    if (!isCompareConfirmed) return data;
+    return scaleBatchVersion || visibleVersions[0] || data;
+  }, [isCompareConfirmed, scaleBatchVersion, visibleVersions, data]);
+
+  const isCurrentDataForGlobal =
+    activeCompareVersion?._id === data?._id ||
+    (activeCompareVersion?.version !== undefined && data?.version !== undefined && activeCompareVersion?.version === data?.version);
+
+  const { data: fetchedGlobalDetail } = useRecipeById(activeCompareVersion?._id, {
+    enabled:
+      isCompareConfirmed &&
+      !isCurrentDataForGlobal &&
+      !!activeCompareVersion?._id &&
+      (!Array.isArray(activeCompareVersion?.ingredients) || activeCompareVersion.ingredients.length === 0),
+  });
+
+  const effectiveGlobalRecipe = useMemo(() => {
+    if (!isCompareConfirmed) return data;
+    if (isCurrentDataForGlobal && data) return data;
+    if (fetchedGlobalDetail) return { ...activeCompareVersion, ...fetchedGlobalDetail };
+    return activeCompareVersion || data;
+  }, [isCompareConfirmed, isCurrentDataForGlobal, data, fetchedGlobalDetail, activeCompareVersion]);
+
+  const baseComputed = useMemo(
+    () => buildIngredientsDisplayData(effectiveGlobalRecipe),
+    [effectiveGlobalRecipe]
+  );
   const globalIngredients = baseComputed.ingredients;
 
   const handleBFFProductConfirm = (formData) => {
@@ -285,24 +381,6 @@ export default function RecipeDetailsTable({
     setIngredientToArchive(null);
     setTargetVersionForIngredient(null);
   };
-
-  const displayVersions = useMemo(() => {
-    if (Array.isArray(versions) && versions.length > 0) {
-      return versions;
-    }
-    return [
-      {
-        _id: data?._id,
-        version: currentVersion ?? data?.version ?? 0,
-        createdAt: data?.createdAt,
-        recipeCode: data?.recipeCode || "-",
-        recipeStatus: data?.recipeStatus,
-        ingredients: data?.ingredients,
-        outputYield: data?.outputYield ?? 0,
-        outputServingSize: data?.outputServingSize ?? 0,
-      },
-    ];
-  }, [versions, data, currentVersion]);
 
   // Section Height Matching for perfect horizontal alignment with left column
   const firstVersionBatchRef = useRef(null);
@@ -417,9 +495,9 @@ export default function RecipeDetailsTable({
 
           {/* ================= RIGHT SCROLLABLE VERSION COLUMNS ================= */}
           <div className="flex items-start">
-            {displayVersions.map((vItem, vIndex) => (
+            {visibleVersions.map((vItem, vIndex) => (
               <VersionColumn
-                key={vItem._id || vIndex}
+                key={vItem._id || vItem.version || vIndex}
                 vItem={vItem}
                 data={data}
                 isFirstVersion={vIndex === 0}
@@ -437,8 +515,29 @@ export default function RecipeDetailsTable({
                 recipeFormat={recipeFormat}
                 isConfectionary={isConfectionary}
                 isFinalized={isFinalized}
+                isSelectingForCompare={isSelectingForCompare}
+                isSelectedForCompare={selectedCompareVersionIds.includes(vItem._id ?? vItem.version)}
+                onToggleSelectCompare={() => onToggleSelectCompareVersion?.(vItem)}
               />
             ))}
+
+            {/* Far-Right Scale Batch Column in Confirmed Comparison Mode */}
+            {isCompareConfirmed && scaleBatchVersion && (
+              <ScaleBatchColumn
+                scaleBatchVersion={scaleBatchVersion}
+                comparedVersions={visibleVersions}
+                onSelectScaleBatchVersion={onSelectScaleBatchVersion}
+                data={data}
+                globalIngredients={globalIngredients}
+                showSolidLiquidColumn={showSolidLiquidColumn}
+                formatDate={formatDate}
+                onSaveSpecificFields={onSaveSpecificFields}
+                recipeFormat={recipeFormat}
+                isConfectionary={isConfectionary}
+                isFinalized={isFinalized}
+                onEditRow={handleEditRow}
+              />
+            )}
           </div>
         </div>
       </div>

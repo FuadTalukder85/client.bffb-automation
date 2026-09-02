@@ -1,5 +1,5 @@
 import React from "react";
-import { Download, CheckCircle, Eye, ChevronDown, Plus, ClipboardList } from "lucide-react";
+import { Download, CheckCircle, Eye, ChevronDown, Plus, ClipboardList, Check } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
@@ -18,19 +18,43 @@ export default function IngredientTable({
   onPrepareSample,
   onEditRow,
   formatDate = (d) => d || "-",
+  isSelectingForCompare = false,
+  isSelectedForCompare = false,
+  onToggleSelectCompare,
 }) {
   return (
     <div className="flex flex-col border-b border-[#EEEBF4] dark:border-primary/40">
-      {/* Version Header Card (Image 4) */}
+      {/* Version Header Card (Image 4 & Compare Selection) */}
       <div className="p-3 flex flex-col gap-2 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]">
-        <div className="flex flex-col justify-between p-3 rounded-2xl bg-[#F7F5FA] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30">
-          {/* Top Row: VERSION XX Badge + Finalize/Approved */}
+        <div
+          onClick={isSelectingForCompare ? onToggleSelectCompare : undefined}
+          className={cn(
+            "flex flex-col justify-between p-3 rounded-2xl bg-[#F7F5FA] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 transition-all",
+            isSelectingForCompare && "cursor-pointer"
+          )}
+        >
+          {/* Top Row: VERSION XX Badge + Finalize/Approved / Checkbox */}
           <div className="flex items-center justify-between">
             <span className="px-3 py-1 rounded-xl bg-[#4B208B] text-white font-extrabold text-xs tracking-wider uppercase">
               VERSION {versionNumStr}
             </span>
 
-            {vIsFinalized ? (
+            {isSelectingForCompare ? (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelectCompare?.();
+                }}
+                className={cn(
+                  "w-5 h-5 rounded-md flex items-center justify-center cursor-pointer transition-all",
+                  isSelectedForCompare
+                    ? "bg-[#4B208B] text-white shadow-xs"
+                    : "border-2 border-gray-400 dark:border-gray-500 bg-white/80 dark:bg-black/40 hover:border-[#4B208B]"
+                )}
+              >
+                {isSelectedForCompare && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            ) : vIsFinalized ? (
               <span className="px-3 py-1 rounded-xl bg-white border border-purple-200 dark:bg-primary/30 text-[#4B208B] dark:text-purple-300 font-bold text-xs">
                 Approved
               </span>
