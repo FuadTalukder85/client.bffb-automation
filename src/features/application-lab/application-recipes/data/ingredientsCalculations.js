@@ -19,10 +19,7 @@ const buildIngredientName = (item) => {
   if (item?.sourceName) return item.sourceName;
   if (item?.name) return item.name;
   if (item?.ingredientName) return item.ingredientName;
-
-  const sourceType = item?.ingredientSourceType === "bffProductCode" ? "BFF" : "Raw";
-  const sourceId = item?.sourceId ? String(item.sourceId).slice(-6) : "N/A";
-  return `${sourceType} ${sourceId}`;
+  return "";
 };
 
 export function buildIngredientsDisplayData(recipeData, overrides = {}) {
@@ -75,6 +72,8 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
 
   const solidPercent = totalQuantity > 0 ? (solidQuantity / totalQuantity) * 100 : 0;
   const liquidPercent = totalQuantity > 0 ? (liquidQuantity / totalQuantity) * 100 : 0;
+  const totalSolidLiquid = solidPercent + liquidPercent;
+
   const withSolidLiquid = (rows, segmentPercent) =>
     rows.map((item, index) => ({
       ...item,
@@ -120,6 +119,8 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
     };
   });
 
+  const totalComposition = orderedRows.reduce((sum, item) => sum + toNumber(item.composition), 0);
+
   const outputGrams = totalQuantity * (outputYield / 100);
   const outputPieces = outputServingSize > 0 ? outputGrams / outputServingSize : 0;
 
@@ -135,8 +136,9 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
   return {
     ingredients: orderedRows,
     totals: {
-      quantity: totalQuantity.toFixed(2),
-      composition: "100.00",
+      quantity: totalQuantity % 1 === 0 ? String(totalQuantity) : totalQuantity.toFixed(2),
+      composition: totalComposition > 0 ? (totalComposition % 1 === 0 ? String(totalComposition) : totalComposition.toFixed(2)) : "0.00",
+      solidLiquid: totalSolidLiquid > 0 ? (totalSolidLiquid % 1 === 0 ? String(totalSolidLiquid) : totalSolidLiquid.toFixed(2)) : "-",
       bffCost: totalBFFCost.toFixed(2),
       clientCost: totalClientCost.toFixed(2),
     },
@@ -144,8 +146,8 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
       output: {
         yield: outputYield,
         servingSize: outputServingSize,
-        outputPieces: outputPieces.toFixed(2),
-        output: outputGrams.toFixed(2),
+        outputPieces: outputPieces > 0 ? (outputPieces % 1 === 0 ? String(outputPieces) : outputPieces.toFixed(2)) : "0",
+        output: outputGrams > 0 ? (outputGrams % 1 === 0 ? String(outputGrams) : outputGrams.toFixed(2)) : "0",
       },
       costCalculation: {
         doughCostPerKg: {

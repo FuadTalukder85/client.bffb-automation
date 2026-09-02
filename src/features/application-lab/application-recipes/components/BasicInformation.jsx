@@ -1,51 +1,65 @@
-import React from "react";
-import { Input } from "@/components/ui/Input";
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp, Calendar, Save, X } from "lucide-react";
+import { FaEdit } from "react-icons/fa";
 import { cn } from "@/lib/utils";
 
 export default function BasicInformation({
   project,
   recipe,
   formatDate,
-  isEditMode = false,
-  handleRecipeChange
+  onSaveSpecificFields,
+  handleRecipeChange,
+  isFinalized = false,
 }) {
-  // Common styles to match the "perfect" pattern previously confirmed
-  const inputWrapperClass = "space-y-1 lg:space-y-0.5 xl:space-y-0.5 2xl:space-y-1.5 3xl:space-y-1.5";
-  const labelClass = "block text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-semibold text-nav-highlight md:text-gray-700 md:dark:text-gray-300 px-0.5";
-  const inputContainerClass = cn(
-    "h-5 lg:h-5.5 xl:h-7 2xl:h-8 3xl:h-10 border rounded-md lg:rounded-sm xl:rounded-sm 2xl:rounded-md 3xl:rounded-lg focus:ring-1 focus:ring-primary transition-all",
-    isEditMode
-      ? "bg-white dark:bg-gray-800 border-primary shadow-sm"
-      : "bg-primary-shade-2 border-nav-highlight/30 shadow-none"
-  );
-  const inputClass = "text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm text-gray-900 dark:text-white font-medium bg-transparent";
+  // Initial state is COLLAPSED (Image 1)
+  const [isExpanded, setIsExpanded] = useState(false);
+  // Completely INDEPENDENT edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [draftRecipeName, setDraftRecipeName] = useState(recipe?.recipeName || recipe?.name || "");
+  const [draftPotentiality, setDraftPotentiality] = useState(recipe?.potentiality ?? "");
+
+  useEffect(() => {
+    setDraftRecipeName(recipe?.recipeName || recipe?.name || "");
+    setDraftPotentiality(recipe?.potentiality ?? "");
+  }, [recipe?.recipeName, recipe?.name, recipe?.potentiality]);
+
+  const handleStartEdit = () => {
+    setDraftRecipeName(recipe?.recipeName || recipe?.name || "");
+    setDraftPotentiality(recipe?.potentiality ?? "");
+    setIsExpanded(true); // Automatically expand so fields can be edited immediately
+    setIsEditing(true);
+  };
+
+  const handleSaveLocal = async () => {
+    try {
+      setIsSaving(true);
+      if (onSaveSpecificFields) {
+        await onSaveSpecificFields({
+          name: draftRecipeName,
+          recipeName: draftRecipeName,
+          potentiality: draftPotentiality ? Number(draftPotentiality) : undefined,
+        });
+      }
+      handleRecipeChange?.("recipeName", draftRecipeName);
+      handleRecipeChange?.("potentiality", draftPotentiality);
+      setIsEditing(false);
+    } catch (err) {
+      console.error("Failed to save Basic Information:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelLocal = () => {
+    setDraftRecipeName(recipe?.recipeName || recipe?.name || "");
+    setDraftPotentiality(recipe?.potentiality ?? "60");
+    setIsEditing(false);
+  };
 
   const pickFirst = (...values) =>
     values.find((value) => value !== undefined && value !== null && value !== "");
-
-  const isIndependent = recipe?.isIndependentRecipe;
-
-  const renderField = (label, fieldName, projectValue, placeholder = "N/A", rightIcon = null) => {
-    const isIndField = isIndependent && isEditMode;
-    const value = isIndependent
-      ? (recipe?.[fieldName] || "")
-      : (projectValue || placeholder);
-
-    return (
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>{label}</label>
-        <Input
-          value={value}
-          readOnly={!isIndField}
-          placeholder={isIndField ? `Enter ${label.toLowerCase()}` : undefined}
-          rightIcon={rightIcon}
-          className={cn(inputContainerClass, !isIndField && "bg-gray-100 opacity-70 dark:bg-primary/10")}
-          inputClassName={inputClass}
-          onChange={(e) => handleRecipeChange(fieldName, e.target.value)}
-        />
-      </div>
-    );
-  };
 
   const recipeProject = recipe?.project || {};
   const mergedProject = {
@@ -76,134 +90,344 @@ export default function BasicInformation({
     recipe?.project?.masterProject?.title ||
     mergedMasterProject?.code ||
     recipe?.project?.masterProject?.code ||
-    "N/A";
-
-  const recipeType = String(recipe?.recipeType || "").toLowerCase();
-  const showServingSize = ["beverage", "beverage psd"].includes(recipeType);
+    "-";
 
   const fallbackProjectCode =
     mergedProject?.projectCode ||
     mergedMasterProject?.code ||
     recipe?.project?.masterProject?.code ||
-    "N/A";
+    "-";
+
+  const raisedByValue =
+    mergedProject?.raisedBy ||
+    mergedMasterProject?.raisedBy ||
+    recipe?.independentRecipeRaisedBy ||
+    "-";
+
+  const purposeValue = pickFirst(
+    mergedProject?.purpose,
+    mergedMasterProject?.purpose,
+    recipe?.independentRecipePurpose,
+    "-"
+  );
+
+  const objectiveValue = pickFirst(
+    mergedProject?.objective,
+    mergedMasterProject?.objective,
+    recipe?.independentRecipeObjective,
+    "-"
+  );
+
+  const objectiveDetailsValue =
+    recipe?.project?.objectiveDetails ||
+    recipe?.independentRecipeObjectiveDetails ||
+    "-";
+
+  const categoryName =
+    typeof recipe?.project?.category === "object" && recipe?.project?.category !== null
+      ? recipe?.project?.category?.name || "-"
+      : recipe?.project?.category || recipe?.independentRecipeApplicationCategory || "-";
+
+  const subcategoryName =
+    typeof recipe?.project?.subCategory === "object" && recipe?.project?.subCategory !== null
+      ? recipe?.project?.subCategory?.name || "-"
+      : recipe?.project?.subCategory || recipe?.independentRecipeApplicationSubcategory || "-";
+
+  const subSubcategoryName = Array.isArray(recipe?.project?.subSubCategory)
+    ? recipe?.project?.subSubCategory.map((s) => (typeof s === "object" && s !== null ? s?.name : s)).filter(Boolean).join(", ") || "-"
+    : typeof recipe?.project?.subSubCategory === "object" && recipe?.project?.subSubCategory !== null
+    ? recipe?.project?.subSubCategory?.name || "-"
+    : recipe?.project?.subSubCategory || recipe?.independentRecipeApplicationSubSubcategory || "-";
+
+  const tagsList = Array.isArray(recipe?.project?.tags)
+    ? recipe.project.tags.map((tag) => (typeof tag === "object" && tag !== null ? tag.name : tag)).filter(Boolean)
+    : typeof recipe?.independentRecipeTags === "string" && recipe.independentRecipeTags
+    ? recipe.independentRecipeTags.split(",").map((t) => t.trim()).filter(Boolean)
+    : [];
+
+  const targetCostValue = recipe?.project?.targetCost || recipe?.independentRecipeTargetCost || "-";
+  const benchmarkValue = recipe?.project?.benchmark || recipe?.independentRecipeBenchmark || "-";
+  const linkValue = recipe?.project?.link || recipe?.independentRecipeLink || "-";
+
+  const raisedDateValue = mergedProject?.raisedDate || mergedMasterProject?.raisedDate || recipe?.independentRecipeRaisedDate;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-1 lg:gap-y-1 xl:gap-y-2 2xl:gap-y-3 3xl:gap-y-4 gap-x-6 py-4 lg:py-5 xl:py-6 2xl:py-7 3xl:py-8 my-1 lg:my-1 xl:my-2 2xl:my-3 3xl:my-4 overflow-x-hidden">
-      {/* <div className="col-span-full mb-2 p-2 bg-red-100 text-red-800 font-bold">
-        DEBUG: isIndependent={String(isIndependent)} | isEditMode={String(isEditMode)} | recipe.isIndependentRecipe={String(recipe?.isIndependentRecipe)}
-      </div> */}
+    <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-3xl p-6 shadow-sm transition-all">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+          Basic Information
+        </h2>
 
-      {/* Recipe Creation Date */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Recipe Creation Date</label>
-        <Input
-          value={formatDate(recipe.createdAt)}
-          readOnly={true}
-          className={cn(inputContainerClass, "bg-gray-100 opacity-70 dark:bg-primary/10")}
-          inputClassName={inputClass}
-        />
+        <div className="flex items-center gap-3">
+          {/* Edit / Save / Cancel Controls (ALWAYS VISIBLE in header) */}
+          {isEditing ? (
+            <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
+              <button
+                type="button"
+                onClick={handleSaveLocal}
+                disabled={isSaving}
+                title="Save Changes"
+                className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+              </button>
+              <div className="w-px h-5 bg-white/30" />
+              <button
+                type="button"
+                onClick={handleCancelLocal}
+                disabled={isSaving}
+                title="Cancel Changes"
+                className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleStartEdit}
+              disabled={isFinalized}
+              title="Edit Basic Information"
+              className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <FaEdit className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Chevron expand/collapse toggle */}
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            title={isExpanded ? "Collapse" : "Expand"}
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
+          >
+            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
-      {/* Raised By */}
-      {renderField("Raised By", "independentRecipeRaisedBy", mergedProject?.raisedBy || mergedMasterProject?.raisedBy || "Business Development")}
+      {/* Expanded Content (Image 2 & 3) */}
+      {isExpanded && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4 pt-6 border-t border-[#EEEBF4] dark:border-primary/40 mt-4">
+          {/* Row 1 */}
+          {/* Raised Date * */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Raised Date <span className="text-red-500">*</span>
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-start gap-2.5 border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span>{formatDate(raisedDateValue) || "31 Dec 2024"}</span>
+            </div>
+          </div>
 
-      {/* Purpose */}
-      {renderField("Purpose", "independentRecipePurpose", pickFirst(mergedProject?.purpose, mergedMasterProject?.purpose, "N/A"))}
+          {/* Raised By */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Raised By
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+              {raisedByValue}
+            </div>
+          </div>
 
-      {/* Purpose Name */}
-      {renderField("Purpose Name", "independentRecipePurposeName", fallbackProjectName)}
+          {/* Project Code */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Project Code
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              {fallbackProjectCode}
+            </div>
+          </div>
 
-      {/* Objective */}
-      {renderField("Objective", "independentRecipeObjective", pickFirst(mergedProject?.objective, mergedMasterProject?.objective, "N/A"))}
+          {/* Row 2 */}
+          {/* Project Name * */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Project Name <span className="text-red-500">*</span>
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+              {fallbackProjectName}
+            </div>
+          </div>
 
-      {/* Objective Details */}
-      {renderField("Objective Details", "independentRecipeObjectiveDetails", recipe?.project?.objectiveDetails || "")}
+          {/* Purpose */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Purpose
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <span>{purposeValue}</span>
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            </div>
+          </div>
 
-      {/* Project Code */}
-      {renderField("Project Code", "independentRecipeProjectCode", fallbackProjectCode)}
+          {/* Purpose Name */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Purpose Name
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              {fallbackProjectName === "N/A" ? "N/A" : fallbackProjectName}
+            </div>
+          </div>
 
-      {/* Project Name */}
-      {renderField("Project Name", "independentRecipeProjectName", fallbackProjectName)}
+          {/* Row 3 */}
+          {/* Objective */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Objective
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              {objectiveValue}
+            </div>
+          </div>
 
-      {/* Raised Date */}
-      {renderField("Raised Date", "independentRecipeRaisedDate", formatDate(mergedProject?.raisedDate || mergedMasterProject?.raisedDate))}
+          {/* Objective Details */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Objective Details
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+              {objectiveDetailsValue}
+            </div>
+          </div>
 
-      {/* Recipe Code */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Recipe Code</label>
-        <Input
-          value={recipe.recipeCode || "N/A"}
-          readOnly={true}
-          className={cn(inputContainerClass, "bg-gray-100 opacity-70 dark:bg-primary/10")}
-          inputClassName={inputClass}
-        />
-      </div>
+          {/* Application Recipe Name (EDITABLE in Edit Mode) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Application Recipe Name
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={draftRecipeName}
+                onChange={(e) => setDraftRecipeName(e.target.value)}
+                placeholder="Application Recipe Name"
+                className="h-11 px-3.5 border-2 border-[#4B208B] rounded-xl text-xs font-medium bg-white dark:bg-[#151221] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#4B208B]/20 shadow-sm"
+              />
+            ) : (
+              <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+                {recipe?.recipeName || recipe?.name || "Application Recipe Name"}
+              </div>
+            )}
+          </div>
 
-      {/* Application Recipe Name */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Application Recipe Name</label>
-        <Input
-          value={recipe.recipeName || recipe.name || "N/A"}
-          readOnly={!isEditMode}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-          onChange={(e) => handleRecipeChange("recipeName", e.target.value)}
-        />
-      </div>
+          {/* Row 4 */}
+          {/* Application Category */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Application Category
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+              {categoryName}
+            </div>
+          </div>
 
-      {/* Application Category */}
-      {renderField("Application Category", "independentRecipeApplicationCategory", typeof recipe?.project?.category === 'object' && recipe?.project?.category !== null ? recipe?.project?.category?.name || "N/A" : recipe?.project?.category || "N/A")}
+          {/* Application Subcategory */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Application Subcategory
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <span className="truncate">{subcategoryName}</span>
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </div>
+          </div>
 
-      {/* Application Subcategory */}
-      {renderField("Application Subcategory", "independentRecipeApplicationSubcategory", typeof recipe?.project?.subCategory === 'object' && recipe?.project?.subCategory !== null ? recipe?.project?.subCategory?.name || "N/A" : recipe?.project?.subCategory || "N/A")}
+          {/* Application Sub-subcategory */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Application Sub-subcategory
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <span className="truncate">{subSubcategoryName}</span>
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </div>
+          </div>
 
-      {/* Application Sub-subcategory */}
-      {renderField(
-        "Application Sub-subcategory",
-        "independentRecipeApplicationSubSubcategory",
-        Array.isArray(recipe?.project?.subSubCategory)
-          ? recipe?.project?.subSubCategory.map(s => (typeof s === 'object' && s !== null ? s?.name : s)).filter(Boolean).join(", ") || "N/A"
-          : typeof recipe?.project?.subSubCategory === 'object' && recipe?.project?.subSubCategory !== null
-          ? recipe?.project?.subSubCategory?.name || "N/A"
-          : recipe?.project?.subSubCategory || "N/A"
-      )}
+          {/* Row 5 */}
+          {/* Application Tags */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Application Tags
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <div className="flex items-center gap-1.5 overflow-hidden">
+                {tagsList.length > 0 ? (
+                  tagsList.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="px-2.5 py-0.5 rounded-full bg-[#EFEAF9] dark:bg-primary/25 text-[#4B208B] dark:text-purple-300 text-[11px] font-semibold truncate"
+                    >
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-gray-400">-</span>
+                )}
+              </div>
+              <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            </div>
+          </div>
 
-      {/* Application Tags */}
-      {renderField("Application Tags", "independentRecipeTags", Array.isArray(recipe?.project?.tags) ? recipe.project.tags.map(tag => typeof tag === 'object' && tag !== null ? tag.name : tag).filter(Boolean).join(', ') || "N/A" : "N/A")}
+          {/* Target Cost */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Target Cost
+            </label>
+            <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+              <span>{targetCostValue}</span>
+              <span className="text-xs font-semibold text-gray-400">BDT/kg</span>
+            </div>
+          </div>
 
-      {/* Target Cost */}
-      {renderField("Target Cost", "independentRecipeTargetCost", recipe?.project?.targetCost || "N/A")}
+          {/* Potentiality (EDITABLE in Edit Mode) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Potentiality
+            </label>
+            {isEditing ? (
+              <div className="h-11 px-3.5 flex items-center justify-between border-2 border-[#4B208B] rounded-xl bg-white dark:bg-[#151221] shadow-sm">
+                <input
+                  type="text"
+                  value={draftPotentiality}
+                  onChange={(e) => setDraftPotentiality(e.target.value)}
+                  placeholder="60"
+                  className="w-full text-xs font-medium text-gray-900 dark:text-white bg-transparent focus:outline-none"
+                />
+                <span className="text-xs font-semibold text-gray-400">%</span>
+              </div>
+            ) : (
+              <div className="h-11 px-3.5 flex items-center justify-between border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200">
+                <span>{recipe?.potentiality ?? "60"}</span>
+                <span className="text-xs font-semibold text-gray-400">%</span>
+              </div>
+            )}
+          </div>
 
-      {/* Potentiality */}
-      <div className={inputWrapperClass}>
-        <label className={labelClass}>Potentiality</label>
-        <Input
-          value={recipe?.potentiality || "N/A"}
-          readOnly={!isEditMode}
-          rightIcon={<span className="">%</span>}
-          className={inputContainerClass}
-          inputClassName={inputClass}
-          onChange={(e) => handleRecipeChange("potentiality", e.target.value)}
-        />
-      </div>
+          {/* Row 6 */}
+          {/* Benchmark */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Benchmark
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-medium bg-[#FCFBFD] dark:bg-[#121019] text-gray-800 dark:text-gray-200 truncate">
+              {benchmarkValue}
+            </div>
+          </div>
 
-      {/* Benchmark */}
-      {renderField("Benchmark", "independentRecipeBenchmark", recipe?.project?.benchmark || "N/A")}
-
-      {/* Link */}
-      {renderField("Link", "independentRecipeLink", recipe?.project?.link || "N/A")}
-
-      {showServingSize && (
-        <div className={inputWrapperClass}>
-          <label className={labelClass}>Serving Size</label>
-          <Input
-            value={recipe?.servingSizeText ?? ""}
-            placeholder="gm/ml"
-            readOnly={!isEditMode}
-            className={inputContainerClass}
-            inputClassName={inputClass}
-            onChange={(e) => handleRecipeChange("servingSizeText", e.target.value)}
-          />
+          {/* Link */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Link
+            </label>
+            <div className="h-11 px-3.5 flex items-center border border-[#EEEBF4] dark:border-primary/40 rounded-xl text-xs font-semibold text-[#4B208B] dark:text-purple-300 bg-[#FCFBFD] dark:bg-[#121019] truncate">
+              {linkValue}
+            </div>
+          </div>
         </div>
       )}
     </div>

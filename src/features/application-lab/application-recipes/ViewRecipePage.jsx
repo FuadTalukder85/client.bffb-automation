@@ -25,6 +25,7 @@ import { hasPermission } from "@/lib/utils";
 import { useProjectMembers } from "@/hooks/useProjectMembers";
 import { PrepareSampleModal } from "./components/PrepareSampleModal";
 import DownloadHistoryModal from "./components/DownloadHistoryModal";
+import { FinalizeRecipeModal } from "./components/FinalizeRecipeModal";
 
 
 const tabs = [
@@ -246,6 +247,8 @@ export default function ViewRecipePage() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isPrepareSampleModalOpen, setIsPrepareSampleModalOpen] = useState(false);
   const [isDownloadHistoryModalOpen, setIsDownloadHistoryModalOpen] = useState(false);
+  const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
+  const [recipeToFinalize, setRecipeToFinalize] = useState(null);
   const hasAutoTriggeredEditRef = useRef(false);
 
   // Get project members for task assignments
@@ -383,13 +386,20 @@ export default function ViewRecipePage() {
     setSopData(updatedSOPData);
   };
 
-  const handleIngredientsChange = (payload) => {
+  const handleIngredientsChange = async (payload, targetRecipeId) => {
     const isLegacyArray = Array.isArray(payload);
     const nextIngredients = isLegacyArray
       ? payload
       : Array.isArray(payload?.ingredients)
         ? payload.ingredients
         : undefined;
+
+    if (targetRecipeId && targetRecipeId !== recipe?._id) {
+      if (nextIngredients !== undefined) {
+        await handleSaveSpecificFields({ ingredients: nextIngredients }, targetRecipeId);
+      }
+      return;
+    }
 
     setEditableRecipe((prev) => ({
       ...prev,
@@ -577,6 +587,25 @@ export default function ViewRecipePage() {
     }
   };
 
+  const handleSaveSpecificFields = async (fieldsToUpdate, targetRecipeId) => {
+    const recipeId = targetRecipeId || recipe?._id;
+    if (!recipeId) return;
+
+    try {
+      const updatedRecipe = await updateRecipe({ id: recipeId, data: fieldsToUpdate });
+      if (updatedRecipe?._id && (!targetRecipeId || targetRecipeId === recipe?._id)) {
+        setActiveRecipeId(updatedRecipe._id);
+        setEditableRecipe(flatMapIndependentDetails(updatedRecipe));
+      }
+      toast.success("Changes saved successfully");
+      return updatedRecipe;
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+      toast.error(getApiErrorMessage(err, "Failed to save changes"));
+      throw err;
+    }
+  };
+
   const handleCancelSave = () => {
     setIsSaveModalOpen(false);
   };
@@ -684,20 +713,34 @@ export default function ViewRecipePage() {
     }
   };
 
-  const handleFinalize = async () => {
-    const recipeId = recipe?._id;
-    if (!recipeId || isFinalized) return;
+  const handleOpenFinalizeModal = (targetRecipe) => {
+    setRecipeToFinalize(targetRecipe || recipe);
+    setIsFinalizeModalOpen(true);
+  };
 
-    const finalizedRecipe = await updateRecipe({
-      id: recipeId,
-      data: { recipeStatus: RECIPE_STATUS.FINAL },
-    });
+  const handleConfirmFinalize = async () => {
+    const recipeId = recipeToFinalize?._id || recipe?._id;
+    if (!recipeId) return;
 
-    if (finalizedRecipe?._id) {
-      setActiveRecipeId(finalizedRecipe._id);
-      setEditableRecipe(flatMapIndependentDetails(finalizedRecipe));
-      setIsEditMode(false);
+    try {
+      const finalizedRecipe = await updateRecipe({
+        id: recipeId,
+        data: { recipeStatus: RECIPE_STATUS.FINAL },
+      });
+
+      if (finalizedRecipe?._id) {
+        setActiveRecipeId(finalizedRecipe._id);
+        setEditableRecipe(flatMapIndependentDetails(finalizedRecipe));
+        setIsEditMode(false);
+      }
+      setIsFinalizeModalOpen(false);
+    } catch (err) {
+      console.error("Failed to finalize recipe:", err);
     }
+  };
+
+  const handleFinalize = () => {
+    handleOpenFinalizeModal(recipe);
   };
   const handleBack = () => {
     const returnTo = location.state?.returnTo;
@@ -865,7 +908,11 @@ export default function ViewRecipePage() {
     handleRecipeChange,
     handleProjectChange,
     handleDownload,
+    handleExportTypeInternal,
+    handleExportTypeForClient,
     handleFinalize,
+    handleOpenFinalizeModal,
+    onSaveSpecificFields: handleSaveSpecificFields,
     handleBack,
     handleCreateVersion,
     handleIngredientsChange,
@@ -894,8 +941,8 @@ export default function ViewRecipePage() {
   }
 
   return (
-    <section className="flex flex-col bg-transparent page-section-spacing md:px-0 md:flex-1 md:min-h-0 md:overflow-hidden">
-      <div className="hidden md:flex flex-1 min-h-0 w-full overflow-hidden">
+    <section className="flex flex-col bg-transparent page-section-spacing md:px-0 md:flex-1 md:min-h-0">
+      <div className="hidden md:flex flex-1 min-h-0 w-full overflow-y-auto custom-scrollbar pr-1">
         <DesktopViewRecipe {...commonProps} />
       </div>
       <div className="flex md:hidden flex-1 w-full min-h-0">
@@ -962,6 +1009,13 @@ export default function ViewRecipePage() {
         onOpenChange={setIsDownloadHistoryModalOpen}
         recipeId={recipe?._id}
         recipeName={recipe?.recipeName || recipe?.name}
+      />
+
+      <FinalizeRecipeModal
+        open={isFinalizeModalOpen}
+        onOpenChange={setIsFinalizeModalOpen}
+        onConfirm={handleConfirmFinalize}
+        isLoading={isSaving}
       />
     </section>
   );
