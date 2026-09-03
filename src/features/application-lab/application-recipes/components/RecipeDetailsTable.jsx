@@ -208,6 +208,7 @@ function VersionColumn({
         sopRef={sopRef}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
+        formatDate={formatDate}
       />
 
       {/* 4. SENSORY FEEDBACK SECTION */}

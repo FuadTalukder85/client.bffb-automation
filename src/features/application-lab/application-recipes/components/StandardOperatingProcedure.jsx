@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Save, X } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { mapUIParamsToBackend, buildSOPDataFromRecipe } from "../data/sopDataByFormat";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const defaultParams = [
   { label: "Dough Temperature", value: "", unit: "°C" },
@@ -41,6 +42,60 @@ const defaultAfterBake = [
   { label: "Moisture", value: "", unit: "" },
 ];
 
+const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
+  if (!rawVal || typeof rawVal !== "string" || !rawVal.trim()) return [];
+  const trimmed = rawVal.trim();
+
+  // 1. Try parsing JSON array
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((item) => item && (item.text || item.comment))
+          .map((item) => ({
+            userName: item.userName || item.user || defaultAuthor || "User",
+            user: item.userName || item.user || defaultAuthor || "User",
+            text: item.text || item.comment || "",
+            comment: item.text || item.comment || "",
+            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
+            tag: item.tag || null,
+          }));
+      }
+    } catch (e) {}
+  }
+
+  // 2. Try parsing single JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const item = JSON.parse(trimmed);
+      if (item && (item.text || item.comment)) {
+        return [
+          {
+            userName: item.userName || item.user || defaultAuthor || "User",
+            user: item.userName || item.user || defaultAuthor || "User",
+            text: item.text || item.comment || "",
+            comment: item.text || item.comment || "",
+            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
+            tag: item.tag || null,
+          },
+        ];
+      }
+    } catch (e) {}
+  }
+
+  // 3. Fallback: legacy plain text comment
+  return [
+    {
+      userName: defaultAuthor || "User",
+      user: defaultAuthor || "User",
+      text: trimmed,
+      comment: trimmed,
+      createdAt: defaultDate || new Date().toISOString(),
+    },
+  ];
+};
+
 // ================= STANDARD OPERATING PROCEDURE VERSION COLUMN =================
 export default function StandardOperatingProcedure({
   vItem,
@@ -51,9 +106,15 @@ export default function StandardOperatingProcedure({
   sopRef,
   onSaveSpecificFields,
   isConfectionary = false,
+  formatDate = (d) => d || "-",
 }) {
   const [isSOPEditing, setIsSOPEditing] = useState(false);
   const [isSavingSOP, setIsSavingSOP] = useState(false);
+  const [newCommentText, setNewCommentText] = useState("");
+  const [localActivities, setLocalActivities] = useState([]);
+
+  const { user: currentUser } = useAuthStore();
+  const currentUserName = currentUser?.name || currentUser?.fullName || currentUser?.username || "User";
 
   const isConfection =
     isConfectionary ||
@@ -168,6 +229,21 @@ export default function StandardOperatingProcedure({
         moisture: findVal("Moisture"),
       };
 
+      let updatedProcedureOthers;
+      if (newCommentText.trim()) {
+        const newEntry = {
+          userName: currentUserName,
+          user: currentUserName,
+          text: newCommentText.trim(),
+          comment: newCommentText.trim(),
+          createdAt: new Date().toISOString(),
+        };
+        const updatedList = [...effectiveActivities, newEntry];
+        updatedProcedureOthers = JSON.stringify(updatedList);
+        setLocalActivities((prev) => [...prev, newEntry]);
+        setNewCommentText("");
+      }
+
       if (onSaveSpecificFields) {
         await onSaveSpecificFields(
           {
@@ -176,6 +252,7 @@ export default function StandardOperatingProcedure({
             ovenTemperatureTunnelBaking: tunnelData,
             normalBaking: normalData,
             afterBake: abData,
+            ...(updatedProcedureOthers ? { procedureOthers: updatedProcedureOthers } : {}),
           },
           vItem?._id || data?._id
         );
@@ -186,6 +263,107 @@ export default function StandardOperatingProcedure({
       console.error("Failed to save Standard Operating for version:", err);
     } finally {
       setIsSavingSOP(false);
+    }
+  };
+
+  const dynamicAuthor =
+    vItem?.createdBy?.name ||
+    vItem?.createdBy?.fullName ||
+    (typeof vItem?.createdBy === "string" && vItem.createdBy.length < 30 ? vItem.createdBy : null) ||
+    data?.createdBy?.name ||
+    data?.createdBy?.fullName ||
+    data?.independentRecipeRaisedBy ||
+    data?.raisedBy ||
+    currentUserName;
+
+  // Stored activities from database (vItem.activities + parsed vItem.procedureOthers)
+  const storedActivities = useMemo(() => {
+    const list = [];
+    if (Array.isArray(vItem?.activities) && vItem.activities.length > 0) {
+      list.push(...vItem.activities);
+    }
+
+    const procOthers = vItem?.procedureOthers || normalizedVItem?.procedureOthers;
+    if (procOthers && typeof procOthers === "string" && procOthers.trim()) {
+      const parsed = parseStoredComments(
+        procOthers,
+        dynamicAuthor,
+        vItem?.updatedAt || vItem?.createdAt
+      );
+
+      parsed.forEach((p) => {
+        const textKey = (p.text || p.comment || "").trim();
+        const dateKey = p.createdAt ? new Date(p.createdAt).getTime() : 0;
+        const exists = list.some((existing) => {
+          const eText = (existing.text || existing.comment || "").trim();
+          const eDate = existing.createdAt ? new Date(existing.createdAt).getTime() : 0;
+          return eText === textKey && (Math.abs(eDate - dateKey) < 1000 || !eDate || !dateKey);
+        });
+        if (!exists) {
+          list.push(p);
+        }
+      });
+    }
+
+    return list;
+  }, [
+    vItem?.activities,
+    vItem?.procedureOthers,
+    normalizedVItem?.procedureOthers,
+    dynamicAuthor,
+    vItem?.updatedAt,
+    vItem?.createdAt,
+  ]);
+
+  // Consolidate stored activities and newly posted local comments
+  const effectiveActivities = useMemo(() => {
+    const list = [...storedActivities];
+    localActivities.forEach((local) => {
+      const lText = (local.text || local.comment || "").trim();
+      const lDate = local.createdAt ? new Date(local.createdAt).getTime() : 0;
+      const exists = list.some((existing) => {
+        const eText = (existing.text || existing.comment || "").trim();
+        const eDate = existing.createdAt ? new Date(existing.createdAt).getTime() : 0;
+        return eText === lText && (Math.abs(eDate - lDate) < 1000 || !eDate || !lDate);
+      });
+      if (!exists) {
+        list.push(local);
+      }
+    });
+    return list;
+  }, [storedActivities, localActivities]);
+
+  // Recipe-specific comment submission handler supporting multiple separate entries
+  const handleSendComment = async () => {
+    const text = newCommentText.trim();
+    if (!text) return;
+
+    try {
+      const targetId = vItem?._id || data?._id;
+      const newEntry = {
+        userName: currentUserName,
+        user: currentUserName,
+        text,
+        comment: text,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Append new entry to the full list of existing comments
+      const updatedList = [...effectiveActivities, newEntry];
+
+      setLocalActivities((prev) => [...prev, newEntry]);
+      setNewCommentText("");
+
+      if (onSaveSpecificFields) {
+        await onSaveSpecificFields(
+          {
+            procedureOthers: JSON.stringify(updatedList),
+          },
+          targetId
+        );
+      }
+    } catch (err) {
+      console.error("Failed to save recipe comment:", err);
     }
   };
 
@@ -599,6 +777,68 @@ export default function StandardOperatingProcedure({
           </div>
         </div>
       )}
+
+      {/* Others Block */}
+      <div>
+        <div className="mb-3">
+          <span className="font-bold text-sm text-gray-900 dark:text-white">
+            Others
+          </span>
+        </div>
+
+        <div className="space-y-3">
+          {Array.isArray(effectiveActivities) && effectiveActivities.length > 0 ? (
+            effectiveActivities.map((act, actIdx) => (
+              <div
+                key={actIdx}
+                className="p-3.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 space-y-2 text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-[#4B208B] text-white font-bold text-[10px] flex items-center justify-center">
+                    {(act.userName || act.user || "U").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-1 overflow-hidden">
+                    <span className="font-bold text-gray-900 dark:text-white truncate">
+                      {act.userName || act.user || "User"}
+                    </span>
+                    {act.tag && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-[#EFEAF9] dark:bg-primary/25 text-[#4B208B] dark:text-purple-300 text-[10px] font-semibold whitespace-nowrap">
+                        {act.tag}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                    {formatDate(act.createdAt) || "-"}
+                  </span>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-[11px]">
+                  {act.text || act.comment || ""}
+                </p>
+              </div>
+            ))
+          ) : null}
+
+          {/* Comment Input Box */}
+          <div className="space-y-2">
+            <textarea
+              rows={3}
+              placeholder="Enter Comment"
+              value={newCommentText}
+              onChange={(e) => setNewCommentText(e.target.value)}
+              className="w-full p-3 rounded-2xl border border-[#EEEBF4] dark:border-primary/30 text-xs leading-relaxed bg-[#FCFBFD] dark:bg-[#121019] text-gray-900 dark:text-white resize-none focus:outline-none shadow-sm"
+            />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={handleSendComment}
+                className="px-4 py-1.5 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -79,4 +79,10 @@ export const sensoryAPI = {
     const response = await api.get(`/sensory-evaluations/sample/${sampleId}/details`, config);
     return response.data;
   },
+
+  // Get sensory feedback for a recipe
+  getRecipeSensoryFeedback: async (recipeId, config = {}) => {
+    const response = await api.get(`/sensory-evaluations/recipe/${recipeId}/feedback`, config);
+    return response.data;
+  },
 };

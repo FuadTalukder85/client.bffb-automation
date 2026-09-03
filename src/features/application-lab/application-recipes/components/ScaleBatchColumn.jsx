@@ -309,6 +309,7 @@ export default function ScaleBatchColumn({
         recipeFormat={recipeFormat}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
+        formatDate={formatDate}
       />
 
       {/* 4. SENSORY FEEDBACK SECTION */}
