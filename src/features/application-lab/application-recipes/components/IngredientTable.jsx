@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { Download, CheckCircle, Eye, ChevronDown, Plus, ClipboardList, Check } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { cn } from "@/lib/utils";
@@ -16,12 +17,38 @@ export default function IngredientTable({
   ingredientGroups = [],
   vTotals = {},
   onPrepareSample,
+  onSample,
   onEditRow,
   formatDate = (d) => d || "-",
   isSelectingForCompare = false,
   isSelectedForCompare = false,
   onToggleSelectCompare,
 }) {
+  const navigate = useNavigate();
+
+  const handleSampleClick = () => {
+    const versionIngredients =
+      Array.isArray(vItem?.ingredients) && vItem.ingredients.length > 0
+        ? vItem.ingredients
+        : Array.isArray(data?.ingredients) && data.ingredients.length > 0
+        ? data.ingredients
+        : [];
+
+    const enrichedVItem = {
+      ...vItem,
+      ingredients: versionIngredients,
+    };
+
+    if (onSample) {
+      onSample(enrichedVItem, data);
+    } else {
+      const targetId = vItem?._id || data?._id;
+      const targetVersion = vItem?.version ?? 0;
+      navigate(`/application-lab/application-recipes/sample/${targetId}/${targetVersion}`, {
+        state: { recipe: data, vItem: enrichedVItem, version: targetVersion },
+      });
+    }
+  };
   return (
     <div className="flex flex-col border-b border-[#EEEBF4] dark:border-primary/40">
       {/* Version Header Card (Image 4 & Compare Selection) */}
@@ -203,7 +230,7 @@ export default function IngredientTable({
           </button>
           <button
             type="button"
-            onClick={onPrepareSample}
+            onClick={handleSampleClick}
             className="px-2.5 py-2 rounded-xl bg-[#4B208B] text-white text-xs font-bold hover:bg-[#3E1B77] flex items-center gap-1 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />

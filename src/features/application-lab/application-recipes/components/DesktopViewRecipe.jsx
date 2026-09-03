@@ -43,6 +43,7 @@ export default function DesktopViewRecipe({
   isSaving,
   canExportRecipe,
   handlePrepareSample,
+  handleSample,
   handleViewDownloadHistory,
 }) {
   const [isSelectingForCompare, setIsSelectingForCompare] = useState(false);
@@ -384,6 +385,7 @@ export default function DesktopViewRecipe({
             onFullDownload={handleExportTypeInternal || handleDownload}
             onClientDownload={handleExportTypeForClient || handleDownload}
             onPrepareSample={handlePrepareSample}
+            onSample={handleSample}
             formatDate={formatDate}
             recipeFormat={recipeFormat}
             isFinalized={isFinalized}

@@ -28,6 +28,7 @@ function VersionColumn({
   onFullDownload,
   onClientDownload,
   onPrepareSample,
+  onSample,
   onEditRow,
   onSaveSpecificFields,
   recipeFormat = "bakery",
@@ -161,7 +162,7 @@ function VersionColumn({
     >
       {/* 1. INGREDIENT TABLE SECTION */}
       <IngredientTable
-        vItem={vItem}
+        vItem={normalizedVItem}
         data={data}
         versionNumStr={versionNumStr}
         vIsFinalized={vIsFinalized}
@@ -172,6 +173,7 @@ function VersionColumn({
         ingredientGroups={ingredientGroups}
         vTotals={vTotals}
         onPrepareSample={onPrepareSample}
+        onSample={onSample}
         onEditRow={onEditRow}
         formatDate={formatDate}
         isSelectingForCompare={isSelectingForCompare}
@@ -231,6 +233,7 @@ export default function RecipeDetailsTable({
   onFullDownload,
   onClientDownload,
   onPrepareSample,
+  onSample,
   formatDate = (d) => d || "-",
   recipeFormat = "bakery",
   isFinalized = false,
@@ -510,6 +513,7 @@ export default function RecipeDetailsTable({
                 onFullDownload={onFullDownload}
                 onClientDownload={onClientDownload}
                 onPrepareSample={onPrepareSample}
+                onSample={onSample}
                 onEditRow={handleEditRow}
                 onSaveSpecificFields={onSaveSpecificFields}
                 recipeFormat={recipeFormat}

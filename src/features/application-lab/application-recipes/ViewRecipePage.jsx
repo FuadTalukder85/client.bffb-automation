@@ -929,6 +929,37 @@ export default function ViewRecipePage() {
     onChangeRecipeType: handleOpenRecipeTypeModal,
     canExportRecipe,
     handlePrepareSample: () => setIsPrepareSampleModalOpen(true),
+    handleSample: (vItem, currentRecipe) => {
+      const targetId = vItem?._id || recipe?._id;
+      const targetVersion = vItem?.version ?? currentVersion ?? 0;
+      const r = currentRecipe || recipe;
+
+      const versionIngredients =
+        Array.isArray(vItem?.ingredients) && vItem.ingredients.length > 0
+          ? vItem.ingredients
+          : Array.isArray(r?.ingredients) && r.ingredients.length > 0
+          ? r.ingredients
+          : Array.isArray(editableRecipe?.ingredients) && editableRecipe.ingredients.length > 0
+          ? editableRecipe.ingredients
+          : [];
+
+      const enrichedVItem = {
+        ...vItem,
+        ingredients: versionIngredients,
+      };
+
+      navigate(`/application-lab/application-recipes/sample/${targetId}/${targetVersion}`, {
+        state: {
+          recipe: {
+            ...r,
+            ingredients: versionIngredients,
+          },
+          vItem: enrichedVItem,
+          version: targetVersion,
+          project: fetchedProjectData,
+        },
+      });
+    },
     handleViewDownloadHistory: () => setIsDownloadHistoryModalOpen(true),
   };
 

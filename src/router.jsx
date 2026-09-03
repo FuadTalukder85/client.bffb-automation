@@ -11,6 +11,7 @@ import { useReducedMotion } from "framer-motion";
 import RawMaterialsPricePage from "./features/application-lab/raw-materials-price/RawMaterialsPricePage.jsx";
 import ApplicationRecipesPage from "./features/application-lab/application-recipes/ApplicationRecipesPage.jsx";
 import ViewRecipePage from "./features/application-lab/application-recipes/ViewRecipePage.jsx";
+import ScaleBatchSamplePage from "./features/application-lab/application-recipes/ScaleBatchSamplePage.jsx";
 import PackagingTypesPage from "./features/application-lab/packaging-types/PackagingTypesPage.jsx";
 import SamplePreparationAndPackagingPage from "./features/application-lab/sample-preparation-&-packaging/SamplePreparationAndPackagingPage.jsx";
 
@@ -213,6 +214,10 @@ const applicationLabRoutes = [
       { path: "raw-materials-price-list", element: <LazyWrapper><RawMaterialsPricePage /></LazyWrapper> },
       { path: "application-recipes", element: <LazyWrapper><ApplicationRecipesPage /></LazyWrapper> },
       { path: "application-recipes/version/:recipeId", element: <LazyWrapper><ViewRecipePage /></LazyWrapper> },
+      { path: "application-recipes/sample/:recipeId/:version", element: <LazyWrapper><ScaleBatchSamplePage /></LazyWrapper> },
+      { path: "application-recipes/sample/:recipeId", element: <LazyWrapper><ScaleBatchSamplePage /></LazyWrapper> },
+      { path: "application-recipes/:projectId/sample/:version", element: <LazyWrapper><ScaleBatchSamplePage /></LazyWrapper> },
+      { path: "application-recipes/:projectId/sample", element: <LazyWrapper><ScaleBatchSamplePage /></LazyWrapper> },
       { path: "application-recipes/:projectId", element: <LazyWrapper><ViewRecipePage /></LazyWrapper> },
       { path: "packaging-types", element: <LazyWrapper><PackagingTypesPage /></LazyWrapper> },
       { path: "sample-preparation-and-packaging", element: <LazyWrapper><SamplePreparationAndPackagingPage /></LazyWrapper> },
