@@ -39,8 +39,6 @@ function VersionColumn({
   onToggleSelectCompare,
 }) {
   const versionNumStr = String(Number(vItem?.version ?? 0) + 1).padStart(2, "0");
-  const vIsFinalized = vItem?.recipeStatus === "final" || isFinalized;
-
   const isCurrentData =
     vItem?._id === data?._id ||
     (vItem?.version !== undefined && data?.version !== undefined && vItem?.version === data?.version);
@@ -55,6 +53,14 @@ function VersionColumn({
     if (fetchedDetail) return { ...vItem, ...fetchedDetail };
     return vItem || {};
   }, [isCurrentData, data, fetchedDetail, vItem]);
+
+  const effectiveStatus = effectiveVersionData?.recipeStatus || vItem?.recipeStatus;
+  const vIsFinalized =
+    ["final", "approved", "finalized"].includes(String(effectiveStatus || "").toLowerCase()) ||
+    Boolean(
+      isCurrentData &&
+        (["final", "approved", "finalized"].includes(String(data?.recipeStatus || "").toLowerCase()) || isFinalized)
+    );
 
   // Ensure version ingredients are sourced properly from vItem or fetched details
   const versionIngredients = useMemo(() => {
@@ -328,12 +334,12 @@ export default function RecipeDetailsTable({
 
   const handleBFFProductConfirm = (formData) => {
     const currentIngredients = Array.isArray(data?.ingredients) ? data.ingredients : [];
-    onIngredientsChange?.([...currentIngredients, formData]);
+    onIngredientsChange?.([...currentIngredients, formData], data?._id);
   };
 
   const handleStandardIngredientConfirm = (formData) => {
     const currentIngredients = Array.isArray(data?.ingredients) ? data.ingredients : [];
-    onIngredientsChange?.([...currentIngredients, formData]);
+    onIngredientsChange?.([...currentIngredients, formData], data?._id);
   };
 
   const handleEditRow = (ingredient, index, vItem) => {
@@ -372,14 +378,16 @@ export default function RecipeDetailsTable({
     const deleteIndex = Number(ingredientToArchive?.originalIndex);
 
     if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
+      currentIngredients.splice(deleteIndex, 1);
       if (ingredientToArchive._id && targetRecipe?._id) {
         await deleteIngredientMutation.mutateAsync({
           recipeId: targetRecipe._id,
           ingredientId: ingredientToArchive._id,
         });
+        onIngredientsChange?.(currentIngredients, targetRecipe?._id, { skipSave: true });
+      } else {
+        await onIngredientsChange?.(currentIngredients, targetRecipe?._id);
       }
-      currentIngredients.splice(deleteIndex, 1);
-      onIngredientsChange?.(currentIngredients, targetRecipe?._id);
     }
     setIsArchiveModalOpen(false);
     setIngredientToArchive(null);

@@ -43,7 +43,7 @@ export default function AddStandardIngredientModal({ isOpen, onClose, onConfirm,
   const ingredientOptions = useMemo(() => {
     const items = rawMaterialsData?.data || [];
     return items.map((item) => ({
-      value: item.id,
+      value: item.id || item._id,
       label: item.name,
     }));
   }, [rawMaterialsData]);
@@ -54,7 +54,9 @@ export default function AddStandardIngredientModal({ isOpen, onClose, onConfirm,
         return { ...prev, type: value, ingredient: "", clientRate: "" };
       }
       if (field === "ingredient") {
-        const selectedIngredient = (rawMaterialsData?.data || []).find((item) => item.id === value);
+        const selectedIngredient = (rawMaterialsData?.data || []).find(
+          (item) => (item.id || item._id) === value
+        );
         const parsedCost = Number(String(selectedIngredient?.cost || "0").replace(/,/g, ""));
 
         return {
@@ -70,7 +72,7 @@ export default function AddStandardIngredientModal({ isOpen, onClose, onConfirm,
   const handleConfirm = () => {
     if (formData.type && formData.ingredient && formData.quantity) {
       const selectedIngredient = (rawMaterialsData?.data || []).find(
-        (item) => item.id === formData.ingredient
+        (item) => (item.id || item._id) === formData.ingredient
       );
       const parsedCost = Number(String(selectedIngredient?.cost || "0").replace(/,/g, ""));
 
@@ -80,7 +82,7 @@ export default function AddStandardIngredientModal({ isOpen, onClose, onConfirm,
         process: isConfectionary ? formData.process : null,
         quantity: Number(formData.quantity),
         ingredientSourceType: "rawMaterial",
-        sourceId: formData.ingredient,
+        sourceId: selectedIngredient?.id || selectedIngredient?._id || formData.ingredient,
         sourceName: selectedIngredient?.name || "",
         sourceCode: null,
         bffRateAtCreation: Number.isFinite(parsedCost) ? parsedCost : 0,

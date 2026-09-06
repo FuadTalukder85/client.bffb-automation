@@ -386,7 +386,7 @@ export default function ViewRecipePage() {
     setSopData(updatedSOPData);
   };
 
-  const handleIngredientsChange = async (payload, targetRecipeId) => {
+  const handleIngredientsChange = async (payload, targetRecipeId, options = {}) => {
     const isLegacyArray = Array.isArray(payload);
     const nextIngredients = isLegacyArray
       ? payload
@@ -394,21 +394,69 @@ export default function ViewRecipePage() {
         ? payload.ingredients
         : undefined;
 
-    if (targetRecipeId && targetRecipeId !== recipe?._id) {
-      if (nextIngredients !== undefined) {
-        await handleSaveSpecificFields({ ingredients: nextIngredients }, targetRecipeId);
-      }
+    const resolvedTargetId = targetRecipeId || recipe?._id;
+
+    if (!resolvedTargetId) return;
+
+    // Optimistically update local editableRecipe if targeting current recipe
+    if (!targetRecipeId || targetRecipeId === recipe?._id) {
+      setEditableRecipe((prev) => ({
+        ...prev,
+        ...(nextIngredients !== undefined ? { ingredients: nextIngredients } : {}),
+        ...(payload?.outputYield !== undefined ? { outputYield: payload.outputYield } : {}),
+        ...(payload?.outputServingSize !== undefined
+          ? { outputServingSize: payload.outputServingSize }
+          : {}),
+      }));
+    }
+
+    if (options.skipSave) {
       return;
     }
 
-    setEditableRecipe((prev) => ({
-      ...prev,
-      ...(nextIngredients !== undefined ? { ingredients: nextIngredients } : {}),
-      ...(payload?.outputYield !== undefined ? { outputYield: payload.outputYield } : {}),
-      ...(payload?.outputServingSize !== undefined
-        ? { outputServingSize: payload.outputServingSize }
-        : {}),
-    }));
+    if (nextIngredients !== undefined) {
+      const sanitized = nextIngredients.map((item) => {
+        const lowerType = item.type ? String(item.type).trim().toLowerCase() : null;
+        const rawSourceId =
+          typeof (item.sourceId || item.ingredient) === "object" && (item.sourceId || item.ingredient) !== null
+            ? (item.sourceId || item.ingredient)._id || (item.sourceId || item.ingredient).id || null
+            : (item.sourceId || item.ingredient);
+
+        const cleanRole = item.role && item.role !== "-" ? String(item.role).trim().toLowerCase() : null;
+        const cleanProcess = ["A", "B", "C", "D", "E"].includes(String(item.process || "").toUpperCase())
+          ? String(item.process).toUpperCase()
+          : null;
+
+        const parseNum = (val) => {
+          if (val === "" || val === null || val === undefined) return undefined;
+          const num = parseFloat(val);
+          return isNaN(num) ? undefined : num;
+        };
+
+        return {
+          role: cleanRole,
+          type: ["solid", "liquid"].includes(lowerType) ? lowerType : null,
+          process: cleanProcess,
+          ingredientSourceType: item.ingredientSourceType || (item.sourceCode ? "bffProductCode" : "rawMaterial"),
+          sourceId: String(rawSourceId || ""),
+          quantity: parseNum(item.quantity) ?? 0,
+          bffRateAtCreation: parseNum(item.bffRateAtCreation) ?? 0,
+          clientRateAtCreation: parseNum(item.clientRateAtCreation) ?? 0,
+        };
+      });
+
+      const fieldsToUpdate = { ingredients: sanitized };
+      if (payload?.outputYield !== undefined) {
+        const parsedYield = parseFloat(payload.outputYield);
+        if (!isNaN(parsedYield)) fieldsToUpdate.outputYield = parsedYield;
+      }
+      if (payload?.outputServingSize !== undefined) {
+        const parsedServing = parseFloat(payload.outputServingSize);
+        if (!isNaN(parsedServing)) fieldsToUpdate.outputServingSize = parsedServing;
+      }
+
+      await handleSaveSpecificFields(fieldsToUpdate, resolvedTargetId);
+    }
   };
 
   const isVersionRoute = Boolean(routeRecipeId);
@@ -572,7 +620,8 @@ export default function ViewRecipePage() {
         }));
       }
 
-      const updatedRecipe = await updateRecipe({ id: recipeId, data: updateData });
+      const response = await updateRecipe({ id: recipeId, data: updateData });
+      const updatedRecipe = response?.data || response;
 
       if (updatedRecipe?._id) {
         setActiveRecipeId(updatedRecipe._id);
@@ -592,12 +641,12 @@ export default function ViewRecipePage() {
     if (!recipeId) return;
 
     try {
-      const updatedRecipe = await updateRecipe({ id: recipeId, data: fieldsToUpdate });
+      const response = await updateRecipe({ id: recipeId, data: fieldsToUpdate });
+      const updatedRecipe = response?.data || response;
       if (updatedRecipe?._id && (!targetRecipeId || targetRecipeId === recipe?._id)) {
         setActiveRecipeId(updatedRecipe._id);
         setEditableRecipe(flatMapIndependentDetails(updatedRecipe));
       }
-      toast.success("Changes saved successfully");
       return updatedRecipe;
     } catch (err) {
       console.error("Failed to save changes:", err);

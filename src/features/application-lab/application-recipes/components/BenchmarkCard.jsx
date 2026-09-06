@@ -136,45 +136,52 @@ export default function BenchmarkCard({
         </h2>
 
         <div className="flex items-center gap-3">
-          {/* Edit / Save / Cancel Controls (ALWAYS VISIBLE in header) */}
-          {isEditing ? (
-            <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
+          {/* Edit / Save / Cancel Controls (visible only when expanded) */}
+          {isExpanded && (
+            isEditing ? (
+              <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
+                <button
+                  type="button"
+                  onClick={handleSaveLocal}
+                  disabled={isSaving}
+                  title="Save Changes"
+                  className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                </button>
+                <div className="w-px h-5 bg-white/30" />
+                <button
+                  type="button"
+                  onClick={handleCancelLocal}
+                  disabled={isSaving}
+                  title="Cancel Changes"
+                  className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={handleSaveLocal}
-                disabled={isSaving}
-                title="Save Changes"
-                className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                onClick={handleStartEdit}
+                disabled={isFinalized}
+                title="Edit Benchmark"
+                className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                <Save className="w-4 h-4" />
+                <FaEdit className="w-3.5 h-3.5" />
               </button>
-              <div className="w-px h-5 bg-white/30" />
-              <button
-                type="button"
-                onClick={handleCancelLocal}
-                disabled={isSaving}
-                title="Cancel Changes"
-                className="flex items-center justify-center w-9 h-9 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleStartEdit}
-              disabled={isFinalized}
-              title="Edit Benchmark"
-              className="flex items-center justify-center w-9 h-9 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <FaEdit className="w-3.5 h-3.5" />
-            </button>
+            )
           )}
 
           {/* Chevron expand/collapse toggle */}
           <button
             type="button"
-            onClick={() => setIsExpanded((prev) => !prev)}
+            onClick={() => {
+              if (isExpanded && isEditing) {
+                handleCancelLocal();
+              }
+              setIsExpanded((prev) => !prev);
+            }}
             title={isExpanded ? "Collapse" : "Expand"}
             className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
           >

@@ -62,7 +62,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
             : item.name,
         }))
       : (rawMaterialsData?.data || []).map((item) => ({
-          value: item.id,
+          value: item.id || item._id,
           label: item.name,
         }));
 
@@ -89,7 +89,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
         const selectedItem =
           ingredientSourceType === "bffProductCode"
             ? (bffProductsData?.data || []).find((item) => item._id === value)
-            : (rawMaterialsData?.data || []).find((item) => item.id === value);
+            : (rawMaterialsData?.data || []).find((item) => (item.id || item._id) === value);
 
         const parsedRawCost = Number(String(selectedItem?.cost || "0").replace(/,/g, ""));
         const sourceCost =
@@ -117,7 +117,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
     const selectedItem =
       ingredientSourceType === "bffProductCode"
         ? (bffProductsData?.data || []).find((item) => item._id === formData.ingredient)
-        : (rawMaterialsData?.data || []).find((item) => item.id === formData.ingredient);
+        : (rawMaterialsData?.data || []).find((item) => (item.id || item._id) === formData.ingredient);
 
     const parsedRawCost = Number(String(selectedItem?.cost || "0").replace(/,/g, ""));
     const sourceCost =
@@ -133,7 +133,7 @@ export default function EditIngredientModal({ isOpen, onClose, onConfirm, initia
       type: formData.type,
       process: isConfectionary ? formData.process : null,
       ingredientSourceType,
-      sourceId: formData.ingredient,
+      sourceId: ingredientSourceType === "bffProductCode" ? formData.ingredient : (selectedItem?.id || selectedItem?._id || formData.ingredient),
       sourceName: ingredientSourceType === "bffProductCode" ? selectedItem?.name || "" : selectedItem?.name || "",
       sourceCode: ingredientSourceType === "bffProductCode" ? getPreferredProductCode(selectedItem) || null : null,
       quantity: Number(formData.quantity),
