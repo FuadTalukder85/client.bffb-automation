@@ -1,6 +1,83 @@
 import React, { useState, useEffect } from "react";
 import { Save, X } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
+import { cn } from "@/lib/utils";
+
+// ================= REUSABLE CARD & ROW COMPONENTS =================
+function SummaryCard({ children, isDimmed = false, className = "" }) {
+  return (
+    <div
+      className={cn(
+        "border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-opacity duration-200",
+        isDimmed && "opacity-30 pointer-events-none select-none",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SummaryRow({
+  label,
+  subLabel,
+  value,
+  unit,
+  isDimmed = false,
+  isEditing = false,
+  editInput = null,
+}) {
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-2 divide-x divide-[#EEEBF4] dark:divide-primary/30 min-h-[44px] transition-opacity duration-200",
+        isDimmed && "opacity-30 pointer-events-none select-none"
+      )}
+    >
+      {/* Left Label Cell */}
+      <div className="px-3.5 py-2.5 bg-[#FAF9FC] dark:bg-white/[0.02] flex flex-col justify-center">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-snug">
+          {label}
+        </span>
+        {subLabel && (
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-snug">
+            {subLabel}
+          </span>
+        )}
+      </div>
+
+      {/* Right Value Cell */}
+      <div className="px-3.5 py-2.5 bg-white dark:bg-[#0D0B14] flex items-center">
+        {isEditing && editInput ? (
+          editInput
+        ) : (
+          <span className="text-xs sm:text-[13px] font-bold text-gray-900 dark:text-white flex items-center gap-1">
+            <span>{value}</span>
+            {unit && <span className="font-bold text-gray-900 dark:text-white">{unit}</span>}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EditableCellInput({ value, onChange, unit }) {
+  return (
+    <div className="flex items-center gap-1.5 w-full">
+      <input
+        type="number"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-16 font-bold text-xs sm:text-[13px] text-gray-900 dark:text-white bg-transparent border-b border-[#4B208B] focus:border-b-2 focus:border-[#4B208B] focus:outline-none py-0.5"
+      />
+      {unit && (
+        <span className="font-bold text-xs sm:text-[13px] text-gray-900 dark:text-white">
+          {unit}
+        </span>
+      )}
+    </div>
+  );
+}
 
 // ================= BATCH SUMMARY VERSION COLUMN =================
 export default function BatchSummary({
@@ -13,6 +90,10 @@ export default function BatchSummary({
   setDraftYield,
   draftServingSize,
   setDraftServingSize,
+  draftPerPiece: propDraftPerPiece,
+  setDraftPerPiece: propSetDraftPerPiece,
+  draftPacketQuantity: propDraftPacketQuantity,
+  setDraftPacketQuantity: propSetDraftPacketQuantity,
   isBatchSummaryEditing,
   setIsBatchSummaryEditing,
   onSaveSpecificFields,
@@ -20,18 +101,56 @@ export default function BatchSummary({
 }) {
   const [isSavingBatchSummary, setIsSavingBatchSummary] = useState(false);
 
+  // Local state fallbacks if props are not passed from caller
+  const [localPerPiece, setLocalPerPiece] = useState(
+    vItem?.perPiece ?? data?.perPiece ?? 12
+  );
+  const [localPacketQuantity, setLocalPacketQuantity] = useState(
+    vItem?.packetQuantity ?? data?.packetQuantity ?? 4
+  );
+
+  const draftPerPiece = propDraftPerPiece !== undefined ? propDraftPerPiece : localPerPiece;
+  const setDraftPerPiece = propSetDraftPerPiece || setLocalPerPiece;
+
+  const draftPacketQuantity =
+    propDraftPacketQuantity !== undefined ? propDraftPacketQuantity : localPacketQuantity;
+  const setDraftPacketQuantity = propSetDraftPacketQuantity || setLocalPacketQuantity;
+
+  useEffect(() => {
+    if (propDraftPerPiece === undefined) {
+      setLocalPerPiece(vItem?.perPiece ?? data?.perPiece ?? 12);
+    }
+    if (propDraftPacketQuantity === undefined) {
+      setLocalPacketQuantity(vItem?.packetQuantity ?? data?.packetQuantity ?? 4);
+    }
+  }, [
+    vItem?.perPiece,
+    data?.perPiece,
+    vItem?.packetQuantity,
+    data?.packetQuantity,
+    propDraftPerPiece,
+    propDraftPacketQuantity,
+  ]);
+
   // Save Batch Summary for THIS version
   const handleSaveBatchSummary = async () => {
     try {
       setIsSavingBatchSummary(true);
       if (onSaveSpecificFields) {
-        await onSaveSpecificFields(
-          {
-            outputYield: Number(draftYield),
-            outputServingSize: Number(draftServingSize),
-          },
-          vItem?._id || data?._id
-        );
+        const payload = {
+          yield: Number(draftYield),
+          outputYield: Number(draftYield),
+          servingSize: Number(draftServingSize),
+          outputServingSize: Number(draftServingSize),
+        };
+        if (draftPerPiece !== undefined && draftPerPiece !== "") {
+          payload.perPiece = Number(draftPerPiece);
+        }
+        if (draftPacketQuantity !== undefined && draftPacketQuantity !== "") {
+          payload.packetQuantity = Number(draftPacketQuantity);
+        }
+
+        await onSaveSpecificFields(payload, vItem?._id || data?._id);
       }
       setIsBatchSummaryEditing(false);
     } catch (err) {
@@ -42,20 +161,34 @@ export default function BatchSummary({
   };
 
   const handleCancelBatchSummary = () => {
-    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0));
-    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0));
+    setDraftYield(vItem?.yield ?? vItem?.outputYield ?? data?.yield ?? data?.outputYield ?? 100);
+    setDraftServingSize(vItem?.servingSize ?? vItem?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100);
+    setDraftPerPiece(vItem?.perPiece ?? data?.perPiece ?? 12);
+    setDraftPacketQuantity(vItem?.packetQuantity ?? data?.packetQuantity ?? 4);
     setIsBatchSummaryEditing(false);
   };
 
+  const setRootRef = React.useCallback(
+    (node) => {
+      if (!isFirstVersion || !batchRef) return;
+      if (typeof batchRef === "function") {
+        batchRef(node);
+      } else if (batchRef && "current" in batchRef) {
+        batchRef.current = node;
+      }
+    },
+    [isFirstVersion, batchRef]
+  );
+
   return (
     <div
-      ref={isFirstVersion ? batchRef : undefined}
-      className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
+      ref={isFirstVersion ? setRootRef : undefined}
+      className="p-4 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
     >
-      {/* 1. Output Block */}
+      {/* ================= 1. Output Block ================= */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">
+          <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
             Output
           </span>
 
@@ -93,293 +226,233 @@ export default function BatchSummary({
           )}
         </div>
 
-        {isConfectionary ? (
-          /* Confectionery 4-Column Output Table (Image 1) */
-          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
-            {/* Header Row */}
-            <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
-              <div className="px-1 truncate">Yield</div>
-              <div className="px-1 truncate">Serving Size</div>
-              <div className="px-1 truncate">Output Pieces</div>
-              <div className="px-1 truncate">Output</div>
-            </div>
-            {/* Values Row */}
-            <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
-              <div className="px-2.5 py-2.5 flex items-center justify-between">
-                {isBatchSummaryEditing ? (
-                  <div className="flex items-center gap-1 w-full">
-                    <input
-                      type="number"
-                      value={draftYield}
-                      onChange={(e) => setDraftYield(e.target.value)}
-                      className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                    />
-                    <span className="text-[11px] font-medium text-gray-500">%</span>
-                  </div>
-                ) : (
-                  <>
-                    <span>{draftYield || vBatchSummary?.output?.yield || 80}</span>
-                    <span className="text-[11px] font-medium text-gray-500">%</span>
-                  </>
-                )}
-              </div>
+        {/* Output Cards (Card 1: Yield & Serving Size, Card 2: Output Pieces & Output) */}
+        <div className="space-y-3">
+          {/* Card 1: Editable in Edit Mode */}
+          <SummaryCard>
+            <SummaryRow
+              label="Yield"
+              value={
+                draftYield !== undefined && draftYield !== ""
+                  ? draftYield
+                  : vBatchSummary?.output?.yield ?? 100
+              }
+              unit="%"
+              isEditing={isBatchSummaryEditing}
+              editInput={
+                <EditableCellInput
+                  value={draftYield}
+                  onChange={setDraftYield}
+                  unit="%"
+                />
+              }
+            />
+            <SummaryRow
+              label="Serving Size"
+              value={
+                draftServingSize !== undefined && draftServingSize !== ""
+                  ? draftServingSize
+                  : vBatchSummary?.output?.servingSize ?? 100
+              }
+              unit="g"
+              isEditing={isBatchSummaryEditing}
+              editInput={
+                <EditableCellInput
+                  value={draftServingSize}
+                  onChange={setDraftServingSize}
+                  unit="g"
+                />
+              }
+            />
+          </SummaryCard>
 
-              <div className="px-2.5 py-2.5 flex items-center justify-between">
-                {isBatchSummaryEditing ? (
-                  <div className="flex items-center gap-1 w-full">
-                    <input
-                      type="number"
-                      value={draftServingSize}
-                      onChange={(e) => setDraftServingSize(e.target.value)}
-                      className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                    />
-                    <span className="text-[11px] font-medium text-gray-500">g</span>
-                  </div>
-                ) : (
-                  <>
-                    <span>{draftServingSize || vBatchSummary?.output?.servingSize || 12}</span>
-                    <span className="text-[11px] font-medium text-gray-500">g</span>
-                  </>
-                )}
-              </div>
-
-              <div className="px-2.5 py-2.5 flex items-center justify-between">
-                <span>{vBatchSummary?.confectionery?.packetQuantity ?? vBatchSummary?.output?.outputPieces ?? 4}</span>
-                <span className="text-[11px] font-medium text-gray-500">pcs</span>
-              </div>
-
-              <div className="px-2.5 py-2.5 flex items-center justify-between">
-                <span>{vBatchSummary?.confectionery?.labOutput ?? vBatchSummary?.output?.output ?? 48}</span>
-                <span className="text-[11px] font-medium text-gray-500">g</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Bakery 2x2 Tiles Grid */
-          <div className="grid grid-cols-2 gap-2">
-            {/* Yield */}
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[11px] font-medium text-gray-500">Yield</span>
-              {isBatchSummaryEditing ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    value={draftYield}
-                    onChange={(e) => setDraftYield(e.target.value)}
-                    className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                  />
-                  <span className="text-xs font-bold text-gray-900 dark:text-white">%</span>
-                </div>
-              ) : (
-                <span className="text-xs font-bold text-gray-900 dark:text-white">
-                  {draftYield} %
-                </span>
-              )}
-            </div>
-
-            {/* Serving Size */}
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[11px] font-medium text-gray-500">Serving Size</span>
-              {isBatchSummaryEditing ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="number"
-                    value={draftServingSize}
-                    onChange={(e) => setDraftServingSize(e.target.value)}
-                    className="w-full text-xs font-bold text-gray-900 dark:text-white bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
-                  />
-                  <span className="text-xs font-bold text-gray-900 dark:text-white">g</span>
-                </div>
-              ) : (
-                <span className="text-xs font-bold text-gray-900 dark:text-white">
-                  {draftServingSize} g
-                </span>
-              )}
-            </div>
-
-            {/* Output Pieces */}
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[11px] font-medium text-gray-500">Output Pieces</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.output?.outputPieces ?? "-"} pcs
-              </span>
-            </div>
-
-            {/* Output */}
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[11px] font-medium text-gray-500">Output</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.output?.output ?? "-"} g
-              </span>
-            </div>
-          </div>
-        )}
+          {/* Card 2: Dimmed in Edit Mode */}
+          <SummaryCard isDimmed={isBatchSummaryEditing}>
+            <SummaryRow
+              label="Output Pieces"
+              value={
+                vBatchSummary?.output?.outputPieces && vBatchSummary?.output?.outputPieces !== "0"
+                  ? vBatchSummary.output.outputPieces
+                  : 100
+              }
+              unit="pcs"
+            />
+            <SummaryRow
+              label="Output"
+              value={
+                vBatchSummary?.output?.output && vBatchSummary?.output?.output !== "0"
+                  ? vBatchSummary.output.output
+                  : 100
+              }
+              unit="g"
+            />
+          </SummaryCard>
+        </div>
       </div>
 
-      {/* 2. BFF Cost Calculation Block */}
+      {/* Full-width section divider */}
+      <div className="border-t border-[#EEEBF4] dark:border-primary/30 -mx-4 my-5" />
+
+      {/* ================= 2. BFF Cost Calculation Block ================= */}
       <div>
         <div className="mb-3">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">
+          <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
             BFF Cost Calculation
           </span>
         </div>
 
-        {isConfectionary ? (
-          /* Confectionery BFF Cost Calculation (Image 1) */
-          <div className="space-y-2">
-            {/* Batch Size Cost Box */}
-            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs flex items-center divide-x divide-[#EEEBF4] dark:divide-primary/30">
-              <div className="w-[110px] px-3 py-2.5 text-[11px] font-medium text-gray-500 whitespace-nowrap">
-                Batch Size Cost
-              </div>
-              <div className="flex-1 px-3 py-2.5 flex items-center justify-between text-xs font-bold text-gray-900 dark:text-white">
-                <span>{vBatchSummary?.confectionery?.batchSizeCost ?? 30}</span>
-                <span className="text-[11px] font-medium text-gray-500">BDT</span>
-              </div>
-            </div>
+        {/* 4 separate cards matching Image */}
+        <div className="space-y-3">
+          {/* Card 1: Per Piece (Editable) & Cost Per Piece (Dimmed in edit mode) */}
+          <SummaryCard>
+            <SummaryRow
+              label="Per Piece"
+              value={
+                draftPerPiece !== undefined && draftPerPiece !== ""
+                  ? draftPerPiece
+                  : vBatchSummary?.bffCostCalculation?.perPiece ?? vBatchSummary?.confectionery?.perPiece ?? 12
+              }
+              unit="g"
+              isEditing={isBatchSummaryEditing}
+              editInput={
+                <EditableCellInput
+                  value={draftPerPiece}
+                  onChange={setDraftPerPiece}
+                  unit="g"
+                />
+              }
+            />
+            <SummaryRow
+              label="Cost Per Piece"
+              value={
+                vBatchSummary?.bffCostCalculation?.costPerPiece ??
+                vBatchSummary?.confectionery?.costPerPiece ??
+                6
+              }
+              unit="BDT/pcs"
+              isDimmed={isBatchSummaryEditing}
+            />
+          </SummaryCard>
 
-            {/* 4x2 Grid Table */}
-            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
-              {/* Row 1 Header */}
-              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
-                <div className="px-1 truncate">Per Piece</div>
-                <div className="px-1 truncate">Packet Quantity</div>
-                <div className="px-1 truncate">Lab Output</div>
-                <div className="px-1 truncate">Wastage</div>
-              </div>
-              {/* Row 1 Values */}
-              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.perPiece ?? draftServingSize ?? 12}</span>
-                  <span className="text-[11px] font-medium text-gray-500">g</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.packetQuantity ?? 4}</span>
-                  <span className="text-[11px] font-medium text-gray-500">pcs</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.labOutput ?? 48}</span>
-                  <span className="text-[11px] font-medium text-gray-500">g</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.wastage ?? 12}</span>
-                  <span className="text-[11px] font-medium text-gray-500">g</span>
-                </div>
-              </div>
+          {/* Card 2: Packet Quantity (Editable) */}
+          <SummaryCard>
+            <SummaryRow
+              label="Packet Quantity"
+              value={
+                draftPacketQuantity !== undefined && draftPacketQuantity !== ""
+                  ? draftPacketQuantity
+                  : vBatchSummary?.bffCostCalculation?.packetQuantity ?? vBatchSummary?.confectionery?.packetQuantity ?? 4
+              }
+              unit="pcs"
+              isEditing={isBatchSummaryEditing}
+              editInput={
+                <EditableCellInput
+                  value={draftPacketQuantity}
+                  onChange={setDraftPacketQuantity}
+                  unit="pcs"
+                />
+              }
+            />
+          </SummaryCard>
 
-              {/* Row 2 Header */}
-              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] sm:text-[11px] font-medium text-gray-500 py-2">
-                <div className="px-1 truncate">Cost Per Piece</div>
-                <div className="px-1 truncate">Cost Per Packet</div>
-                <div className="px-1 truncate">Lab Output Cost</div>
-                <div className="px-1 truncate">Wastage Cost</div>
-              </div>
-              {/* Row 2 Values */}
-              <div className="grid grid-cols-4 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
-                <div className="px-1.5 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.costPerPiece ?? 6}</span>
-                  <span className="text-[10px] font-medium text-gray-500">BDT/pcs</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.costPerPacket ?? 24}</span>
-                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.labOutputCost ?? 24}</span>
-                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
-                </div>
-                <div className="px-2 py-2 flex items-center justify-between">
-                  <span>{vBatchSummary?.confectionery?.wastageCost ?? 6}</span>
-                  <span className="text-[10px] font-medium text-gray-500">BDT</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Bakery 2x2 Tiles Grid */
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.doughCostPerKg?.bff ?? "-"} BDT/kg
-              </span>
-            </div>
+          {/* Card 3: Lab Output & Lab Output Cost (Dimmed in edit mode) */}
+          <SummaryCard isDimmed={isBatchSummaryEditing}>
+            <SummaryRow
+              label="Lab Output"
+              value={
+                vBatchSummary?.bffCostCalculation?.labOutput ??
+                vBatchSummary?.confectionery?.labOutput ??
+                48
+              }
+              unit="g"
+            />
+            <SummaryRow
+              label="Lab Output Cost"
+              value={
+                vBatchSummary?.bffCostCalculation?.labOutputCost ??
+                vBatchSummary?.confectionery?.labOutputCost ??
+                4
+              }
+              unit={
+                vBatchSummary?.bffCostCalculation?.labOutputCostUnit ||
+                vBatchSummary?.confectionery?.labOutputCostUnit ||
+                "pcs"
+              }
+            />
+          </SummaryCard>
 
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.costPerKgWithLoss?.bff ?? "-"} BDT/kg
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.costPerPiece?.bff ?? "-"} BDT/pcs
-              </span>
-            </div>
-          </div>
-        )}
+          {/* Card 4: Wastage & Wastage Cost (Dimmed in edit mode) */}
+          <SummaryCard isDimmed={isBatchSummaryEditing}>
+            <SummaryRow
+              label="Wastage"
+              value={
+                vBatchSummary?.bffCostCalculation?.wastage ??
+                vBatchSummary?.confectionery?.wastage ??
+                48
+              }
+              unit="g"
+            />
+            <SummaryRow
+              label="Wastage Cost"
+              value={
+                vBatchSummary?.bffCostCalculation?.wastageCost ??
+                vBatchSummary?.confectionery?.wastageCost ??
+                6
+              }
+              unit="BDT"
+            />
+          </SummaryCard>
+        </div>
       </div>
 
-      {/* 3. Client Cost Calculation Block */}
+      {/* Full-width section divider */}
+      <div className="border-t border-[#EEEBF4] dark:border-primary/30 -mx-4 my-5" />
+
+      {/* ================= 3. Client Cost Calculation Block ================= */}
       <div>
         <div className="mb-3">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">
+          <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
             Client Cost Calculation
           </span>
         </div>
 
-        {isConfectionary ? (
-          /* Confectionery Client Cost Calculation (Image 1) */
-          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
-            {/* Header Row */}
-            <div className="grid grid-cols-3 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-center text-[10px] font-medium text-gray-500 py-2 px-1 leading-tight">
-              <div className="px-1">Cost per kg (without loss)</div>
-              <div className="px-1">Cost per kg (with loss)</div>
-              <div className="px-1">Cost per piece</div>
-            </div>
-            {/* Values Row */}
-            <div className="grid grid-cols-3 divide-x divide-[#EEEBF4] dark:divide-primary/30 text-xs font-bold text-gray-900 dark:text-white">
-              <div className="px-2 py-2 flex items-center justify-between">
-                <span>{vBatchSummary?.confectionery?.clientCostPerKgWithoutLoss ?? "10,000"}</span>
-                <span className="text-[10px] font-medium text-gray-500">BDT/kg</span>
-              </div>
-              <div className="px-2 py-2 flex items-center justify-between">
-                <span>{vBatchSummary?.confectionery?.clientCostPerKgWithLoss ?? "12,500"}</span>
-                <span className="text-[10px] font-medium text-gray-500">BDT/kg</span>
-              </div>
-              <div className="px-2 py-2 flex items-center justify-between">
-                <span>{vBatchSummary?.confectionery?.clientCostPerPiece ?? "150"}</span>
-                <span className="text-[10px] font-medium text-gray-500">BDT/pcs</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Bakery 2x2 Tiles Grid */
-          <div className="grid grid-cols-2 gap-2">
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (without loss)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.doughCostPerKg?.client ?? "-"} BDT/kg
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per kg (with loss)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.costPerKgWithLoss?.client ?? "-"} BDT/kg
-              </span>
-            </div>
-
-            <div className="p-2.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 flex flex-col justify-between min-h-[58px]">
-              <span className="text-[10px] font-medium text-gray-500 leading-tight">Cost per piece</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">
-                {vBatchSummary?.costCalculation?.costPerPiece?.client ?? "-"} BDT/pcs
-              </span>
-            </div>
-          </div>
-        )}
+        {/* Client Cost Card (Dimmed in edit mode) */}
+        <div className="space-y-3">
+          <SummaryCard isDimmed={isBatchSummaryEditing}>
+            <SummaryRow
+              label="Cost per kg"
+              subLabel="(without loss)"
+              value={
+                vBatchSummary?.clientCostCalculation?.costPerKgWithoutLoss ??
+                vBatchSummary?.confectionery?.clientCostPerKgWithoutLoss ??
+                vBatchSummary?.costCalculation?.doughCostPerKg?.client ??
+                "10000"
+              }
+              unit="BDT/kg"
+            />
+            <SummaryRow
+              label="Cost per kg"
+              subLabel="(with loss)"
+              value={
+                vBatchSummary?.clientCostCalculation?.costPerKgWithLoss ??
+                vBatchSummary?.confectionery?.clientCostPerKgWithLoss ??
+                vBatchSummary?.costCalculation?.costPerKgWithLoss?.client ??
+                "12000"
+              }
+              unit="BDT/kg"
+            />
+            <SummaryRow
+              label="Cost per piece"
+              value={
+                vBatchSummary?.clientCostCalculation?.costPerPiece ??
+                vBatchSummary?.confectionery?.clientCostPerPiece ??
+                vBatchSummary?.costCalculation?.costPerPiece?.client ??
+                "150"
+              }
+              unit="BDT/pcs"
+            />
+          </SummaryCard>
+        </div>
       </div>
     </div>
   );

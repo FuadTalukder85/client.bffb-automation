@@ -64,27 +64,58 @@ export default function ScaleBatchColumn({
   );
 
   const [draftYield, setDraftYield] = useState(
-    scaleBatchVersion?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0)
+    scaleBatchVersion?.yield ?? scaleBatchVersion?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
   );
   const [draftServingSize, setDraftServingSize] = useState(
-    scaleBatchVersion?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0)
+    scaleBatchVersion?.servingSize ?? scaleBatchVersion?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
+  );
+  const [draftPerPiece, setDraftPerPiece] = useState(
+    scaleBatchVersion?.perPiece ?? data?.perPiece ?? 12
+  );
+  const [draftPacketQuantity, setDraftPacketQuantity] = useState(
+    scaleBatchVersion?.packetQuantity ?? data?.packetQuantity ?? 4
   );
   const [isBatchSummaryEditing, setIsBatchSummaryEditing] = useState(false);
 
   useEffect(() => {
-    setDraftYield(scaleBatchVersion?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0));
-    setDraftServingSize(
-      scaleBatchVersion?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0)
+    setDraftYield(
+      scaleBatchVersion?.yield ?? scaleBatchVersion?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
     );
-  }, [scaleBatchVersion?.outputYield, data?.outputYield, scaleBatchVersion?.outputServingSize, data?.outputServingSize, isConfectionary]);
+    setDraftServingSize(
+      scaleBatchVersion?.servingSize ?? scaleBatchVersion?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
+    );
+    setDraftPerPiece(
+      scaleBatchVersion?.perPiece ?? data?.perPiece ?? 12
+    );
+    setDraftPacketQuantity(
+      scaleBatchVersion?.packetQuantity ?? data?.packetQuantity ?? 4
+    );
+  }, [
+    scaleBatchVersion?.yield,
+    scaleBatchVersion?.outputYield,
+    data?.yield,
+    data?.outputYield,
+    scaleBatchVersion?.servingSize,
+    scaleBatchVersion?.outputServingSize,
+    data?.servingSize,
+    data?.outputServingSize,
+    scaleBatchVersion?.perPiece,
+    data?.perPiece,
+    scaleBatchVersion?.packetQuantity,
+    data?.packetQuantity,
+  ]);
 
   const vComputedData = useMemo(
     () =>
       buildIngredientsDisplayData(normalizedVItem, {
+        yield: draftYield,
         outputYield: draftYield,
+        servingSize: draftServingSize,
         outputServingSize: draftServingSize,
+        perPiece: draftPerPiece,
+        packetQuantity: draftPacketQuantity,
       }),
-    [normalizedVItem, draftYield, draftServingSize]
+    [normalizedVItem, draftYield, draftServingSize, draftPerPiece, draftPacketQuantity]
   );
 
   const { ingredients: vIngredients, totals: vTotals, batchSummary: vBatchSummary } = vComputedData;
@@ -295,6 +326,10 @@ export default function ScaleBatchColumn({
         setDraftYield={setDraftYield}
         draftServingSize={draftServingSize}
         setDraftServingSize={setDraftServingSize}
+        draftPerPiece={draftPerPiece}
+        setDraftPerPiece={setDraftPerPiece}
+        draftPacketQuantity={draftPacketQuantity}
+        setDraftPacketQuantity={setDraftPacketQuantity}
         isBatchSummaryEditing={isBatchSummaryEditing}
         setIsBatchSummaryEditing={setIsBatchSummaryEditing}
         onSaveSpecificFields={onSaveSpecificFields}

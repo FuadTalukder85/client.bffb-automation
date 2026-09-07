@@ -85,25 +85,58 @@ function VersionColumn({
   // Batch Summary Independent Edit Mode states for THIS version
   const [isBatchSummaryEditing, setIsBatchSummaryEditing] = useState(false);
   const [draftYield, setDraftYield] = useState(
-    vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0)
+    vItem?.yield ?? vItem?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
   );
   const [draftServingSize, setDraftServingSize] = useState(
-    vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0)
+    vItem?.servingSize ?? vItem?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
+  );
+  const [draftPerPiece, setDraftPerPiece] = useState(
+    vItem?.perPiece ?? data?.perPiece ?? 12
+  );
+  const [draftPacketQuantity, setDraftPacketQuantity] = useState(
+    vItem?.packetQuantity ?? data?.packetQuantity ?? 4
   );
 
   useEffect(() => {
-    setDraftYield(vItem?.outputYield ?? data?.outputYield ?? (isConfectionary ? 80 : 0));
-    setDraftServingSize(vItem?.outputServingSize ?? data?.outputServingSize ?? (isConfectionary ? 12 : 0));
-  }, [vItem?.outputYield, data?.outputYield, vItem?.outputServingSize, data?.outputServingSize, isConfectionary]);
+    setDraftYield(
+      vItem?.yield ?? vItem?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
+    );
+    setDraftServingSize(
+      vItem?.servingSize ?? vItem?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
+    );
+    setDraftPerPiece(
+      vItem?.perPiece ?? data?.perPiece ?? 12
+    );
+    setDraftPacketQuantity(
+      vItem?.packetQuantity ?? data?.packetQuantity ?? 4
+    );
+  }, [
+    vItem?.yield,
+    vItem?.outputYield,
+    data?.yield,
+    data?.outputYield,
+    vItem?.servingSize,
+    vItem?.outputServingSize,
+    data?.servingSize,
+    data?.outputServingSize,
+    vItem?.perPiece,
+    data?.perPiece,
+    vItem?.packetQuantity,
+    data?.packetQuantity,
+  ]);
 
   // Compute calculated metrics dynamically for this specific version
   const vComputedData = useMemo(
     () =>
       buildIngredientsDisplayData(normalizedVItem, {
+        yield: draftYield,
         outputYield: draftYield,
+        servingSize: draftServingSize,
         outputServingSize: draftServingSize,
+        perPiece: draftPerPiece,
+        packetQuantity: draftPacketQuantity,
       }),
-    [normalizedVItem, draftYield, draftServingSize]
+    [normalizedVItem, draftYield, draftServingSize, draftPerPiece, draftPacketQuantity]
   );
 
   const { ingredients: vIngredients, totals: vTotals, batchSummary: vBatchSummary } = vComputedData;
@@ -198,6 +231,10 @@ function VersionColumn({
         setDraftYield={setDraftYield}
         draftServingSize={draftServingSize}
         setDraftServingSize={setDraftServingSize}
+        draftPerPiece={draftPerPiece}
+        setDraftPerPiece={setDraftPerPiece}
+        draftPacketQuantity={draftPacketQuantity}
+        setDraftPacketQuantity={setDraftPacketQuantity}
         isBatchSummaryEditing={isBatchSummaryEditing}
         setIsBatchSummaryEditing={setIsBatchSummaryEditing}
         onSaveSpecificFields={onSaveSpecificFields}
@@ -263,6 +300,7 @@ export default function RecipeDetailsTable({
 
   const HIDDEN_TYPE_SOLID_LIQUID_RECIPES = ["beverage", "beverage psd"];
   const recipeTypeLower = data?.recipeType?.toLowerCase() || recipeFormat || "";
+  const effectiveRecipeFormat = (recipeFormat && recipeFormat !== "bakery") ? recipeFormat : (recipeTypeLower || recipeFormat || "bakery");
   const isHiddenTypeAndSolidLiquid = HIDDEN_TYPE_SOLID_LIQUID_RECIPES.includes(recipeTypeLower);
   const isConfectionary = isConfectionaryRecipe(data?.recipeType) || isConfectionaryRecipe(recipeFormat);
   const showSolidLiquidColumn = !isHiddenTypeAndSolidLiquid && !isConfectionary;
@@ -395,41 +433,51 @@ export default function RecipeDetailsTable({
   };
 
   // Section Height Matching for perfect horizontal alignment with left column
-  const firstVersionBatchRef = useRef(null);
-  const firstVersionSopRef = useRef(null);
-  // Force re-measure on mount — resets stale HMR state
+  const [firstVersionBatchEl, setFirstVersionBatchEl] = useState(null);
+  const [firstVersionSopEl, setFirstVersionSopEl] = useState(null);
   const [sectionHeights, setSectionHeights] = useState({ batchSummary: null, sop: null });
+
+  const firstVersionBatchRef = React.useCallback((node) => {
+    setFirstVersionBatchEl(node);
+  }, []);
+
+  const firstVersionSopRef = React.useCallback((node) => {
+    setFirstVersionSopEl(node);
+  }, []);
 
   useEffect(() => {
     const updateHeights = () => {
-      const bsHeight = firstVersionBatchRef.current?.offsetHeight;
-      const sopHeight = firstVersionSopRef.current?.offsetHeight;
+      const bsHeight = firstVersionBatchEl?.offsetHeight;
+      const sopHeight = firstVersionSopEl?.offsetHeight;
       setSectionHeights((prev) => {
-        const newBS = bsHeight || null;
-        const newSOP = sopHeight || null;
+        const newBS = bsHeight || prev.batchSummary || null;
+        const newSOP = sopHeight || prev.sop || null;
         if (prev.batchSummary === newBS && prev.sop === newSOP) return prev;
         return { batchSummary: newBS, sop: newSOP };
       });
     };
 
-    // ResizeObserver reacts to actual DOM size changes
-    const observer = new ResizeObserver(updateHeights);
-    if (firstVersionBatchRef.current) observer.observe(firstVersionBatchRef.current);
-    if (firstVersionSopRef.current) observer.observe(firstVersionSopRef.current);
-
-    // Measure immediately, then retry to catch async renders
     updateHeights();
-    const t1 = setTimeout(updateHeights, 100);
-    const t2 = setTimeout(updateHeights, 500);
+
+    if (!firstVersionBatchEl && !firstVersionSopEl) return;
+
+    const observer = new ResizeObserver(updateHeights);
+    if (firstVersionBatchEl) observer.observe(firstVersionBatchEl);
+    if (firstVersionSopEl) observer.observe(firstVersionSopEl);
+
+    const t1 = setTimeout(updateHeights, 50);
+    const t2 = setTimeout(updateHeights, 150);
+    const t3 = setTimeout(updateHeights, 500);
     window.addEventListener("resize", updateHeights);
 
     return () => {
       observer.disconnect();
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
       window.removeEventListener("resize", updateHeights);
     };
-  }, [displayVersions]);
+  }, [firstVersionBatchEl, firstVersionSopEl, displayVersions]);
 
   // Sync scroll for the static bottom scrollbar
   const tableContainerRef = useRef(null);
@@ -525,7 +573,7 @@ export default function RecipeDetailsTable({
                 onSample={onSample}
                 onEditRow={handleEditRow}
                 onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={recipeFormat}
+                recipeFormat={effectiveRecipeFormat}
                 isConfectionary={isConfectionary}
                 isFinalized={isFinalized}
                 isSelectingForCompare={isSelectingForCompare}
@@ -545,7 +593,7 @@ export default function RecipeDetailsTable({
                 showSolidLiquidColumn={showSolidLiquidColumn}
                 formatDate={formatDate}
                 onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={recipeFormat}
+                recipeFormat={effectiveRecipeFormat}
                 isConfectionary={isConfectionary}
                 isFinalized={isFinalized}
                 onEditRow={handleEditRow}

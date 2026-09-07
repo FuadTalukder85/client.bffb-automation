@@ -11,17 +11,28 @@ const defaultParams = [
 ];
 
 const confectioneryDefaultParams = [
-  { label: "Cooking pH", value: "24", unit: "" },
-  { label: "Final pH", value: "1.12", unit: "" },
-  { label: "Brix", value: "1.12", unit: "" },
-  { label: "Cooking Temperature", value: "24", unit: "°C" },
-  { label: "Depositing Temperature", value: "24", unit: "°C" },
-  { label: "Cooking Time", value: "24", unit: "min" },
-  { label: "Gel Forming Time", value: "24", unit: "min" },
+  { label: "Cooking pH", value: "", unit: "" },
+  { label: "Final pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Cooking Temperature", value: "", unit: "°C" },
+  { label: "Depositing Temperature", value: "", unit: "°C" },
+  { label: "Cooking Time", value: "", unit: "min" },
+  { label: "Gel Forming Time", value: "", unit: "min" },
 ];
 
-const confectioneryDefaultProcedure =
-  "Mix all dry ingredients in the primary bowl for 2 minutes on low speed. Gradually add chilled water and liquid yeast while mixing on medium speed for an additional 8 minutes. Ensure dough windowpane test passes before transferring to the resting vat. Rest for 45 minutes at room temperature.";
+const beverageDefaultParams = [
+  { label: "Homogenization Pressure", value: "", unit: "bar" },
+  { label: "Pasteurization Temperature", value: "", unit: "" },
+  { label: "Pasteurization Time", value: "", unit: "" },
+  { label: "Aeration", value: "", unit: "" },
+  { label: "Viscosity", value: "", unit: "" },
+  { label: "pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Acidity", value: "", unit: "" },
+  { label: "Salt", value: "", unit: "%" },
+  { label: "Filling Temperature", value: "", unit: "°C" },
+  { label: "CO2 Filling Temperature", value: "", unit: "°C" },
+];
 
 const defaultTunnelZones = [
   { label: "Top Temperature", zone1: "", zone2: "", zone3: "", unit: "°C" },
@@ -116,12 +127,46 @@ export default function StandardOperatingProcedure({
   const { user: currentUser } = useAuthStore();
   const currentUserName = currentUser?.name || currentUser?.fullName || currentUser?.username || "User";
 
+  const isBeverageOrBeveragePsd = (val) => {
+    if (!val) return false;
+    const str = String(val).trim().toLowerCase();
+    return (
+      str === "beverage" ||
+      str === "beverage psd" ||
+      str === "beverage-psd" ||
+      str === "beveragepsd" ||
+      str.startsWith("beverage")
+    );
+  };
+
+  const formatCandidates = [
+    recipeFormat,
+    data?.recipeType,
+    data?.applicationLab?.category?.name,
+    normalizedVItem?.recipeType,
+    normalizedVItem?.applicationLab?.category?.name,
+    vItem?.recipeType,
+    vItem?.applicationLab?.category?.name,
+  ];
+
+  const isBeverage = formatCandidates.some(isBeverageOrBeveragePsd);
+
   const isConfection =
     isConfectionary ||
-    String(recipeFormat || "").toLowerCase().includes("confection") ||
-    String(data?.recipeType || normalizedVItem?.recipeType || "").toLowerCase().includes("confection");
+    formatCandidates.some((f) => String(f || "").toLowerCase().includes("confection"));
 
-  const effectiveDefaultParams = isConfection ? confectioneryDefaultParams : defaultParams;
+  // For Beverage and Beverage PSD formats, baking-related SOP sections
+  // (Oven Temperature, Tunnel Baking, Rotary Baking, After Bake, Analytical Report)
+  // are not applicable and must not be displayed.
+  // For Confectionery, baking sections are also not displayed.
+  // For all other formats (Bakery), keep existing SOP behavior unchanged.
+  const shouldShowBakeSections = !isConfection && !isBeverage;
+
+  const effectiveDefaultParams = useMemo(() => {
+    if (isConfection) return confectioneryDefaultParams;
+    if (isBeverage) return beverageDefaultParams;
+    return defaultParams;
+  }, [isConfection, isBeverage]);
 
   const initialSOP = useMemo(
     () => buildSOPDataFromRecipe(normalizedVItem, recipeFormat),
@@ -131,7 +176,7 @@ export default function StandardOperatingProcedure({
   const [draftProcedure, setDraftProcedure] = useState(
     initialSOP?.procedure?.raw ||
       (initialSOP?.procedure?.steps || []).join("\n") ||
-      (isConfection ? confectioneryDefaultProcedure : "")
+      ""
   );
 
   const [draftParams, setDraftParams] = useState(
@@ -169,7 +214,7 @@ export default function StandardOperatingProcedure({
     setDraftProcedure(
       updatedSop?.procedure?.raw ||
         (updatedSop?.procedure?.steps || []).join("\n") ||
-        (isConfection ? confectioneryDefaultProcedure : "")
+        ""
     );
     setDraftParams(
       updatedSop?.procedureParameters?.analyticalReport?.length > 0
@@ -193,7 +238,7 @@ export default function StandardOperatingProcedure({
         ? updatedSop.afterBake.analyticalReport
         : defaultAfterBake
     );
-  }, [normalizedVItem, recipeFormat, isConfection]);
+  }, [normalizedVItem, recipeFormat, isConfection, isBeverage]);
 
   // Save Standard Operating for THIS version
   const handleSaveSOP = async () => {
@@ -245,17 +290,19 @@ export default function StandardOperatingProcedure({
       }
 
       if (onSaveSpecificFields) {
-        await onSaveSpecificFields(
-          {
-            procedureSOP: draftProcedure,
-            procedureParameters: mapUIParamsToBackend(draftParams),
-            ovenTemperatureTunnelBaking: tunnelData,
-            normalBaking: normalData,
-            afterBake: abData,
-            ...(updatedProcedureOthers ? { procedureOthers: updatedProcedureOthers } : {}),
-          },
-          vItem?._id || data?._id
-        );
+        const payload = {
+          procedureSOP: draftProcedure,
+          procedureParameters: mapUIParamsToBackend(draftParams),
+          ...(shouldShowBakeSections
+            ? {
+                ovenTemperatureTunnelBaking: tunnelData,
+                normalBaking: normalData,
+                afterBake: abData,
+              }
+            : {}),
+          ...(updatedProcedureOthers ? { procedureOthers: updatedProcedureOthers } : {}),
+        };
+        await onSaveSpecificFields(payload, vItem?._id || data?._id);
       }
 
       setIsSOPEditing(false);
@@ -375,7 +422,7 @@ export default function StandardOperatingProcedure({
     setDraftParams(
       updatedSop?.procedureParameters?.analyticalReport?.length > 0
         ? updatedSop.procedureParameters.analyticalReport
-        : defaultParams
+        : effectiveDefaultParams
     );
     setDraftTunnelZones(
       updatedSop?.ovenTemperature?.tunnelBaking?.zones?.length > 0
@@ -505,8 +552,8 @@ export default function StandardOperatingProcedure({
         </div>
       </div>
 
-      {/* Oven Temperature (Bakery only) */}
-      {!isConfection && (
+      {/* Oven Temperature (Bakery only - hidden for Beverage, Beverage PSD, Confectionery) */}
+      {shouldShowBakeSections && (
         <div>
           <div className="mb-3">
             <span className="font-bold text-sm text-gray-900 dark:text-white">
@@ -739,8 +786,8 @@ export default function StandardOperatingProcedure({
         </div>
       )}
 
-      {/* After Bake: Analytical Report (Bakery only) */}
-      {!isConfection && (
+      {/* After Bake: Analytical Report (Bakery only - hidden for Beverage, Beverage PSD, Confectionery) */}
+      {shouldShowBakeSections && (
         <div>
           <div className="mb-3">
             <span className="font-bold text-sm text-gray-900 dark:text-white">

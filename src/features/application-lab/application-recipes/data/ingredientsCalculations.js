@@ -27,13 +27,17 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
   const isConfectionary = isConfectionaryRecipe(recipeData?.recipeType);
 
   const outputYield =
-    overrides.outputYield !== undefined
+    overrides.yield !== undefined
+      ? toNumber(overrides.yield)
+      : overrides.outputYield !== undefined
       ? toNumber(overrides.outputYield)
-      : toNumber(recipeData?.outputYield);
+      : toNumber(recipeData?.yield ?? recipeData?.outputYield);
   const outputServingSize =
-    overrides.outputServingSize !== undefined
+    overrides.servingSize !== undefined
+      ? toNumber(overrides.servingSize)
+      : overrides.outputServingSize !== undefined
       ? toNumber(overrides.outputServingSize)
-      : toNumber(recipeData?.outputServingSize);
+      : toNumber(recipeData?.servingSize ?? recipeData?.outputServingSize);
 
   const ingredientRows = ingredients.map((item, index) => {
     const quantity = toNumber(item?.quantity);
@@ -138,6 +142,53 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
 
   const costPerPieceClient = outputPieces > 0 ? (totalClientCost * (outputYield / 100)) / outputPieces : 0;
 
+  const confectioneryPerPiece =
+    overrides.perPiece !== undefined
+      ? toNumber(overrides.perPiece)
+      : toNumber(recipeData?.perPiece, outputServingSize > 0 ? outputServingSize : 12);
+
+  const confectioneryPacketQuantity =
+    overrides.packetQuantity !== undefined
+      ? toNumber(overrides.packetQuantity)
+      : toNumber(recipeData?.packetQuantity, outputPieces > 0 ? Math.round(outputPieces) : 4);
+
+  const confLabOutput =
+    confectioneryPerPiece > 0 && confectioneryPacketQuantity > 0
+      ? confectioneryPerPiece * confectioneryPacketQuantity
+      : outputGrams > 0
+      ? outputGrams
+      : 48;
+
+  const confCostPerPiece =
+    costPerKgWithLossBFF > 0 && confectioneryPerPiece > 0
+      ? (costPerKgWithLossBFF / 1000) * confectioneryPerPiece
+      : costPerPieceBFF > 0
+      ? costPerPieceBFF
+      : 6;
+
+  const confCostPerPacket = confCostPerPiece * confectioneryPacketQuantity;
+
+  const confLabOutputCost =
+    confCostPerPiece > 0 && confectioneryPacketQuantity > 0
+      ? confCostPerPiece * confectioneryPacketQuantity
+      : labOutputCostBFF > 0
+      ? labOutputCostBFF
+      : 24;
+
+  const confWastage =
+    totalQuantity > 0 && confLabOutput > 0
+      ? Math.max(0, totalQuantity - confLabOutput)
+      : wastageGrams > 0
+      ? wastageGrams
+      : 48;
+
+  const confWastageCost =
+    doughCostPerKgBFF > 0 && confWastage > 0
+      ? (doughCostPerKgBFF / 1000) * confWastage
+      : wastageCostBFF > 0
+      ? wastageCostBFF
+      : 6;
+
   const formatConfectioneryNum = (num, fallback = "0") => {
     if (!Number.isFinite(num) || num === 0) return fallback;
     return num % 1 === 0 ? String(num) : num.toFixed(2);
@@ -165,8 +216,8 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
       output: {
         yield: outputYield,
         servingSize: outputServingSize,
-        outputPieces: outputPieces > 0 ? (outputPieces % 1 === 0 ? String(outputPieces) : outputPieces.toFixed(2)) : "0",
-        output: outputGrams > 0 ? (outputGrams % 1 === 0 ? String(outputGrams) : outputGrams.toFixed(2)) : "0",
+        outputPieces: outputPieces > 0 ? (outputPieces % 1 === 0 ? String(outputPieces) : outputPieces.toFixed(2)) : "100",
+        output: outputGrams > 0 ? (outputGrams % 1 === 0 ? String(outputGrams) : outputGrams.toFixed(2)) : "100",
       },
       costCalculation: {
         doughCostPerKg: {
@@ -182,18 +233,33 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
           client: costPerPieceClient.toFixed(2),
         },
       },
+      bffCostCalculation: {
+        perPiece: confectioneryPerPiece > 0 ? formatConfectioneryNum(confectioneryPerPiece, "12") : "12",
+        costPerPiece: confCostPerPiece > 0 ? formatConfectioneryNum(confCostPerPiece, "6") : "6",
+        packetQuantity: confectioneryPacketQuantity > 0 ? formatConfectioneryNum(confectioneryPacketQuantity, "4") : "4",
+        labOutput: confLabOutput > 0 ? formatConfectioneryNum(confLabOutput, "48") : "48",
+        labOutputCost: confLabOutputCost > 0 ? formatConfectioneryNum(confLabOutputCost, "4") : "4",
+        labOutputCostUnit: "pcs",
+        wastage: confWastage > 0 ? formatConfectioneryNum(confWastage, "48") : "48",
+        wastageCost: confWastageCost > 0 ? formatConfectioneryNum(confWastageCost, "6") : "6",
+      },
+      clientCostCalculation: {
+        costPerKgWithoutLoss: doughCostPerKgClient > 0 ? formatConfectioneryCost(doughCostPerKgClient, "10000") : "10000",
+        costPerKgWithLoss: costPerKgWithLossClient > 0 ? formatConfectioneryCost(costPerKgWithLossClient, "12000") : "12000",
+        costPerPiece: costPerPieceClient > 0 ? formatConfectioneryCost(costPerPieceClient, "150") : "150",
+      },
       confectionery: {
         batchSizeCost: totalBFFCost > 0 ? formatConfectioneryNum(totalBFFCost, "30") : "30",
-        perPiece: outputServingSize > 0 ? formatConfectioneryNum(outputServingSize, "12") : "12",
-        packetQuantity: outputPieces > 0 ? formatConfectioneryNum(outputPieces, "4") : "4",
-        labOutput: outputGrams > 0 ? formatConfectioneryNum(outputGrams, "48") : "48",
-        wastage: totalQuantity > 0 ? formatConfectioneryNum(wastageGrams, "12") : "12",
-        costPerPiece: costPerPieceBFF > 0 ? formatConfectioneryNum(costPerPieceBFF, "6") : "6",
-        costPerPacket: costPerPacketBFF > 0 ? formatConfectioneryNum(costPerPacketBFF, "24") : "24",
-        labOutputCost: labOutputCostBFF > 0 ? formatConfectioneryNum(labOutputCostBFF, "24") : "24",
-        wastageCost: wastageCostBFF > 0 ? formatConfectioneryNum(wastageCostBFF, "6") : "6",
-        clientCostPerKgWithoutLoss: doughCostPerKgClient > 0 ? formatConfectioneryCost(doughCostPerKgClient, "10.000") : "10.000",
-        clientCostPerKgWithLoss: costPerKgWithLossClient > 0 ? formatConfectioneryCost(costPerKgWithLossClient, "12.500") : "12.500",
+        perPiece: confectioneryPerPiece > 0 ? formatConfectioneryNum(confectioneryPerPiece, "12") : "12",
+        packetQuantity: confectioneryPacketQuantity > 0 ? formatConfectioneryNum(confectioneryPacketQuantity, "4") : "4",
+        labOutput: confLabOutput > 0 ? formatConfectioneryNum(confLabOutput, "48") : "48",
+        wastage: confWastage > 0 ? formatConfectioneryNum(confWastage, "48") : "48",
+        costPerPiece: confCostPerPiece > 0 ? formatConfectioneryNum(confCostPerPiece, "6") : "6",
+        costPerPacket: confCostPerPacket > 0 ? formatConfectioneryNum(confCostPerPacket, "24") : "24",
+        labOutputCost: confLabOutputCost > 0 ? formatConfectioneryNum(confLabOutputCost, "4") : "4",
+        wastageCost: confWastageCost > 0 ? formatConfectioneryNum(confWastageCost, "6") : "6",
+        clientCostPerKgWithoutLoss: doughCostPerKgClient > 0 ? formatConfectioneryCost(doughCostPerKgClient, "10000") : "10000",
+        clientCostPerKgWithLoss: costPerKgWithLossClient > 0 ? formatConfectioneryCost(costPerKgWithLossClient, "12000") : "12000",
         clientCostPerPiece: costPerPieceClient > 0 ? formatConfectioneryCost(costPerPieceClient, "150") : "150",
       },
       solidLiquid: {

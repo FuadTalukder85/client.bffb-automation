@@ -47,17 +47,30 @@ const CONFECTIONERY_BENCHMARK_PARAMS = [
 ];
 
 export const CONFECTIONERY_PROCEDURE_PARAMS = [
-  { label: "Cooking pH", value: "24", unit: "" },
-  { label: "Final pH", value: "1.12", unit: "" },
-  { label: "Brix", value: "1.12", unit: "" },
-  { label: "Cooking Temperature", value: "24", unit: "°C" },
-  { label: "Depositing Temperature", value: "24", unit: "°C" },
-  { label: "Cooking Time", value: "24", unit: "min" },
-  { label: "Gel Forming Time", value: "24", unit: "min" },
+  { label: "Cooking pH", value: "", unit: "" },
+  { label: "Final pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Cooking Temperature", value: "", unit: "°C" },
+  { label: "Depositing Temperature", value: "", unit: "°C" },
+  { label: "Cooking Time", value: "", unit: "min" },
+  { label: "Gel Forming Time", value: "", unit: "min" },
 ];
 
-export const CONFECTIONERY_DEFAULT_PROCEDURE =
-  "Mix all dry ingredients in the primary bowl for 2 minutes on low speed. Gradually add chilled water and liquid yeast while mixing on medium speed for an additional 8 minutes. Ensure dough windowpane test passes before transferring to the resting vat. Rest for 45 minutes at room temperature.";
+export const BEVERAGE_PROCEDURE_PARAMS = [
+  { label: "Homogenization Pressure", value: "", unit: "bar" },
+  { label: "Pasteurization Temperature", value: "", unit: "" },
+  { label: "Pasteurization Time", value: "", unit: "" },
+  { label: "Aeration", value: "", unit: "" },
+  { label: "Viscosity", value: "", unit: "" },
+  { label: "pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Acidity", value: "", unit: "" },
+  { label: "Salt", value: "", unit: "%" },
+  { label: "Filling Temperature", value: "", unit: "°C" },
+  { label: "CO2 Filling Temperature", value: "", unit: "°C" },
+];
+
+export const CONFECTIONERY_DEFAULT_PROCEDURE = "";
 
 /**
  * Convert backend benchmarkParameters array to UI analyticalReport shape.
@@ -94,10 +107,15 @@ export function mapUIParamsToBackend(uiParams = []) {
  * The recipe comes from the backend API (GET /recipes/:id).
  */
 export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
-  const isBakery = format === "bakery";
-  const isConfectionary =
-    String(format || "").toLowerCase().includes("confection") ||
-    String(recipe?.recipeType || "").toLowerCase().includes("confection");
+  const fmt = String(format || recipe?.recipeType || "").trim().toLowerCase();
+  const isBeverage =
+    fmt === "beverage" ||
+    fmt === "beverage psd" ||
+    fmt === "beverage-psd" ||
+    fmt === "beveragepsd" ||
+    fmt.startsWith("beverage");
+  const isConfectionary = fmt.includes("confection");
+  const isBakery = !isBeverage && !isConfectionary;
 
   // Benchmark
   const benchmark = {
@@ -116,8 +134,7 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
   const productDevelopmentFeedback = recipe.benchmarkPDFeedback || "";
 
   // Procedure
-  const rawProcedure =
-    recipe.procedureSOP || (isConfectionary ? CONFECTIONERY_DEFAULT_PROCEDURE : "");
+  const rawProcedure = recipe.procedureSOP || "";
   const procedure = {
     title: "Standard Operating Procedure",
     raw: rawProcedure,
@@ -136,6 +153,37 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
       analyticalReport:
         backendParams.length > 0 ? backendParams : CONFECTIONERY_PROCEDURE_PARAMS,
     };
+  } else if (isBeverage) {
+    const backendParams = mapBackendParamsToUI(recipe.procedureParameters);
+    if (backendParams.length > 0) {
+      const hasPasteurizationTime = backendParams.some((p) =>
+        p.label.toLowerCase().includes("pasteurization time")
+      );
+      if (!hasPasteurizationTime) {
+        const pTempIdx = backendParams.findIndex((p) =>
+          p.label.toLowerCase().includes("pasteurization temperature")
+        );
+        const insertIdx = pTempIdx !== -1 ? pTempIdx + 1 : 2;
+        backendParams.splice(insertIdx, 0, {
+          label: "Pasteurization Time",
+          value: "",
+          unit: "",
+        });
+      }
+      const pTemp = backendParams.find((p) =>
+        p.label.toLowerCase().includes("pasteurization temperature")
+      );
+      if (pTemp && pTemp.unit === "°C") {
+        pTemp.unit = "";
+      }
+      procedureParameters = {
+        analyticalReport: backendParams,
+      };
+    } else {
+      procedureParameters = {
+        analyticalReport: BEVERAGE_PROCEDURE_PARAMS,
+      };
+    }
   } else {
     // Other formats: generic analyticalReport from procedureParameters
     procedureParameters = {
@@ -251,7 +299,15 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
  * Convert SOP UI data back to backend recipe fields for PATCH /recipes/:id.
  */
 export function convertSOPDataToBackendFields(sopData, format = "bakery") {
-  const isBakery = format === "bakery";
+  const fmt = String(format || "").trim().toLowerCase();
+  const isBeverage =
+    fmt === "beverage" ||
+    fmt === "beverage psd" ||
+    fmt === "beverage-psd" ||
+    fmt === "beveragepsd" ||
+    fmt.startsWith("beverage");
+  const isConfectionary = fmt.includes("confection");
+  const isBakery = !isBeverage && !isConfectionary;
   const fields = {};
 
   // Benchmark fields

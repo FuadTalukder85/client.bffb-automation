@@ -403,10 +403,14 @@ export default function ViewRecipePage() {
       setEditableRecipe((prev) => ({
         ...prev,
         ...(nextIngredients !== undefined ? { ingredients: nextIngredients } : {}),
+        ...(payload?.yield !== undefined ? { yield: payload.yield, outputYield: payload.yield } : {}),
         ...(payload?.outputYield !== undefined ? { outputYield: payload.outputYield } : {}),
+        ...(payload?.servingSize !== undefined ? { servingSize: payload.servingSize, outputServingSize: payload.servingSize } : {}),
         ...(payload?.outputServingSize !== undefined
           ? { outputServingSize: payload.outputServingSize }
           : {}),
+        ...(payload?.perPiece !== undefined ? { perPiece: payload.perPiece } : {}),
+        ...(payload?.packetQuantity !== undefined ? { packetQuantity: payload.packetQuantity } : {}),
       }));
     }
 
@@ -446,13 +450,21 @@ export default function ViewRecipePage() {
       });
 
       const fieldsToUpdate = { ingredients: sanitized };
-      if (payload?.outputYield !== undefined) {
-        const parsedYield = parseFloat(payload.outputYield);
+      if (payload?.yield !== undefined || payload?.outputYield !== undefined) {
+        const parsedYield = parseFloat(payload.yield ?? payload.outputYield);
         if (!isNaN(parsedYield)) fieldsToUpdate.outputYield = parsedYield;
       }
-      if (payload?.outputServingSize !== undefined) {
-        const parsedServing = parseFloat(payload.outputServingSize);
+      if (payload?.servingSize !== undefined || payload?.outputServingSize !== undefined) {
+        const parsedServing = parseFloat(payload.servingSize ?? payload.outputServingSize);
         if (!isNaN(parsedServing)) fieldsToUpdate.outputServingSize = parsedServing;
+      }
+      if (payload?.perPiece !== undefined) {
+        const parsedPerPiece = parseFloat(payload.perPiece);
+        if (!isNaN(parsedPerPiece)) fieldsToUpdate.perPiece = parsedPerPiece;
+      }
+      if (payload?.packetQuantity !== undefined) {
+        const parsedPacket = parseFloat(payload.packetQuantity);
+        if (!isNaN(parsedPacket)) fieldsToUpdate.packetQuantity = parsedPacket;
       }
 
       await handleSaveSpecificFields(fieldsToUpdate, resolvedTargetId);
