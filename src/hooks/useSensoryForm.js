@@ -275,3 +275,20 @@ export function useUpdateSensoryTopSheet() {
     },
   });
 }
+
+export function useRecipeSensoryFeedback(recipeId, options = {}) {
+  const { enabled = true } = options;
+
+  return useQuery({
+    queryKey: ['sensory', 'recipeFeedback', recipeId],
+    queryFn: async ({ signal }) => {
+      try {
+        const responseData = await sensoryAPI.getRecipeSensoryFeedback(recipeId, { signal });
+        return responseData?.data || responseData || null;
+      } catch (err) {
+        return null;
+      }
+    },
+    enabled: enabled && Boolean(recipeId),
+  });
+}

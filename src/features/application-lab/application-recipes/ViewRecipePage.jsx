@@ -25,6 +25,7 @@ import { hasPermission } from "@/lib/utils";
 import { useProjectMembers } from "@/hooks/useProjectMembers";
 import { PrepareSampleModal } from "./components/PrepareSampleModal";
 import DownloadHistoryModal from "./components/DownloadHistoryModal";
+import { FinalizeRecipeModal } from "./components/FinalizeRecipeModal";
 
 
 const tabs = [
@@ -246,6 +247,8 @@ export default function ViewRecipePage() {
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isPrepareSampleModalOpen, setIsPrepareSampleModalOpen] = useState(false);
   const [isDownloadHistoryModalOpen, setIsDownloadHistoryModalOpen] = useState(false);
+  const [isFinalizeModalOpen, setIsFinalizeModalOpen] = useState(false);
+  const [recipeToFinalize, setRecipeToFinalize] = useState(null);
   const hasAutoTriggeredEditRef = useRef(false);
 
   // Get project members for task assignments
@@ -269,8 +272,16 @@ export default function ViewRecipePage() {
     }
   }, [mergedSourceProject, fetchedRecipe]);
 
-  // Current version from fetched recipe or latest version
-  const currentVersion = editableRecipe?.version ?? versions?.[0]?.version ?? 1;
+  // Current version derived from activeRecipeId, editableRecipe, or fetchedRecipe
+  const currentVersion = useMemo(() => {
+    if (activeRecipeId && Array.isArray(versions) && versions.length > 0) {
+      const found = versions.find((v) => v._id === activeRecipeId);
+      if (found?.version !== undefined && found?.version !== null) {
+        return found.version;
+      }
+    }
+    return editableRecipe?.version ?? fetchedRecipe?.version ?? versions?.[0]?.version ?? 0;
+  }, [activeRecipeId, versions, editableRecipe?.version, fetchedRecipe?.version]);
   const isFinalized =
     (editableRecipe?.recipeStatus || fetchedRecipe?.recipeStatus || editableProject?.latestRecipe?.recipeStatus) ===
     RECIPE_STATUS.FINAL;
@@ -383,7 +394,7 @@ export default function ViewRecipePage() {
     setSopData(updatedSOPData);
   };
 
-  const handleIngredientsChange = (payload) => {
+  const handleIngredientsChange = async (payload, targetRecipeId, options = {}) => {
     const isLegacyArray = Array.isArray(payload);
     const nextIngredients = isLegacyArray
       ? payload
@@ -391,14 +402,81 @@ export default function ViewRecipePage() {
         ? payload.ingredients
         : undefined;
 
-    setEditableRecipe((prev) => ({
-      ...prev,
-      ...(nextIngredients !== undefined ? { ingredients: nextIngredients } : {}),
-      ...(payload?.outputYield !== undefined ? { outputYield: payload.outputYield } : {}),
-      ...(payload?.outputServingSize !== undefined
-        ? { outputServingSize: payload.outputServingSize }
-        : {}),
-    }));
+    const resolvedTargetId = targetRecipeId || recipe?._id;
+
+    if (!resolvedTargetId) return;
+
+    // Optimistically update local editableRecipe if targeting current recipe
+    if (!targetRecipeId || targetRecipeId === recipe?._id) {
+      setEditableRecipe((prev) => ({
+        ...prev,
+        ...(nextIngredients !== undefined ? { ingredients: nextIngredients } : {}),
+        ...(payload?.yield !== undefined ? { yield: payload.yield, outputYield: payload.yield } : {}),
+        ...(payload?.outputYield !== undefined ? { outputYield: payload.outputYield } : {}),
+        ...(payload?.servingSize !== undefined ? { servingSize: payload.servingSize, outputServingSize: payload.servingSize } : {}),
+        ...(payload?.outputServingSize !== undefined
+          ? { outputServingSize: payload.outputServingSize }
+          : {}),
+        ...(payload?.perPiece !== undefined ? { perPiece: payload.perPiece } : {}),
+        ...(payload?.packetQuantity !== undefined ? { packetQuantity: payload.packetQuantity } : {}),
+      }));
+    }
+
+    if (options.skipSave) {
+      return;
+    }
+
+    if (nextIngredients !== undefined) {
+      const sanitized = nextIngredients.map((item) => {
+        const lowerType = item.type ? String(item.type).trim().toLowerCase() : null;
+        const rawSourceId =
+          typeof (item.sourceId || item.ingredient) === "object" && (item.sourceId || item.ingredient) !== null
+            ? (item.sourceId || item.ingredient)._id || (item.sourceId || item.ingredient).id || null
+            : (item.sourceId || item.ingredient);
+
+        const cleanRole = item.role && item.role !== "-" ? String(item.role).trim().toLowerCase() : null;
+        const cleanProcess = ["A", "B", "C", "D", "E"].includes(String(item.process || "").toUpperCase())
+          ? String(item.process).toUpperCase()
+          : null;
+
+        const parseNum = (val) => {
+          if (val === "" || val === null || val === undefined) return undefined;
+          const num = parseFloat(val);
+          return isNaN(num) ? undefined : num;
+        };
+
+        return {
+          role: cleanRole,
+          type: ["solid", "liquid"].includes(lowerType) ? lowerType : null,
+          process: cleanProcess,
+          ingredientSourceType: item.ingredientSourceType || (item.sourceCode ? "bffProductCode" : "rawMaterial"),
+          sourceId: String(rawSourceId || ""),
+          quantity: parseNum(item.quantity) ?? 0,
+          bffRateAtCreation: parseNum(item.bffRateAtCreation) ?? 0,
+          clientRateAtCreation: parseNum(item.clientRateAtCreation) ?? 0,
+        };
+      });
+
+      const fieldsToUpdate = { ingredients: sanitized };
+      if (payload?.yield !== undefined || payload?.outputYield !== undefined) {
+        const parsedYield = parseFloat(payload.yield ?? payload.outputYield);
+        if (!isNaN(parsedYield)) fieldsToUpdate.outputYield = parsedYield;
+      }
+      if (payload?.servingSize !== undefined || payload?.outputServingSize !== undefined) {
+        const parsedServing = parseFloat(payload.servingSize ?? payload.outputServingSize);
+        if (!isNaN(parsedServing)) fieldsToUpdate.outputServingSize = parsedServing;
+      }
+      if (payload?.perPiece !== undefined) {
+        const parsedPerPiece = parseFloat(payload.perPiece);
+        if (!isNaN(parsedPerPiece)) fieldsToUpdate.perPiece = parsedPerPiece;
+      }
+      if (payload?.packetQuantity !== undefined) {
+        const parsedPacket = parseFloat(payload.packetQuantity);
+        if (!isNaN(parsedPacket)) fieldsToUpdate.packetQuantity = parsedPacket;
+      }
+
+      await handleSaveSpecificFields(fieldsToUpdate, resolvedTargetId);
+    }
   };
 
   const isVersionRoute = Boolean(routeRecipeId);
@@ -562,7 +640,8 @@ export default function ViewRecipePage() {
         }));
       }
 
-      const updatedRecipe = await updateRecipe({ id: recipeId, data: updateData });
+      const response = await updateRecipe({ id: recipeId, data: updateData });
+      const updatedRecipe = response?.data || response;
 
       if (updatedRecipe?._id) {
         setActiveRecipeId(updatedRecipe._id);
@@ -574,6 +653,25 @@ export default function ViewRecipePage() {
       console.error("Failed to save recipe:", err);
     } finally {
       setIsSaveModalOpen(false);
+    }
+  };
+
+  const handleSaveSpecificFields = async (fieldsToUpdate, targetRecipeId) => {
+    const recipeId = targetRecipeId || recipe?._id;
+    if (!recipeId) return;
+
+    try {
+      const response = await updateRecipe({ id: recipeId, data: fieldsToUpdate });
+      const updatedRecipe = response?.data || response;
+      if (updatedRecipe?._id && (!targetRecipeId || targetRecipeId === recipe?._id)) {
+        setActiveRecipeId(updatedRecipe._id);
+        setEditableRecipe(flatMapIndependentDetails(updatedRecipe));
+      }
+      return updatedRecipe;
+    } catch (err) {
+      console.error("Failed to save changes:", err);
+      toast.error(getApiErrorMessage(err, "Failed to save changes"));
+      throw err;
     }
   };
 
@@ -684,20 +782,34 @@ export default function ViewRecipePage() {
     }
   };
 
-  const handleFinalize = async () => {
-    const recipeId = recipe?._id;
-    if (!recipeId || isFinalized) return;
+  const handleOpenFinalizeModal = (targetRecipe) => {
+    setRecipeToFinalize(targetRecipe || recipe);
+    setIsFinalizeModalOpen(true);
+  };
 
-    const finalizedRecipe = await updateRecipe({
-      id: recipeId,
-      data: { recipeStatus: RECIPE_STATUS.FINAL },
-    });
+  const handleConfirmFinalize = async () => {
+    const recipeId = recipeToFinalize?._id || recipe?._id;
+    if (!recipeId) return;
 
-    if (finalizedRecipe?._id) {
-      setActiveRecipeId(finalizedRecipe._id);
-      setEditableRecipe(flatMapIndependentDetails(finalizedRecipe));
-      setIsEditMode(false);
+    try {
+      const finalizedRecipe = await updateRecipe({
+        id: recipeId,
+        data: { recipeStatus: RECIPE_STATUS.FINAL },
+      });
+
+      if (finalizedRecipe?._id) {
+        setActiveRecipeId(finalizedRecipe._id);
+        setEditableRecipe(flatMapIndependentDetails(finalizedRecipe));
+        setIsEditMode(false);
+      }
+      setIsFinalizeModalOpen(false);
+    } catch (err) {
+      console.error("Failed to finalize recipe:", err);
     }
+  };
+
+  const handleFinalize = () => {
+    handleOpenFinalizeModal(recipe);
   };
   const handleBack = () => {
     const returnTo = location.state?.returnTo;
@@ -865,7 +977,11 @@ export default function ViewRecipePage() {
     handleRecipeChange,
     handleProjectChange,
     handleDownload,
+    handleExportTypeInternal,
+    handleExportTypeForClient,
     handleFinalize,
+    handleOpenFinalizeModal,
+    onSaveSpecificFields: handleSaveSpecificFields,
     handleBack,
     handleCreateVersion,
     handleIngredientsChange,
@@ -882,6 +998,37 @@ export default function ViewRecipePage() {
     onChangeRecipeType: handleOpenRecipeTypeModal,
     canExportRecipe,
     handlePrepareSample: () => setIsPrepareSampleModalOpen(true),
+    handleSample: (vItem, currentRecipe) => {
+      const targetId = vItem?._id || recipe?._id;
+      const targetVersion = vItem?.version ?? currentVersion ?? 0;
+      const r = currentRecipe || recipe;
+
+      const versionIngredients =
+        Array.isArray(vItem?.ingredients) && vItem.ingredients.length > 0
+          ? vItem.ingredients
+          : Array.isArray(r?.ingredients) && r.ingredients.length > 0
+          ? r.ingredients
+          : Array.isArray(editableRecipe?.ingredients) && editableRecipe.ingredients.length > 0
+          ? editableRecipe.ingredients
+          : [];
+
+      const enrichedVItem = {
+        ...vItem,
+        ingredients: versionIngredients,
+      };
+
+      navigate(`/application-lab/application-recipes/sample/${targetId}/${targetVersion}`, {
+        state: {
+          recipe: {
+            ...r,
+            ingredients: versionIngredients,
+          },
+          vItem: enrichedVItem,
+          version: targetVersion,
+          project: fetchedProjectData,
+        },
+      });
+    },
     handleViewDownloadHistory: () => setIsDownloadHistoryModalOpen(true),
   };
 
@@ -894,8 +1041,8 @@ export default function ViewRecipePage() {
   }
 
   return (
-    <section className="flex flex-col bg-transparent page-section-spacing md:px-0 md:flex-1 md:min-h-0 md:overflow-hidden">
-      <div className="hidden md:flex flex-1 min-h-0 w-full overflow-hidden">
+    <section className="flex flex-col bg-transparent page-section-spacing md:px-0 md:flex-1 md:min-h-0">
+      <div className="hidden md:flex flex-1 min-h-0 w-full overflow-y-auto custom-scrollbar pr-1">
         <DesktopViewRecipe {...commonProps} />
       </div>
       <div className="flex md:hidden flex-1 w-full min-h-0">
@@ -962,6 +1109,13 @@ export default function ViewRecipePage() {
         onOpenChange={setIsDownloadHistoryModalOpen}
         recipeId={recipe?._id}
         recipeName={recipe?.recipeName || recipe?.name}
+      />
+
+      <FinalizeRecipeModal
+        open={isFinalizeModalOpen}
+        onOpenChange={setIsFinalizeModalOpen}
+        onConfirm={handleConfirmFinalize}
+        isLoading={isSaving}
       />
     </section>
   );

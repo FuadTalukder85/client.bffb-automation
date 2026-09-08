@@ -1,25 +1,21 @@
-import React from "react";
-import { ArrowLeft, Download, CheckCircle, Search, Save, X, ChevronLeft, ChevronRight, Loader2, Clock } from "lucide-react";
-import { GoPlus } from "react-icons/go";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Plus, GitFork, GitCompare, LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 import BasicInformation from "./BasicInformation";
-import IngredientsTable from "./IngredientsTable";
-import SOPAnalytics from "./SOPAnalytics";
+import BenchmarkCard from "./BenchmarkCard";
+import RecipeDetailsTable from "./RecipeDetailsTable";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { BackButton } from "@/components/ui/BackButton";
-import { STATUS_COLOR_PALETTE } from "@/constants/statusColors";
 
 export default function DesktopViewRecipe({
   project,
   statusSourceProject,
   recipe,
-  activeTab,
-  setActiveTab,
   currentVersion,
   setCurrentVersion,
-  versions,
+  versions = [],
   searchQuery,
   setSearchQuery,
   formatDate,
@@ -29,12 +25,15 @@ export default function DesktopViewRecipe({
   handleRecipeChange,
   handleProjectChange,
   handleDownload,
+  handleExportTypeInternal,
+  handleExportTypeForClient,
   handleFinalize,
+  handleOpenFinalizeModal,
+  onSaveSpecificFields,
   handleBack,
   handleCreateVersion,
   handleIngredientsChange,
   handleSOPChange,
-  tabs,
   isEditMode,
   sopData,
   recipeFormat,
@@ -44,8 +43,14 @@ export default function DesktopViewRecipe({
   isSaving,
   canExportRecipe,
   handlePrepareSample,
+  handleSample,
   handleViewDownloadHistory,
 }) {
+  const [isSelectingForCompare, setIsSelectingForCompare] = useState(false);
+  const [isCompareConfirmed, setIsCompareConfirmed] = useState(false);
+  const [selectedCompareVersionIds, setSelectedCompareVersionIds] = useState([]);
+  const [selectedScaleBatchVersionId, setSelectedScaleBatchVersionId] = useState(null);
+
   const toUiVersionNumber = (version) => {
     const numericVersion = Number(version);
     return Number.isFinite(numericVersion) ? numericVersion + 1 : version;
@@ -56,70 +61,15 @@ export default function DesktopViewRecipe({
     [versions]
   );
 
-  const minVersion = versionNumbers.length ? versionNumbers[0] : currentVersion;
-  const maxVersion = versionNumbers.length ? versionNumbers[versionNumbers.length - 1] : currentVersion;
+  const minVersion = versionNumbers.length ? versionNumbers[0] : currentVersion ?? 0;
+  const maxVersion = versionNumbers.length ? versionNumbers[versionNumbers.length - 1] : currentVersion ?? 0;
 
-  const pickStatus = (...values) =>
-    values.find((value) => value !== undefined && value !== null && String(value).trim() !== "");
-
-  const rawStatus = pickStatus(
-    statusSourceProject?.masterProject?.status,
-    statusSourceProject?.projectStatus,
-    statusSourceProject?.developmentStatus,
-    statusSourceProject?.applicationDevelopmentStatus,
-    statusSourceProject?.applicationLab?.developmentStatus,
-    recipe?.project?.masterProject?.status,
-    recipe?.project?.projectStatus,
-    recipe?.project?.developmentStatus,
-    recipe?.project?.applicationDevelopmentStatus,
-    recipe?.project?.applicationLab?.developmentStatus,
-    project?.masterProject?.status,
-    project?.projectStatus,
-    project?.developmentStatus,
-    project?.applicationDevelopmentStatus,
-    project?.applicationLab?.developmentStatus,
-    null
-  );
-
-  const projectStatusLabel = String(rawStatus || "in-progress")
-    .toLowerCase()
-    .replaceAll("_", "-")
-    .replaceAll(" ", "-")
-    .replace("in-development", "in-progress");
-
-  const normalizedStatus = String(rawStatus || "")
-    .trim()
-    .toLowerCase()
-    .replaceAll("_", " ")
-    .replaceAll("-", " ");
-
-  const statusPaletteKey = (() => {
-    if (!normalizedStatus) return "IN_PROGRESS";
-    if (normalizedStatus.startsWith("rework")) return "REWORK";
-
-    const map = {
-      "not started": "NOT_STARTED",
-      "in progress": "IN_PROGRESS",
-      "in development": "IN_PROGRESS",
-      "completed": "COMPLETED",
-      "approved": "APPROVED",
-      "paused": "PAUSED",
-      "cancelled": "CANCELLED",
-      "canceled": "CANCELLED",
-      "adopted": "ADOPTED",
-      "lost": "CANCELLED",
-      "dropped": "DROPPED",
-    };
-
-    return map[normalizedStatus] || "IN_PROGRESS";
-  })();
-
-  const statusPalette =
-    STATUS_COLOR_PALETTE[statusPaletteKey] || STATUS_COLOR_PALETTE.IN_PROGRESS;
-
-  const creatorLabel = [recipe?.createdBy?.name, recipe?.createdBy?.email]
-    .filter(Boolean)
-    .join(" | ");
+  const creatorName =
+    recipe?.createdBy?.name ||
+    recipe?.creator?.name ||
+    recipe?.createdBy ||
+    project?.raisedBy ||
+    "-";
 
   const refProjectCode =
     recipe?.copiedFromRecipe?.recipeCode ||
@@ -127,270 +77,529 @@ export default function DesktopViewRecipe({
     project?.masterProject?.code ||
     recipe?.project?.projectCode ||
     recipe?.project?.masterProject?.code ||
-    "N/A";
+    "-";
+
+  const currentRecipeCode = recipe?.recipeCode || "-";
+  const formatLabel = (recipeFormat || recipe?.recipeType || "bakery").toLowerCase();
+
+  const isCompareActive = isSelectingForCompare || isCompareConfirmed;
+
+  // Compare Recipe Handlers
+  const handleStartCompare = () => {
+    setIsSelectingForCompare(true);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleCancelCompare = () => {
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleConfirmCompare = () => {
+    if (selectedCompareVersionIds.length === 0) {
+      toast.error("Please select at least one version to compare");
+      return;
+    }
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(true);
+    const firstSelectedId = selectedCompareVersionIds[0];
+    if (!selectedScaleBatchVersionId || !selectedCompareVersionIds.includes(selectedScaleBatchVersionId)) {
+      setSelectedScaleBatchVersionId(firstSelectedId);
+    }
+  };
+
+  const handleSelectRecipeBack = () => {
+    setIsSelectingForCompare(true);
+    setIsCompareConfirmed(false);
+  };
+
+  const handleLeaveCompare = () => {
+    setIsSelectingForCompare(false);
+    setIsCompareConfirmed(false);
+    setSelectedCompareVersionIds([]);
+  };
+
+  const handleToggleSelectCompareVersion = (vItem) => {
+    const vId = vItem._id ?? vItem.version;
+    setSelectedCompareVersionIds((prev) => {
+      if (prev.includes(vId)) {
+        return prev.filter((id) => id !== vId);
+      }
+      if (prev.length >= 3) {
+        toast.error("You can select a maximum of 3 versions");
+        return prev;
+      }
+      return [...prev, vId];
+    });
+  };
+
+  const handleSelectScaleBatchVersion = (vItem) => {
+    const vId = vItem._id ?? vItem.version;
+    setSelectedScaleBatchVersionId(vId);
+  };
+
+  const activeScaleBatchVersion = React.useMemo(() => {
+    if (!isCompareConfirmed) return null;
+    return versions?.find((v) => (v._id ?? v.version) === selectedScaleBatchVersionId) || null;
+  }, [isCompareConfirmed, versions, selectedScaleBatchVersionId]);
+
+  const activeVersionToHighlight = isCompareConfirmed
+    ? (activeScaleBatchVersion?.version ?? currentVersion)
+    : currentVersion;
+
+  const paginationContainerRef = useRef(null);
+  const tableContainerRef = useRef(null);
+
+  const currentVersionIndex = React.useMemo(() => {
+    return versionNumbers.findIndex((v) => v === activeVersionToHighlight);
+  }, [versionNumbers, activeVersionToHighlight]);
+
+  const paginationItems = React.useMemo(() => {
+    if (!versionNumbers.length) return [];
+
+    const totalCount = versionNumbers.length;
+    if (totalCount <= 4) {
+      return versionNumbers.map((v) => ({ type: "page", value: v, key: `page-${v}` }));
+    }
+
+    const currentIndex = versionNumbers.findIndex((v) => v === activeVersionToHighlight);
+    const activeIdx = currentIndex >= 0 ? currentIndex : 0;
+
+    // Near start (e.g. Version 1 or Version 2)
+    if (activeIdx <= 2) {
+      const count = Math.min(3, totalCount - 2);
+      const startPages = versionNumbers.slice(0, Math.max(count, activeIdx + 2)).map((v) => ({
+        type: "page",
+        value: v,
+        key: `page-${v}`,
+      }));
+      return [
+        ...startPages,
+        { type: "ellipsis", key: "ellipsis-end" },
+        { type: "page", value: versionNumbers[totalCount - 1], key: `page-${versionNumbers[totalCount - 1]}` },
+      ];
+    }
+
+    // Near end (e.g. Version 6 or Version 7 of 7)
+    if (activeIdx >= totalCount - 3) {
+      const endStartIndex = Math.min(activeIdx - 1, totalCount - 3);
+      const endPages = versionNumbers.slice(endStartIndex).map((v) => ({
+        type: "page",
+        value: v,
+        key: `page-${v}`,
+      }));
+      return [
+        { type: "page", value: versionNumbers[0], key: `page-${versionNumbers[0]}` },
+        { type: "ellipsis", key: "ellipsis-start" },
+        ...endPages,
+      ];
+    }
+
+    // Middle (Reference Image 1: 1 ••• 4 5 6 ••• 100)
+    return [
+      { type: "page", value: versionNumbers[0], key: `page-${versionNumbers[0]}` },
+      { type: "ellipsis", key: "ellipsis-start" },
+      { type: "page", value: versionNumbers[activeIdx - 1], key: `page-${versionNumbers[activeIdx - 1]}` },
+      { type: "page", value: versionNumbers[activeIdx], key: `page-${versionNumbers[activeIdx]}` },
+      { type: "page", value: versionNumbers[activeIdx + 1], key: `page-${versionNumbers[activeIdx + 1]}` },
+      { type: "ellipsis", key: "ellipsis-end" },
+      { type: "page", value: versionNumbers[totalCount - 1], key: `page-${versionNumbers[totalCount - 1]}` },
+    ];
+  }, [versionNumbers, activeVersionToHighlight]);
+
+  const scrollPaginationButtonIntoView = useCallback((v) => {
+    if (v === undefined || v === null) return;
+    const container = paginationContainerRef.current;
+    if (!container) return;
+
+    const targetBtn = container.querySelector(`[data-version-btn="${v}"]`);
+    if (!targetBtn) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const btnRect = targetBtn.getBoundingClientRect();
+
+    const isVisible = btnRect.left >= containerRect.left - 2 && btnRect.right <= containerRect.right + 2;
+    if (isVisible) return;
+
+    if (btnRect.left < containerRect.left) {
+      container.scrollBy({ left: btnRect.left - containerRect.left, behavior: "smooth" });
+    } else if (btnRect.right > containerRect.right) {
+      container.scrollBy({ left: btnRect.right - containerRect.right, behavior: "smooth" });
+    }
+  }, []);
+
+  const scrollTableColumnIntoView = useCallback((v) => {
+    if (v === undefined || v === null) return;
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const targetCol =
+      container.querySelector(`[data-version-col="${v}"]`) ||
+      container.querySelector(`[data-version-num="${Number(v) + 1}"]`) ||
+      container.querySelector(`[data-version-num="${v}"]`) ||
+      container.querySelector(`[data-version-id="${v}"]`) ||
+      container.querySelector(`#version-column-${v}`);
+    if (!targetCol) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const colRect = targetCol.getBoundingClientRect();
+
+    if (containerRect.width === 0 || colRect.width === 0) return;
+
+    const stickyLeft = container.querySelector("[data-table-sticky-left]");
+    const stickyWidth = stickyLeft ? stickyLeft.getBoundingClientRect().width : 340;
+
+    const visibleLeft = containerRect.left + stickyWidth;
+    const visibleRight = containerRect.right;
+
+    const isVisible = colRect.left >= visibleLeft - 4 && colRect.right <= visibleRight + 4;
+    if (isVisible) return;
+
+    // Position the selected column right beside the sticky left header
+    const targetScrollLeft = Math.max(0, container.scrollLeft + (colRect.left - visibleLeft));
+
+    if (Math.abs(container.scrollLeft - targetScrollLeft) > 6) {
+      container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
+    }
+  }, []);
+
+  const handleSelectVersion = useCallback(
+    (v) => {
+      if (isCompareActive) return;
+      setCurrentVersion?.(v);
+
+      const triggerScroll = () => {
+        scrollPaginationButtonIntoView(v);
+        scrollTableColumnIntoView(v);
+      };
+
+      requestAnimationFrame(triggerScroll);
+      setTimeout(triggerScroll, 60);
+      setTimeout(triggerScroll, 200);
+    },
+    [isCompareActive, setCurrentVersion, scrollPaginationButtonIntoView, scrollTableColumnIntoView]
+  );
+
+  const handlePrevVersion = () => {
+    if (isCompareActive) return;
+    if (currentVersionIndex > 0) {
+      handleSelectVersion(versionNumbers[currentVersionIndex - 1]);
+    } else if ((currentVersion ?? 0) > minVersion) {
+      handleSelectVersion(Math.max(minVersion, (currentVersion ?? 0) - 1));
+    }
+  };
+
+  const handleNextVersion = () => {
+    if (isCompareActive) return;
+    if (currentVersionIndex >= 0 && currentVersionIndex < versionNumbers.length - 1) {
+      handleSelectVersion(versionNumbers[currentVersionIndex + 1]);
+    } else if ((currentVersion ?? 0) < maxVersion) {
+      handleSelectVersion(Math.min(maxVersion, (currentVersion ?? 0) + 1));
+    }
+  };
+
+  useEffect(() => {
+    if (activeVersionToHighlight !== undefined && activeVersionToHighlight !== null) {
+      const triggerScroll = () => {
+        scrollPaginationButtonIntoView(activeVersionToHighlight);
+        scrollTableColumnIntoView(activeVersionToHighlight);
+      };
+
+      const rafId = requestAnimationFrame(triggerScroll);
+      const t1 = setTimeout(triggerScroll, 60);
+      const t2 = setTimeout(triggerScroll, 200);
+      const t3 = setTimeout(triggerScroll, 500);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [activeVersionToHighlight, scrollPaginationButtonIntoView, scrollTableColumnIntoView]);
+
   return (
-    <div className="flex flex-col w-full h-full min-h-0 rounded-xl lg:rounded-2xl xl:rounded-3xl 2xl:rounded-4xl bg-background dark:bg-[#0B0B0F]">
-      {/* Header */}
-      <div className="flex-1 flex flex-col min-h-0 rounded-xl lg:rounded-2xl xl:rounded-3xl 2xl:rounded-4xl">
-        {/* Top Row */}
-        <div className="flex-none flex items-center justify-between px-6 pb-2 lg:pb-2.5 xl:pb-3 2xl:pb-3.5 3xl:pb-4">
-          <div className="flex items-center gap-4 lg:gap-2.5 xl:gap-3 2xl:gap-3.5 3xl:gap-4">
-          <BackButton onClick={handleBack} />
-            <div>
-              <div className="flex items-center gap-3 lg:gap-1 xl:gap-1.5 2xl:gap-2 3xl:gap-3">
-                <h1 className="text-xs lg:text-sm xl:text-lg 2xl:text-xl 3xl:text-2xl font-bold text-gray-900 dark:text-white">
-                  {recipe?.recipeName || "Recipe Name"}
-                </h1>
-                <span className="text-xs lg:text-sm xl:text-lg 2xl:text-xl 3xl:text-2xl font-bold text-primary">
-                  {recipe?.recipeCode || "N/A"}
-                </span>
-                <span className="px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[7px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs rounded-full bg-transparent text-primary dark:text-gray-300 border border-primary font-semibold">
-                  {recipe?.recipeType?.toLowerCase() || "N/A"}
-                </span>
-                <span
-                  className="px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[7px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs rounded-full border"
-                  style={{
-                    backgroundColor: statusPalette.bgColor,
-                    color: statusPalette.textColor,
-                    borderColor: statusPalette.bgColor,
-                  }}
-                >
-                  {projectStatusLabel}
-                </span>
-                {creatorLabel && (
-                  <span className="px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[7px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs rounded-full border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200">
-                    {creatorLabel}
-                  </span>
-                )}
-              </div>
-            </div>
+    <div className="flex flex-col w-full min-h-full space-y-6">
+      {/* Top Header (Image 1 & 2) */}
+      <div className="flex flex-col gap-3">
+        {/* Row 1: Back + Title + Recipe Code + Search + Theme */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BackButton onClick={handleBack} />
+
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+              {recipe?.recipeName || recipe?.name || "-"}
+            </h1>
+
+            {currentRecipeCode !== "-" && (
+              <span className="px-3 py-0.5 rounded-full border border-[#4B208B] text-[#4B208B] dark:text-purple-300 font-bold text-xs">
+                {currentRecipeCode}
+              </span>
+            )}
           </div>
-        <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
-          <SearchInput
-            placeholder="Search..."
-            value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <ThemeToggle />
-        </div>
+
+          <div className="flex items-center gap-3">
+            <SearchInput
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery?.(e.target.value)}
+            />
+            <ThemeToggle />
+          </div>
         </div>
 
-        {/* Reference Row with Action Buttons */}
-        <div className="flex-none flex items-center justify-between px-6 pb-4 lg:pb-2.5 xl:pb-3 2xl:pb-3.5 3xl:pb-4">
-          <div className="flex items-center gap-2 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2">
-            <span className="text-[8px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm text-gray-600 dark:text-gray-400">Ref:</span>
-            <span className="px-1 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3 py-0.5 lg:py-0.5 xl:py-0.5 2xl:py-1 3xl:py-1 text-[7px] lg:text-[7px] xl:text-[8px] 2xl:text-[10px] 3xl:text-xs rounded-full bg-transparent text-primary dark:text-gray-300 border border-primary font-semibold">
-            {refProjectCode}
+        {/* Row 2: Ref + Format + Created By */}
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-gray-300">
+            <span>Ref:</span>
+            <span className="px-2.5 py-0.5 rounded-full border border-[#4B208B] text-[#4B208B] dark:text-purple-300 font-bold">
+              {refProjectCode}
             </span>
           </div>
 
-          {isEditMode ? (
-            <div className="desktop-page-btn-wrapper flex items-center gap-0 rounded-full overflow-hidden shadow-sm border border-border">
-              <Button
-                onClick={handleSave}
-                disabled={isSaving}
-                title="Save"
-                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors disabled:opacity-50 text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
-              >
-                {isSaving ? (
-                  <Loader2 className="w-4 lg:w-2 xl:w-2.5 2xl:w-3.5 3xl:w-4 h-4 lg:h-2 xl:h-2.5 2xl:h-3.5 3xl:h-4 animate-spin" />
-                ) : (
-                  <Save className="desktop-page-btn m-0!" />
-                )}
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-              
-              <div className="w-px h-4 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 bg-border" />
-              
-              <Button
-                onClick={handleCancel}
-                title="Cancel"
-                className="flex items-center gap-2 px-2 lg:px-2 xl:px-3 2xl:px-3.5 3xl:px-4 py-0 bg-background text-foreground hover:bg-muted border-none rounded-none transition-colors text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm"
-              >
-                <X className="desktop-page-btn m-0!" />
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-primary flex desktop-page-btn-wrapper w-fit rounded-full items-center shadow-sm">
-              <Button
-                size="icon"
-                onClick={handleEdit}
-                disabled={isFinalized}
-                title="Edit Recipe"
-                className="transition-colors bg-transparent border-none shadow-none cursor-pointer hover:bg-primary/90 rounded-s-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg className="desktop-page-btn text-background" xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 16 16"><path fill="currentColor" fillRule="evenodd" d="M12.238 3.64a1.854 1.854 0 0 0-1.629-1.628l-.8.8a3.37 3.37 0 0 1 1.63 1.628zM4.74 7.88l3.87-3.868a1.854 1.854 0 0 1 1.628 1.629L6.369 9.51a1.5 1.5 0 0 1-.814.418l-1.48.247l.247-1.48a1.5 1.5 0 0 1 .418-.814M9.72.78l-2 2l-4.04 4.04a3 3 0 0 0-.838 1.628L2.48 10.62a1 1 0 0 0 1.151 1.15l2.17-.36a3 3 0 0 0 1.629-.839l4.04-4.04l2-2c.18-.18.28-.423.28-.677A3.353 3.353 0 0 0 10.397.5c-.254 0-.498.1-.678.28M2.75 13a.75.75 0 0 0 0 1.5h10.5a.75.75 0 0 0 0-1.5z" clipRule="evenodd"/></svg>
-              </Button>
+          <div className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-gray-300">
+            <span>Format:</span>
+            <span className="px-2.5 py-0.5 rounded-full border border-[#4B208B] text-[#4B208B] dark:text-purple-300 font-bold">
+              {formatLabel}
+            </span>
+          </div>
 
-              <div className="z-10 w-px lg:h-5 xl:h-5/6 bg-background" />
-              
-              {canExportRecipe && (
-                <>
-                  <Button
-                    size="icon"
-                    onClick={handleDownload}
-                    title="Download Recipe"
-                    className="transition-colors bg-transparent border-none shadow-none cursor-pointer hover:bg-primary/90"
-                  >
-                    <Download className="desktop-page-btn text-background" />
-                  </Button>
-            
-                  <div className="z-10 w-px lg:h-5 xl:h-5/6 bg-background" />
+          <div className="text-gray-700 dark:text-gray-300">
+            Created By <span className="font-bold text-gray-900 dark:text-white">{creatorName}</span>
+          </div>
+        </div>
+      </div>
 
-                  <Button
-                    size="icon"
-                    onClick={handleViewDownloadHistory}
-                    title="Download History"
-                    className="transition-colors bg-transparent border-none shadow-none cursor-pointer hover:bg-primary/90"
-                  >
-                    <Clock className="desktop-page-btn text-background" />
-                  </Button>
+      <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-3xl p-6 shadow-sm">
+        {/* Expandable Cards Row: Basic Information & Benchmark (Side-by-side, initially collapsed as in Image 1) */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <BasicInformation
+            project={project}
+            recipe={recipe}
+            formatDate={formatDate}
+            onSaveSpecificFields={onSaveSpecificFields}
+            handleRecipeChange={handleRecipeChange}
+            isFinalized={isFinalized}
+          />
 
-                  <div className="z-10 w-px lg:h-5 xl:h-5/6 bg-background" />
-                </>
-              )}
-
-              <Button
-                size="icon"
-                onClick={handleFinalize}
-                disabled={isFinalized}
-                title="Finalize Recipe"
-                className="transition-colors bg-transparent border-none shadow-none cursor-pointer hover:bg-primary/90 rounded-e-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <CheckCircle className="desktop-page-btn text-background" />
-              </Button>
-            </div>
-          )}
+          <BenchmarkCard
+            sopData={sopData}
+            recipe={recipe}
+            onSaveSpecificFields={onSaveSpecificFields}
+            onChange={handleSOPChange}
+            isFinalized={isFinalized}
+          />
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0 p-5 border border-[#EEEBF4] dark:border-primary/50 overflow-hidden rounded-xl lg:rounded-2xl xl:rounded-3xl 2xl:rounded-4xl">
-          {/* Tabs */}
-          <div className="flex-none grid grid-cols-3 mb-4 lg:mb-2 xl:mb-2.5 2xl:mb-3 3xl:mb-4">
-            {tabs.map((tab, index) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "px-6 py-2.5 lg:py-1.5 xl:py-[7px] 2xl:py-2 3xl:py-2.5 text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm text-center font-medium transition-colors border border-[#EEEBF4] hover:cursor-pointer",
-                  index === 0 && "rounded-l-lg",
-                  index === tabs.length - 1 && "rounded-r-lg",
-                  activeTab === tab.id
-                    ? "bg-[#E8E4F3] text-gray-900 border-[#EEEBF4] dark:bg-primary/35 dark:text-white dark:border-primary/50"
-                    : "bg-white text-gray-700 border-[#EEEBF4] dark:bg-[#0B0B0F] dark:text-gray-300 dark:border-primary/50 hover:bg-gray-50 dark:hover:bg-[#111217]"
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        {/* Main Bottom Container: Version Toolbar + Ingredient Table & Additional Sections (Image 1 & 4) */}
+        <div className="pt-5">
+          {/* Version Toolbar Row */}
+          <div className="flex items-center justify-between pb-6 mb-2 border-b border-[#EEEBF4] dark:border-primary/40">
+            {/* Left: Version Pagination (Image 1 & 2) */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-normal text-gray-900 dark:text-gray-100 select-none mr-1.5">
+                Version
+              </span>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-            {activeTab === "basic" && (
-              <BasicInformation 
-                project={project} 
-                recipe={recipe} 
-                formatDate={formatDate} 
-                isEditMode={isEditMode}
-                handleRecipeChange={handleRecipeChange}
-                handleProjectChange={handleProjectChange}
-              />
-            )}
-
-            {activeTab === "ingredients" && (
-              <IngredientsTable data={recipe} isEditMode={isEditMode} onIngredientsChange={handleIngredientsChange} />
-            )}
-
-            {activeTab === "sop" && (
-              <SOPAnalytics data={sopData} format={recipeFormat} isEditMode={isEditMode} onChange={handleSOPChange} />
-            )}
-          </div>
-          
-          {/* Footer with Version Controls */}
-          <div className="flex-none pt-4 border-t border-[#EEEBF4] dark:border-primary/50 mt-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleCreateVersion}
-                  disabled={isEditMode}
-                  className="flex items-center gap-2 lg:gap-0.5 xl:gap-1 2xl:gap-1.5 3xl:gap-2 px-3 lg:px-3 xl:px-4 2xl:px-5 3xl:px-6 py-1 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 rounded-full bg-primary text-white hover:bg-primary/90 transition-all font-bold text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <GoPlus className="text-xl lg:text-sm xl:text-md 2xl:text-lg 3xl:text-xl" />
-                  Create New Version
-                </button>
-
-                {isTypeChangeEligible ? (
-                  <button
-                    onClick={onChangeRecipeType}
-                    disabled={isEditMode || isFinalized}
-                    className="px-3 lg:px-3 xl:px-4 2xl:px-5 3xl:px-6 py-1 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Change Recipe Type
-                  </button>
-                ) : null}
-
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={handlePrepareSample}
-                  disabled={isEditMode || isFinalized}
-                  className="px-3 lg:px-3 xl:px-4 2xl:px-5 3xl:px-6 py-1 lg:py-1 xl:py-1.5 2xl:py-2 3xl:py-2.5 rounded-full border border-primary text-primary hover:bg-primary-shade-2 transition-all font-bold text-[7px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  type="button"
+                  onClick={handlePrevVersion}
+                  disabled={
+                    isCompareActive ||
+                    (currentVersion ?? 0) <= minVersion ||
+                    (currentVersionIndex !== -1 && currentVersionIndex <= 0)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-[6px] bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex-none"
+                  aria-label="Previous version"
                 >
-                  Prepare Sample
+                  <ChevronLeft className="w-4 h-4 stroke-[1.8]" />
                 </button>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-[8px] lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-semibold text-gray-600 dark:text-gray-400">Version {toUiVersionNumber(currentVersion)}</span>
-                <div className="flex items-center gap-1">
-                  <button 
-                    onClick={() => setCurrentVersion(Math.max(minVersion, currentVersion - 1))}
-                    disabled={currentVersion <= minVersion}
-                    className="h-6 w-6 lg:h-6 xl:h-7 2xl:h-8 3xl:h-9 lg:w-6 xl:w-7 2xl:w-8 3xl:w-9 flex items-center justify-center rounded-md bg-background border border-table-stroke hover:bg-primary-shade-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5 lg:h-3 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-3 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
-                  </button>
-                  
-                  <div className="flex items-center">
-                    {versionNumbers.slice(
-                      Math.max(0, versionNumbers.indexOf(currentVersion) - 2),
-                      Math.max(0, versionNumbers.indexOf(currentVersion) - 2) + 5
-                    ).map((version, index) => {
-                      const isActive = version === currentVersion;
-                      const showMarginLeft = index > 0;
+
+                <div
+                  ref={paginationContainerRef}
+                  className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5"
+                >
+                  {paginationItems.length > 0 ? (
+                    paginationItems.map((item) => {
+                      if (item.type === "ellipsis") {
+                        return (
+                          <div
+                            key={item.key}
+                            className="flex items-center gap-1 px-1.5 select-none pointer-events-none flex-none"
+                            aria-hidden="true"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                          </div>
+                        );
+                      }
+
+                      const v = item.value;
+                      const isActive = v === activeVersionToHighlight;
 
                       return (
                         <button
-                          key={version}
-                          onClick={() => setCurrentVersion(version)}
+                          key={item.key}
+                          data-version-btn={v}
+                          type="button"
+                          onClick={() => handleSelectVersion(v)}
+                          disabled={isCompareActive}
                           className={cn(
-                            "h-6 w-6 lg:h-6 xl:h-7 2xl:h-8 3xl:h-9 lg:w-6 xl:w-7 2xl:w-8 3xl:w-9 flex items-center justify-center rounded-md text-xs lg:text-[10px] xl:text-xs 2xl:text-sm 3xl:text-base font-medium transition-colors",
+                            "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[6px] text-sm font-medium transition-colors flex-none",
+                            isCompareActive ? "cursor-not-allowed opacity-40 hover:bg-transparent" : "cursor-pointer",
                             isActive
-                              ? "bg-primary text-white"
-                              : "bg-background border border-table-stroke text-foreground hover:bg-primary-shade-2",
-                            showMarginLeft && "ml-2"
+                              ? "bg-[#542790] text-white font-medium shadow-none"
+                              : "bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-900 dark:text-gray-100 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D]"
                           )}
                         >
-                          {toUiVersionNumber(version)}
+                          {toUiVersionNumber(v)}
                         </button>
                       );
-                    })}
-                  </div>
-                  
-                  <button 
-                    onClick={() => setCurrentVersion(Math.min(maxVersion, currentVersion + 1))}
-                    disabled={currentVersion >= maxVersion}
-                    className="h-6 w-6 lg:h-6 xl:h-7 2xl:h-8 3xl:h-9 lg:w-6 xl:w-7 2xl:w-8 3xl:w-9 flex items-center justify-center rounded-md ml-1 lg:ml-2 bg-background border border-table-stroke hover:bg-primary-shade-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-3.5 h-3.5 lg:h-3 xl:h-3.5 2xl:h-4 3xl:h-5 lg:w-3 xl:w-3.5 2xl:w-4 3xl:w-5 text-foreground" />
-                  </button>
+                    })
+                  ) : (
+                    <button
+                      type="button"
+                      className="min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[6px] bg-[#542790] text-white font-medium text-sm flex-none"
+                    >
+                      1
+                    </button>
+                  )}
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleNextVersion}
+                  disabled={
+                    isCompareActive ||
+                    (currentVersion ?? 0) >= maxVersion ||
+                    (currentVersionIndex !== -1 && currentVersionIndex >= versionNumbers.length - 1)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-[6px] bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-700 dark:text-gray-300 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex-none"
+                  aria-label="Next version"
+                >
+                  <ChevronRight className="w-4 h-4 stroke-[1.8]" />
+                </button>
               </div>
             </div>
+
+            {/* Middle: Selection Counter (Image 1 & 2) */}
+            {(isSelectingForCompare || isCompareConfirmed) && (
+              <div className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                Selected {selectedCompareVersionIds.length}/3
+              </div>
+            )}
+
+            {/* Right: Actions */}
+            {isSelectingForCompare ? (
+              /* Selection Mode Buttons (Image 1) */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelCompare}
+                  className="px-5 py-2 rounded-xl border border-[#9079BC] dark:border-primary/40 bg-[#FCFBFD] dark:bg-[#151221] text-[#4B208B] dark:text-purple-300 font-bold text-xs hover:bg-[#EFEAF9] transition-all shadow-xs cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmCompare}
+                  disabled={selectedCompareVersionIds.length === 0}
+                  className="px-5 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm
+                </button>
+              </div>
+            ) : isCompareConfirmed ? (
+              /* Confirmed Comparison Mode Buttons (Image 2) */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSelectRecipeBack}
+                  className="px-4 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                  Select Recipe
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleLeaveCompare}
+                  className="px-4 py-2 rounded-xl border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Leave Comparison
+                </button>
+              </div>
+            ) : (
+              /* Default Standard Mode Buttons */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCreateVersion}
+                  disabled={isEditMode}
+                  className="px-4 py-2 rounded-full border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Version
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleStartCompare}
+                  className="px-4 py-2 rounded-full bg-[#4B208B] text-white font-bold text-xs flex items-center gap-1.5 hover:bg-[#3E1B77] transition-all shadow-sm cursor-pointer"
+                >
+                  <GitFork className="w-3.5 h-3.5 rotate-90" />
+                  Compare Recipe
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onChangeRecipeType}
+                  disabled={isEditMode || !isTypeChangeEligible}
+                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-primary/30 bg-gray-100/50 dark:bg-[#121019] text-gray-400 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Change Recipe Format
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* The Multi-Section Recipe Details Table & Versions Content */}
+          <RecipeDetailsTable
+            tableContainerRef={tableContainerRef}
+            data={recipe}
+            versions={versions}
+            currentVersion={activeVersionToHighlight}
+            isEditMode={isEditMode}
+            onIngredientsChange={handleIngredientsChange}
+            onRecipeChange={handleRecipeChange}
+            sopData={sopData}
+            onSOPChange={handleSOPChange}
+            onSaveSpecificFields={onSaveSpecificFields}
+            onFinalizeVersion={handleOpenFinalizeModal || handleFinalize}
+            onFullDownload={handleExportTypeInternal || handleDownload}
+            onClientDownload={handleExportTypeForClient || handleDownload}
+            onPrepareSample={handlePrepareSample}
+            onSample={handleSample}
+            formatDate={formatDate}
+            recipeFormat={recipeFormat}
+            isFinalized={isFinalized}
+            isSelectingForCompare={isSelectingForCompare}
+            isCompareConfirmed={isCompareConfirmed}
+            selectedCompareVersionIds={selectedCompareVersionIds}
+            onToggleSelectCompareVersion={handleToggleSelectCompareVersion}
+            selectedScaleBatchVersionId={selectedScaleBatchVersionId}
+            onSelectScaleBatchVersion={handleSelectScaleBatchVersion}
+          />
         </div>
       </div>
     </div>
   );
 }
-
 

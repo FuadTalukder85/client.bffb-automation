@@ -102,12 +102,12 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
 
   const handleBFFProductConfirm = (formData) => {
     const currentIngredients = Array.isArray(data?.ingredients) ? data.ingredients : [];
-    onIngredientsChange?.([...currentIngredients, formData]);
+    onIngredientsChange?.([...currentIngredients, formData], data?._id);
   };
 
   const handleStandardIngredientConfirm = (formData) => {
     const currentIngredients = Array.isArray(data?.ingredients) ? data.ingredients : [];
-    onIngredientsChange?.([...currentIngredients, formData]);
+    onIngredientsChange?.([...currentIngredients, formData], data?._id);
   };
 
   const handleEditRow = (ingredient) => {
@@ -124,7 +124,7 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
         ...currentIngredients[updateIndex],
         ...updatedData,
       };
-      onIngredientsChange?.(currentIngredients);
+      onIngredientsChange?.(currentIngredients, data?._id);
     }
 
     setIsEditModalOpen(false);
@@ -141,14 +141,16 @@ export default function MobileIngredientsTable({ data, isEditMode = false, onIng
     const deleteIndex = Number(ingredientToArchive?.originalIndex);
 
     if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
+      currentIngredients.splice(deleteIndex, 1);
       if (ingredientToArchive._id && data?._id) {
         await deleteIngredientMutation.mutateAsync({
           recipeId: data._id,
           ingredientId: ingredientToArchive._id,
         });
+        onIngredientsChange?.(currentIngredients, data?._id, { skipSave: true });
+      } else {
+        await onIngredientsChange?.(currentIngredients, data?._id);
       }
-      currentIngredients.splice(deleteIndex, 1);
-      onIngredientsChange?.(currentIngredients);
     }
     setIsArchiveModalOpen(false);
     setIngredientToArchive(null);

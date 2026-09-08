@@ -21,7 +21,7 @@ const BAKERY_BENCHMARK_PARAMS = [
   { label: "Weight", unit: "g", backendKey: "weight" },
   { label: "Size", unit: "mm", backendKey: "size" },
   { label: "Aeration", unit: "", backendKey: "aeration" },
-  { label: "aw", unit: "%", backendKey: "aW" },
+  { label: "aW", unit: "%", backendKey: "aW" },
   { label: "Moisture", unit: "%", backendKey: "moisture" },
 ];
 
@@ -45,6 +45,32 @@ const CONFECTIONERY_BENCHMARK_PARAMS = [
   { label: "Brix", unit: "" },
   { label: "Acidity", unit: "" },
 ];
+
+export const CONFECTIONERY_PROCEDURE_PARAMS = [
+  { label: "Cooking pH", value: "", unit: "" },
+  { label: "Final pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Cooking Temperature", value: "", unit: "°C" },
+  { label: "Depositing Temperature", value: "", unit: "°C" },
+  { label: "Cooking Time", value: "", unit: "min" },
+  { label: "Gel Forming Time", value: "", unit: "min" },
+];
+
+export const BEVERAGE_PROCEDURE_PARAMS = [
+  { label: "Homogenization Pressure", value: "", unit: "bar" },
+  { label: "Pasteurization Temperature", value: "", unit: "" },
+  { label: "Pasteurization Time", value: "", unit: "" },
+  { label: "Aeration", value: "", unit: "" },
+  { label: "Viscosity", value: "", unit: "" },
+  { label: "pH", value: "", unit: "" },
+  { label: "Brix", value: "", unit: "" },
+  { label: "Acidity", value: "", unit: "" },
+  { label: "Salt", value: "", unit: "%" },
+  { label: "Filling Temperature", value: "", unit: "°C" },
+  { label: "CO2 Filling Temperature", value: "", unit: "°C" },
+];
+
+export const CONFECTIONERY_DEFAULT_PROCEDURE = "";
 
 /**
  * Convert backend benchmarkParameters array to UI analyticalReport shape.
@@ -81,7 +107,15 @@ export function mapUIParamsToBackend(uiParams = []) {
  * The recipe comes from the backend API (GET /recipes/:id).
  */
 export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
-  const isBakery = format === "bakery";
+  const fmt = String(format || recipe?.recipeType || "").trim().toLowerCase();
+  const isBeverage =
+    fmt === "beverage" ||
+    fmt === "beverage psd" ||
+    fmt === "beverage-psd" ||
+    fmt === "beveragepsd" ||
+    fmt.startsWith("beverage");
+  const isConfectionary = fmt.includes("confection");
+  const isBakery = !isBeverage && !isConfectionary;
 
   // Benchmark
   const benchmark = {
@@ -100,13 +134,11 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
   const productDevelopmentFeedback = recipe.benchmarkPDFeedback || "";
 
   // Procedure
-  const procedureSOP = recipe.procedureSOP || "";
+  const rawProcedure = recipe.procedureSOP || "";
   const procedure = {
     title: "Standard Operating Procedure",
-    raw: procedureSOP,
-    steps: procedureSOP
-      ? procedureSOP.split("\n")
-      : [],
+    raw: rawProcedure,
+    steps: rawProcedure ? rawProcedure.split("\n") : [],
   };
 
   // Procedure Parameters
@@ -115,6 +147,43 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
     procedureParameters = {
       analyticalReport: mapBackendParamsToUI(recipe.procedureParameters),
     };
+  } else if (isConfectionary) {
+    const backendParams = mapBackendParamsToUI(recipe.procedureParameters);
+    procedureParameters = {
+      analyticalReport:
+        backendParams.length > 0 ? backendParams : CONFECTIONERY_PROCEDURE_PARAMS,
+    };
+  } else if (isBeverage) {
+    const backendParams = mapBackendParamsToUI(recipe.procedureParameters);
+    if (backendParams.length > 0) {
+      const hasPasteurizationTime = backendParams.some((p) =>
+        p.label.toLowerCase().includes("pasteurization time")
+      );
+      if (!hasPasteurizationTime) {
+        const pTempIdx = backendParams.findIndex((p) =>
+          p.label.toLowerCase().includes("pasteurization temperature")
+        );
+        const insertIdx = pTempIdx !== -1 ? pTempIdx + 1 : 2;
+        backendParams.splice(insertIdx, 0, {
+          label: "Pasteurization Time",
+          value: "",
+          unit: "",
+        });
+      }
+      const pTemp = backendParams.find((p) =>
+        p.label.toLowerCase().includes("pasteurization temperature")
+      );
+      if (pTemp && pTemp.unit === "°C") {
+        pTemp.unit = "";
+      }
+      procedureParameters = {
+        analyticalReport: backendParams,
+      };
+    } else {
+      procedureParameters = {
+        analyticalReport: BEVERAGE_PROCEDURE_PARAMS,
+      };
+    }
   } else {
     // Other formats: generic analyticalReport from procedureParameters
     procedureParameters = {
@@ -192,7 +261,7 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
         { label: "Weight", value: ab.weight?.toString() || "", unit: "g" },
         { label: "Size", value: ab.size?.toString() || "", unit: "mm" },
         { label: "Aeration", value: ab.aeration?.toString() || "", unit: "" },
-        { label: "aw", value: ab.aW?.toString() || "", unit: "%" },
+        { label: "aW", value: ab.aW?.toString() || "", unit: "%" },
         { label: "Moisture", value: ab.moisture?.toString() || "", unit: "%" },
       ],
     };
@@ -230,7 +299,15 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
  * Convert SOP UI data back to backend recipe fields for PATCH /recipes/:id.
  */
 export function convertSOPDataToBackendFields(sopData, format = "bakery") {
-  const isBakery = format === "bakery";
+  const fmt = String(format || "").trim().toLowerCase();
+  const isBeverage =
+    fmt === "beverage" ||
+    fmt === "beverage psd" ||
+    fmt === "beverage-psd" ||
+    fmt === "beveragepsd" ||
+    fmt.startsWith("beverage");
+  const isConfectionary = fmt.includes("confection");
+  const isBakery = !isBeverage && !isConfectionary;
   const fields = {};
 
   // Benchmark fields
@@ -345,14 +422,14 @@ export function convertSOPDataToBackendFields(sopData, format = "bakery") {
   if (isBakery && sopData.afterBake?.analyticalReport) {
     const report = sopData.afterBake.analyticalReport;
     const findVal = (label) => {
-      const item = report.find(r => r.label === label);
+      const item = report.find(r => r.label === label || r.label?.toLowerCase() === label.toLowerCase());
       return parseNum(item?.value);
     };
     const abData = {
       weight: findVal("Weight"),
       size: findVal("Size"),
       aeration: findVal("Aeration"),
-      aW: findVal("aw"),
+      aW: findVal("aW"),
       moisture: findVal("Moisture"),
     };
 
