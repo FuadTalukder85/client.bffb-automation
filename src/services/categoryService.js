@@ -26,6 +26,14 @@ export const categoryService = {
         const response = await api.patch(`/categories/${id}/restore`);
         return response.data;
     },
+    getCategoryMembers: async (id) => {
+        const response = await api.get(`/categories/${id}/members`);
+        return response.data;
+    },
+    updateCategoryMembers: async (id, members) => {
+        const response = await api.put(`/categories/${id}/members`, { members });
+        return response.data;
+    },
 
     // SubCategory
     getSubCategories: async (params, config = {}) => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, Pencil, LayoutGrid } from "lucide-react";
+import { Trash2, Pencil, LayoutGrid, Users } from "lucide-react";
 import { AiFillThunderbolt } from "react-icons/ai";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ export default function MobileCategoryCard({
     category,
     serialNumber,
     onEdit,
+    onManageMembers,
     onArchive,
     onRestore,
     onViewChildren,
@@ -36,6 +37,14 @@ export default function MobileCategoryCard({
             title: "Items",
             className:
                 "rounded-r-none flex-1 text-[#552e8e] dark:text-white hover:bg-primary/10 bg-primary-shade-2",
+        },
+        {
+            key: "members",
+            icon: (props) => <Users {...props} className={cn("action-button-icon", props.className)} />,
+            onClick: () => onManageMembers?.(category),
+            title: "Members",
+            className:
+                "rounded-none flex-1 dark:text-nav-highlight text-lighter-text hover:bg-primary/10 bg-transparent",
         },
         {
             key: "edit",

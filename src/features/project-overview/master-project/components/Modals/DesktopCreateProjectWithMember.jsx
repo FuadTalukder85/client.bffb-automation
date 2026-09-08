@@ -22,6 +22,7 @@ import { MultiSelect } from "@/components/ui/Select/MultiSelect";
 import { MultiSelectWithSearch } from "@/components/ui/Select/MultiSelectWithSearch";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveCategories, useSubCategoriesByCategory, useSubSubCategoriesBySubCategory } from "@/hooks/useAsyncSelectData";
+import { categoryService } from "@/services/categoryService";
 
 const responsibilityOptions = [
   { label: "Project Overview", value: "Project Overview" },
@@ -358,11 +359,12 @@ function DesktopProjectDetailsStep({ register, errors, control, watch, setValue 
                 {/* Category */}
                 <div className="flex flex-col gap-0">
                     <label className="text-[8px] lg:text-[8px] xl:text-[11px] 2xl:text-[13px] 3xl:text-base font-normal text-lighter-text">
-                        Category
+                        Category <span className="text-red-500">*</span>
                     </label>
                     <Controller
                         name="category"
                         control={control}
+                        rules={{ required: "Category is required" }}
                         defaultValue=""
                         render={({ field }) => (
                             <Select
@@ -381,6 +383,11 @@ function DesktopProjectDetailsStep({ register, errors, control, watch, setValue 
                             />
                         )}
                     />
+                    {errors.category && (
+                        <span className="text-red-500 font-medium text-[8px] lg:text-[8px] xl:text-[11px] 2xl:text-[13px] 3xl:text-[11px] mt-0.5">
+                            {errors.category.message}
+                        </span>
+                    )}
                 </div>
 
                 {/* Sub-category */}
@@ -704,6 +711,7 @@ export function DesktopCreateProjectWithMemberModal({
     } = useForm();
 
     const selectedPurpose = watch("purpose");
+    const selectedCategory = watch("category");
 
     useEffect(() => {
         const derivedObjective = getObjectiveByPurpose(selectedPurpose);
@@ -711,6 +719,80 @@ export function DesktopCreateProjectWithMemberModal({
     }, [selectedPurpose, setValue]);
 
     const { user } = useAuthStore();
+
+    useEffect(() => {
+        if (!open) return;
+
+        let isMounted = true;
+        const loadCategoryMembers = async () => {
+            const creatorId = user?._id || user?.id;
+            const baseCreator = user ? { ...user, responsibilities: ["Project Overview"] } : null;
+
+            if (!selectedCategory) {
+                if (isMounted) {
+                    setSelectedMembers(baseCreator ? [baseCreator] : []);
+                }
+                return;
+            }
+
+            try {
+                const res = await categoryService.getCategoryMembers(selectedCategory);
+                const categoryMembers = res?.data || res || [];
+
+                if (!isMounted) return;
+
+                const mappedCategoryMembers = (Array.isArray(categoryMembers) ? categoryMembers : []).map(m => {
+                    const userObj = (typeof m.userId === "object" && m.userId) 
+                        ? m.userId 
+                        : ((typeof m.user === "object" && m.user) ? m.user : null);
+                    const uid = userObj?._id || m.userId || m.user || m._id;
+                    const resps = Array.isArray(m.responsibilities)
+                        ? m.responsibilities
+                        : (Array.isArray(m.responsibility) ? m.responsibility : (m.responsibility ? [m.responsibility] : []));
+
+                    return {
+                        _id: uid,
+                        id: uid,
+                        name: userObj?.name || userObj?.username || "Unknown",
+                        email: userObj?.email || "",
+                        role: userObj?.role || "Jr. Analyst",
+                        responsibilities: resps,
+                    };
+                });
+
+                // Creator must always have "Project Overview"
+                let updatedList = [];
+                let creatorFound = false;
+
+                for (const catMember of mappedCategoryMembers) {
+                    const isCurrentCreator = creatorId && (catMember._id === creatorId || catMember.id === creatorId);
+                    if (isCurrentCreator) {
+                        updatedList.push({
+                            ...catMember,
+                            responsibilities: [...new Set(["Project Overview", ...(catMember.responsibilities || [])])],
+                        });
+                        creatorFound = true;
+                    } else {
+                        updatedList.push(catMember);
+                    }
+                }
+
+                if (!creatorFound && baseCreator) {
+                    updatedList.unshift(baseCreator);
+                }
+
+                setSelectedMembers(updatedList);
+            } catch (err) {
+                console.error("Failed to load category members:", err);
+            }
+        };
+
+        loadCategoryMembers();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [selectedCategory, open, user]);
 
     const wasOpenRef = useRef(false);
 

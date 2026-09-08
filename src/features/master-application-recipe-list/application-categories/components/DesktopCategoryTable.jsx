@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Users } from "lucide-react";
 import { AiFillThunderbolt } from "react-icons/ai";
 import { PaginatedTable, getResponsiveSize } from '@/components/ui/PaginatedTable/PaginatedTable';
 
@@ -11,6 +11,7 @@ export default function DesktopCategoryTable({
   onPageChange,
   onItemsPerPageChange,
   onEdit,
+  onManageMembers,
   onArchive,
   onRestore,
   onViewChildren,
@@ -94,6 +95,14 @@ export default function DesktopCategoryTable({
                   className="action-button flex items-center justify-center gap-1.5 font-semibold rounded-l-md rounded-r-none text-nav-highlight hover:bg-purple-200  border border-primary-shade-2 transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                 >
                   <LayoutGrid className="action-button-icon" />
+                </button>
+                <button
+                  onClick={() => onManageMembers?.(category)}
+                  title="Category Members"
+                  aria-label="Category Members"
+                  className="action-button flex items-center justify-center gap-1.5 font-semibold rounded-none text-base-color hover:text-nav-highlight hover:bg-purple-200 bg-primary-shade-2 border border-primary-shade-2 border-l-table-stroke transition-colors focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                  <Users className="action-button-icon" />
                 </button>
                 <button
                   onClick={() => onEdit?.(category)}

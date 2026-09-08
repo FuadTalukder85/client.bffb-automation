@@ -28,6 +28,7 @@ import {
   RestoreCategoryModal,
 } from "./components/CategoryModals";
 import { UploadCategoriesModal } from "./components/Modals/UploadCategoriesModal";
+import { CategoryMembersModal } from "./components/Modals/CategoryMembersModal";
 import { ExportModal } from "@/components/ui/ExportModal";
 import { useQueryClient } from "@tanstack/react-query";
 import MobileBulkActionBar from "@/components/ui/MobileBulkActionBar";
@@ -71,6 +72,7 @@ export default function ApplicationCategories() {
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
   const [exportPage, setExportPage] = useState(1);
@@ -150,6 +152,11 @@ export default function ApplicationCategories() {
     navigate(`/application-categories/${category._id}/subcategories`, {
       state: { categoryName: category.name },
     });
+  };
+
+  const handleManageMembers = (category) => {
+    setSelectedCategory(category);
+    setIsMemberModalOpen(true);
   };
 
   const handleCategoryConfirm = async (formData) => {
@@ -476,6 +483,7 @@ export default function ApplicationCategories() {
                     category={category}
                     serialNumber={(currentPage - 1) * itemsPerPage + index + 1}
                     onEdit={handleEditCategory}
+                    onManageMembers={handleManageMembers}
                     onArchive={handleArchiveCategory}
                     onRestore={handleRestoreCategory}
                     onViewChildren={handleViewChildren}
@@ -517,6 +525,7 @@ export default function ApplicationCategories() {
                   setCurrentPage(1);
                 }}
                 onEdit={handleEditCategory}
+                onManageMembers={handleManageMembers}
                 onArchive={handleArchiveCategory}
                 onRestore={handleRestoreCategory}
                 onViewChildren={handleViewChildren}
@@ -598,6 +607,15 @@ export default function ApplicationCategories() {
         onOpenChange={setIsRestoreModalOpen}
         category={selectedCategory}
         onConfirm={handleRestoreConfirm}
+      />
+      <CategoryMembersModal
+        open={isMemberModalOpen}
+        onOpenChange={setIsMemberModalOpen}
+        category={selectedCategory}
+        onSuccess={async () => {
+          await queryClient.invalidateQueries();
+          refetch();
+        }}
       />
       <MobileBulkActionBar
         selectedCount={selectedRowIds.length}
