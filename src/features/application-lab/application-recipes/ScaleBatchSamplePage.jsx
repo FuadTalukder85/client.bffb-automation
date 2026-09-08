@@ -99,6 +99,7 @@ export default function ScaleBatchSamplePage() {
 
   // Selected checkboxes for ingredients
   const [selectedIngredientIndexes, setSelectedIngredientIndexes] = useState([]);
+  const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
 
   // Toggle single ingredient selection
   const handleToggleSelect = (index) => {
@@ -387,18 +388,26 @@ export default function ScaleBatchSamplePage() {
 
         {/* Expandable Basic Information & Benchmark Cards */}
         <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-3xl p-6 shadow-sm">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6 items-start">
             <BasicInformation
               project={project}
               recipe={recipe}
               formatDate={(d) => d || "-"}
               isFinalized={true}
+              isExpanded={isAccordionExpanded}
+              onToggleExpand={(nextVal) =>
+                setIsAccordionExpanded((prev) => (typeof nextVal === "boolean" ? nextVal : !prev))
+              }
             />
 
             <BenchmarkCard
               sopData={{}}
               recipe={recipe}
               isFinalized={true}
+              isExpanded={isAccordionExpanded}
+              onToggleExpand={(nextVal) =>
+                setIsAccordionExpanded((prev) => (typeof nextVal === "boolean" ? nextVal : !prev))
+              }
             />
           </div>
 
