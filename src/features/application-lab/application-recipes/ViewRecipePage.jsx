@@ -272,8 +272,16 @@ export default function ViewRecipePage() {
     }
   }, [mergedSourceProject, fetchedRecipe]);
 
-  // Current version from fetched recipe or latest version
-  const currentVersion = editableRecipe?.version ?? versions?.[0]?.version ?? 1;
+  // Current version derived from activeRecipeId, editableRecipe, or fetchedRecipe
+  const currentVersion = useMemo(() => {
+    if (activeRecipeId && Array.isArray(versions) && versions.length > 0) {
+      const found = versions.find((v) => v._id === activeRecipeId);
+      if (found?.version !== undefined && found?.version !== null) {
+        return found.version;
+      }
+    }
+    return editableRecipe?.version ?? fetchedRecipe?.version ?? versions?.[0]?.version ?? 0;
+  }, [activeRecipeId, versions, editableRecipe?.version, fetchedRecipe?.version]);
   const isFinalized =
     (editableRecipe?.recipeStatus || fetchedRecipe?.recipeStatus || editableProject?.latestRecipe?.recipeStatus) ===
     RECIPE_STATUS.FINAL;

@@ -230,6 +230,10 @@ function VersionColumn({
 
   return (
     <div
+      data-version-col={String(vItem?.version ?? "")}
+      data-version-num={String(Number(vItem?.version ?? 0) + 1)}
+      data-version-id={String(vItem?._id ?? "")}
+      id={`version-column-${vItem?.version}`}
       className={cn(
         "flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col transition-all duration-200",
         isSelectingForCompare && !isSelectedForCompare && "opacity-40 bg-gray-100/50 dark:bg-[#151221]/80 select-none"
@@ -326,6 +330,7 @@ export default function RecipeDetailsTable({
   onToggleSelectCompareVersion,
   selectedScaleBatchVersionId,
   onSelectScaleBatchVersion,
+  tableContainerRef: externalTableContainerRef,
 }) {
   const [isBFFModalOpen, setIsBFFModalOpen] = useState(false);
   const [isStandardIngredientModalOpen, setIsStandardIngredientModalOpen] = useState(false);
@@ -519,7 +524,8 @@ export default function RecipeDetailsTable({
   }, [firstVersionBatchEl, firstVersionSopEl, displayVersions]);
 
   // Sync scroll for the static bottom scrollbar
-  const tableContainerRef = useRef(null);
+  const localTableContainerRef = useRef(null);
+  const tableContainerRef = externalTableContainerRef || localTableContainerRef;
   const scrollbarTrackRef = useRef(null);
   const [scrollWidth, setScrollWidth] = useState(0);
   const [clientWidth, setClientWidth] = useState(0);
@@ -543,20 +549,93 @@ export default function RecipeDetailsTable({
     };
   }, [displayVersions, globalIngredients, updateScrollDimensions]);
 
+  const isSyncingScrollRef = useRef(false);
+
   const handleTableScroll = (e) => {
+    if (isSyncingScrollRef.current) return;
     if (scrollbarTrackRef.current && e.target) {
+      isSyncingScrollRef.current = true;
       scrollbarTrackRef.current.scrollLeft = e.target.scrollLeft;
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
     }
   };
 
   const handleBottomScroll = (e) => {
+    if (isSyncingScrollRef.current) return;
     if (tableContainerRef.current && e.target) {
+      isSyncingScrollRef.current = true;
       tableContainerRef.current.scrollLeft = e.target.scrollLeft;
+      requestAnimationFrame(() => {
+        isSyncingScrollRef.current = false;
+      });
     }
   };
 
   const hasHorizontalScroll = scrollWidth > clientWidth + 10;
   const leftColWidth = isConfectionary ? 420 : 340;
+
+  // Auto-scroll selected version column smoothly into view if outside visible table area
+  useEffect(() => {
+    if (currentVersion === undefined || currentVersion === null) return;
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    let isCancelled = false;
+
+    const performScroll = (behavior = "smooth") => {
+      if (isCancelled) return false;
+      const targetCol =
+        container.querySelector(`[data-version-col="${currentVersion}"]`) ||
+        container.querySelector(`[data-version-num="${Number(currentVersion) + 1}"]`) ||
+        container.querySelector(`[data-version-num="${currentVersion}"]`) ||
+        container.querySelector(`[data-version-id="${currentVersion}"]`) ||
+        container.querySelector(`#version-column-${currentVersion}`);
+
+      if (!targetCol) return false;
+
+      const containerRect = container.getBoundingClientRect();
+      const colRect = targetCol.getBoundingClientRect();
+
+      if (containerRect.width === 0 || colRect.width === 0) return false;
+
+      const stickyLeft = container.querySelector("[data-table-sticky-left]");
+      const stickyWidth = stickyLeft ? stickyLeft.getBoundingClientRect().width : leftColWidth;
+
+      const visibleLeft = containerRect.left + stickyWidth;
+      const visibleRight = containerRect.right;
+
+      const isVisible = colRect.left >= visibleLeft - 4 && colRect.right <= visibleRight + 4;
+      if (isVisible) return true;
+
+      // Position the selected column right beside the sticky left header (or as close as scroll width allows)
+      const targetScrollLeft = Math.max(0, container.scrollLeft + (colRect.left - visibleLeft));
+
+      if (Math.abs(container.scrollLeft - targetScrollLeft) > 6) {
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior,
+        });
+      }
+      return true;
+    };
+
+    const rafId = requestAnimationFrame(() => performScroll("smooth"));
+    const t1 = setTimeout(() => performScroll("smooth"), 60);
+    const t2 = setTimeout(() => performScroll("smooth"), 180);
+    const t3 = setTimeout(() => performScroll("smooth"), 350);
+    const t4 = setTimeout(() => performScroll("smooth"), 700);
+
+    return () => {
+      isCancelled = true;
+      cancelAnimationFrame(rafId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [currentVersion, leftColWidth, tableContainerRef, visibleVersions]);
 
   return (
     <div className="flex flex-col w-full relative">
@@ -569,6 +648,7 @@ export default function RecipeDetailsTable({
         <div className="flex min-w-max">
           {/* ================= LEFT CONTINUOUS SOLID FIXED COLUMN ================= */}
           <div
+            data-table-sticky-left
             className={cn(
               "sticky left-0 z-20 bg-white dark:bg-[#0D0B14] border-r border-[#EEEBF4] dark:border-primary/40 flex-none shadow-[4px_0_10px_rgba(0,0,0,0.02)] flex flex-col",
               isConfectionary ? "w-[420px]" : "w-[340px]"

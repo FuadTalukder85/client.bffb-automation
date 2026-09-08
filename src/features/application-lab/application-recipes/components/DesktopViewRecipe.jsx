@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Plus, GitFork, GitCompare, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -149,6 +149,178 @@ export default function DesktopViewRecipe({
     ? (activeScaleBatchVersion?.version ?? currentVersion)
     : currentVersion;
 
+  const paginationContainerRef = useRef(null);
+  const tableContainerRef = useRef(null);
+
+  const currentVersionIndex = React.useMemo(() => {
+    return versionNumbers.findIndex((v) => v === activeVersionToHighlight);
+  }, [versionNumbers, activeVersionToHighlight]);
+
+  const paginationItems = React.useMemo(() => {
+    if (!versionNumbers.length) return [];
+
+    const totalCount = versionNumbers.length;
+    if (totalCount <= 4) {
+      return versionNumbers.map((v) => ({ type: "page", value: v, key: `page-${v}` }));
+    }
+
+    const currentIndex = versionNumbers.findIndex((v) => v === activeVersionToHighlight);
+    const activeIdx = currentIndex >= 0 ? currentIndex : 0;
+
+    // Near start (e.g. Version 1 or Version 2)
+    if (activeIdx <= 2) {
+      const count = Math.min(3, totalCount - 2);
+      const startPages = versionNumbers.slice(0, Math.max(count, activeIdx + 2)).map((v) => ({
+        type: "page",
+        value: v,
+        key: `page-${v}`,
+      }));
+      return [
+        ...startPages,
+        { type: "ellipsis", key: "ellipsis-end" },
+        { type: "page", value: versionNumbers[totalCount - 1], key: `page-${versionNumbers[totalCount - 1]}` },
+      ];
+    }
+
+    // Near end (e.g. Version 6 or Version 7 of 7)
+    if (activeIdx >= totalCount - 3) {
+      const endStartIndex = Math.min(activeIdx - 1, totalCount - 3);
+      const endPages = versionNumbers.slice(endStartIndex).map((v) => ({
+        type: "page",
+        value: v,
+        key: `page-${v}`,
+      }));
+      return [
+        { type: "page", value: versionNumbers[0], key: `page-${versionNumbers[0]}` },
+        { type: "ellipsis", key: "ellipsis-start" },
+        ...endPages,
+      ];
+    }
+
+    // Middle (Reference Image 1: 1 ••• 4 5 6 ••• 100)
+    return [
+      { type: "page", value: versionNumbers[0], key: `page-${versionNumbers[0]}` },
+      { type: "ellipsis", key: "ellipsis-start" },
+      { type: "page", value: versionNumbers[activeIdx - 1], key: `page-${versionNumbers[activeIdx - 1]}` },
+      { type: "page", value: versionNumbers[activeIdx], key: `page-${versionNumbers[activeIdx]}` },
+      { type: "page", value: versionNumbers[activeIdx + 1], key: `page-${versionNumbers[activeIdx + 1]}` },
+      { type: "ellipsis", key: "ellipsis-end" },
+      { type: "page", value: versionNumbers[totalCount - 1], key: `page-${versionNumbers[totalCount - 1]}` },
+    ];
+  }, [versionNumbers, activeVersionToHighlight]);
+
+  const scrollPaginationButtonIntoView = useCallback((v) => {
+    if (v === undefined || v === null) return;
+    const container = paginationContainerRef.current;
+    if (!container) return;
+
+    const targetBtn = container.querySelector(`[data-version-btn="${v}"]`);
+    if (!targetBtn) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const btnRect = targetBtn.getBoundingClientRect();
+
+    const isVisible = btnRect.left >= containerRect.left - 2 && btnRect.right <= containerRect.right + 2;
+    if (isVisible) return;
+
+    if (btnRect.left < containerRect.left) {
+      container.scrollBy({ left: btnRect.left - containerRect.left, behavior: "smooth" });
+    } else if (btnRect.right > containerRect.right) {
+      container.scrollBy({ left: btnRect.right - containerRect.right, behavior: "smooth" });
+    }
+  }, []);
+
+  const scrollTableColumnIntoView = useCallback((v) => {
+    if (v === undefined || v === null) return;
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const targetCol =
+      container.querySelector(`[data-version-col="${v}"]`) ||
+      container.querySelector(`[data-version-num="${Number(v) + 1}"]`) ||
+      container.querySelector(`[data-version-num="${v}"]`) ||
+      container.querySelector(`[data-version-id="${v}"]`) ||
+      container.querySelector(`#version-column-${v}`);
+    if (!targetCol) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const colRect = targetCol.getBoundingClientRect();
+
+    if (containerRect.width === 0 || colRect.width === 0) return;
+
+    const stickyLeft = container.querySelector("[data-table-sticky-left]");
+    const stickyWidth = stickyLeft ? stickyLeft.getBoundingClientRect().width : 340;
+
+    const visibleLeft = containerRect.left + stickyWidth;
+    const visibleRight = containerRect.right;
+
+    const isVisible = colRect.left >= visibleLeft - 4 && colRect.right <= visibleRight + 4;
+    if (isVisible) return;
+
+    // Position the selected column right beside the sticky left header
+    const targetScrollLeft = Math.max(0, container.scrollLeft + (colRect.left - visibleLeft));
+
+    if (Math.abs(container.scrollLeft - targetScrollLeft) > 6) {
+      container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
+    }
+  }, []);
+
+  const handleSelectVersion = useCallback(
+    (v) => {
+      if (isCompareActive) return;
+      setCurrentVersion?.(v);
+
+      const triggerScroll = () => {
+        scrollPaginationButtonIntoView(v);
+        scrollTableColumnIntoView(v);
+      };
+
+      requestAnimationFrame(triggerScroll);
+      setTimeout(triggerScroll, 60);
+      setTimeout(triggerScroll, 200);
+    },
+    [isCompareActive, setCurrentVersion, scrollPaginationButtonIntoView, scrollTableColumnIntoView]
+  );
+
+  const handlePrevVersion = () => {
+    if (isCompareActive) return;
+    if (currentVersionIndex > 0) {
+      handleSelectVersion(versionNumbers[currentVersionIndex - 1]);
+    } else if ((currentVersion ?? 0) > minVersion) {
+      handleSelectVersion(Math.max(minVersion, (currentVersion ?? 0) - 1));
+    }
+  };
+
+  const handleNextVersion = () => {
+    if (isCompareActive) return;
+    if (currentVersionIndex >= 0 && currentVersionIndex < versionNumbers.length - 1) {
+      handleSelectVersion(versionNumbers[currentVersionIndex + 1]);
+    } else if ((currentVersion ?? 0) < maxVersion) {
+      handleSelectVersion(Math.min(maxVersion, (currentVersion ?? 0) + 1));
+    }
+  };
+
+  useEffect(() => {
+    if (activeVersionToHighlight !== undefined && activeVersionToHighlight !== null) {
+      const triggerScroll = () => {
+        scrollPaginationButtonIntoView(activeVersionToHighlight);
+        scrollTableColumnIntoView(activeVersionToHighlight);
+      };
+
+      const rafId = requestAnimationFrame(triggerScroll);
+      const t1 = setTimeout(triggerScroll, 60);
+      const t2 = setTimeout(triggerScroll, 200);
+      const t3 = setTimeout(triggerScroll, 500);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [activeVersionToHighlight, scrollPaginationButtonIntoView, scrollTableColumnIntoView]);
+
   return (
     <div className="flex flex-col w-full min-h-full space-y-6">
       {/* Top Header (Image 1 & 2) */}
@@ -226,40 +398,63 @@ export default function DesktopViewRecipe({
         <div className="pt-5">
           {/* Version Toolbar Row */}
           <div className="flex items-center justify-between pb-6 mb-2 border-b border-[#EEEBF4] dark:border-primary/40">
-            {/* Left: Version Pagination */}
+            {/* Left: Version Pagination (Image 1 & 2) */}
             <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-gray-900 dark:text-white">Version</span>
+              <span className="text-sm font-normal text-gray-900 dark:text-gray-100 select-none mr-1.5">
+                Version
+              </span>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setCurrentVersion?.(Math.max(minVersion, (currentVersion ?? 0) - 1))}
-                  disabled={isCompareActive || (currentVersion ?? 0) <= minVersion}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  onClick={handlePrevVersion}
+                  disabled={
+                    isCompareActive ||
+                    (currentVersion ?? 0) <= minVersion ||
+                    (currentVersionIndex !== -1 && currentVersionIndex <= 0)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-[6px] bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex-none"
+                  aria-label="Previous version"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 stroke-[1.8]" />
                 </button>
 
-                <div className="flex items-center gap-1 px-1">
-                  {versionNumbers.length > 0 ? (
-                    versionNumbers.map((v) => {
+                <div
+                  ref={paginationContainerRef}
+                  className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden py-0.5"
+                >
+                  {paginationItems.length > 0 ? (
+                    paginationItems.map((item) => {
+                      if (item.type === "ellipsis") {
+                        return (
+                          <div
+                            key={item.key}
+                            className="flex items-center gap-1 px-1.5 select-none pointer-events-none flex-none"
+                            aria-hidden="true"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#542790] dark:bg-purple-400 flex-none" />
+                          </div>
+                        );
+                      }
+
+                      const v = item.value;
                       const isActive = v === activeVersionToHighlight;
+
                       return (
                         <button
-                          key={v}
+                          key={item.key}
+                          data-version-btn={v}
                           type="button"
-                          onClick={() => {
-                            if (!isCompareActive) {
-                              setCurrentVersion?.(v);
-                            }
-                          }}
+                          onClick={() => handleSelectVersion(v)}
                           disabled={isCompareActive}
                           className={cn(
-                            "w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all",
+                            "min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[6px] text-sm font-medium transition-colors flex-none",
                             isCompareActive ? "cursor-not-allowed opacity-40 hover:bg-transparent" : "cursor-pointer",
                             isActive
-                              ? "bg-[#4B208B] text-white shadow-sm"
-                              : "bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9]"
+                              ? "bg-[#542790] text-white font-medium shadow-none"
+                              : "bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-900 dark:text-gray-100 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D]"
                           )}
                         >
                           {toUiVersionNumber(v)}
@@ -269,7 +464,7 @@ export default function DesktopViewRecipe({
                   ) : (
                     <button
                       type="button"
-                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#4B208B] text-white font-bold text-xs shadow-sm"
+                      className="min-w-[32px] h-8 px-2 flex items-center justify-center rounded-[6px] bg-[#542790] text-white font-medium text-sm flex-none"
                     >
                       1
                     </button>
@@ -278,11 +473,16 @@ export default function DesktopViewRecipe({
 
                 <button
                   type="button"
-                  onClick={() => setCurrentVersion?.(Math.min(maxVersion, (currentVersion ?? 0) + 1))}
-                  disabled={isCompareActive || (currentVersion ?? 0) >= maxVersion}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FCFBFD] dark:bg-[#151221] border border-[#EEEBF4] dark:border-primary/40 text-gray-700 dark:text-gray-300 hover:bg-[#EFEAF9] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  onClick={handleNextVersion}
+                  disabled={
+                    isCompareActive ||
+                    (currentVersion ?? 0) >= maxVersion ||
+                    (currentVersionIndex !== -1 && currentVersionIndex >= versionNumbers.length - 1)
+                  }
+                  className="w-8 h-8 flex items-center justify-center rounded-[6px] bg-[#F0EDF6] dark:bg-[#1E192B] text-gray-700 dark:text-gray-300 hover:bg-[#E5DFEF] dark:hover:bg-[#2B233D] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex-none"
+                  aria-label="Next version"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4 stroke-[1.8]" />
                 </button>
               </div>
             </div>
@@ -372,9 +572,10 @@ export default function DesktopViewRecipe({
 
           {/* The Multi-Section Recipe Details Table & Versions Content */}
           <RecipeDetailsTable
+            tableContainerRef={tableContainerRef}
             data={recipe}
             versions={versions}
-            currentVersion={currentVersion}
+            currentVersion={activeVersionToHighlight}
             isEditMode={isEditMode}
             onIngredientsChange={handleIngredientsChange}
             onRecipeChange={handleRecipeChange}
