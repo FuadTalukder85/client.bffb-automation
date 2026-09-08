@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import IngredientTable, { IngredientTableLeftHeader } from "./IngredientTable";
 import BatchSummary, { BatchSummaryLeftHeader } from "./BatchSummary";
 import StandardOperatingProcedure, { StandardOperatingProcedureLeftHeader } from "./StandardOperatingProcedure";
@@ -192,12 +192,49 @@ function VersionColumn({
     return groups;
   }, [globalIngredients, vIngredients]);
 
+  const versionId =
+    effectiveVersionData?._id ||
+    vItem?._id ||
+    (data?._id && versionNumStr ? `${data._id}_v${versionNumStr}` : null) ||
+    (versionNumStr ? `v_${versionNumStr}` : "default");
+
+  const storageKey = `ingredient_table_cols_${versionId}`;
+
+  // Hidden columns state for THIS version - automatically adjusts column width & persists across reload
+  const [selectedColumns, setSelectedColumns] = useState(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn("Failed to load selected columns from localStorage", e);
+    }
+    return [];
+  });
+
+  const handleSelectedColumnsChange = useCallback(
+    (newCols) => {
+      setSelectedColumns(newCols);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(newCols));
+      } catch (e) {
+        console.warn("Failed to save selected columns to localStorage", e);
+      }
+    },
+    [storageKey]
+  );
+
+  const versionColumnWidth = 400 + selectedColumns.length * 120;
+
   return (
     <div
       className={cn(
-        "w-[400px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col transition-all",
+        "flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col transition-all duration-200",
         isSelectingForCompare && !isSelectedForCompare && "opacity-40 bg-gray-100/50 dark:bg-[#151221]/80 select-none"
       )}
+      style={{ width: `${versionColumnWidth}px` }}
     >
       {/* 1. INGREDIENT TABLE SECTION */}
       <IngredientTable
@@ -218,6 +255,8 @@ function VersionColumn({
         isSelectingForCompare={isSelectingForCompare}
         isSelectedForCompare={isSelectedForCompare}
         onToggleSelectCompare={onToggleSelectCompare}
+        selectedColumns={selectedColumns}
+        onSelectedColumnsChange={handleSelectedColumnsChange}
       />
 
       {/* 2. BATCH SUMMARY SECTION */}

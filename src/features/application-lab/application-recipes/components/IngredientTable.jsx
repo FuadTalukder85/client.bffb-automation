@@ -1,8 +1,76 @@
-import React from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { Download, CheckCircle, Eye, ChevronDown, Plus, ClipboardList, Check } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
 import { cn } from "@/lib/utils";
+
+// ================= 4 HIDDEN COLUMNS DEFINITIONS =================
+const HIDDEN_COLUMNS = [
+  {
+    id: "bffRate",
+    label: "BFF Rate (৳)",
+    getValue: (vIng, item) => {
+      const val = vIng?.bffRate ?? item?.bffRate ?? vIng?.bffRateAtCreation ?? item?.bffRateAtCreation;
+      if (val !== undefined && val !== null && val !== "") {
+        const num = Number(val);
+        return Number.isFinite(num) ? num.toFixed(2) : String(val);
+      }
+      return "-";
+    },
+    getTotal: () => "-",
+  },
+  {
+    id: "clientRate",
+    label: "Client Rate (৳)",
+    getValue: (vIng, item) => {
+      const val = vIng?.clientRate ?? item?.clientRate ?? vIng?.clientRateAtCreation ?? item?.clientRateAtCreation;
+      if (val !== undefined && val !== null && val !== "") {
+        const num = Number(val);
+        return Number.isFinite(num) ? num.toFixed(2) : String(val);
+      }
+      return "-";
+    },
+    getTotal: () => "-",
+  },
+  {
+    id: "bffCost",
+    label: "BFF Cost (৳/kg)",
+    getValue: (vIng, item) => {
+      const val = vIng?.bffCost ?? item?.bffCost;
+      if (val !== undefined && val !== null && val !== "") {
+        const num = Number(val);
+        return Number.isFinite(num) ? num.toFixed(2) : String(val);
+      }
+      return "-";
+    },
+    getTotal: (vTotals) => {
+      if (vTotals?.bffCost !== undefined && vTotals?.bffCost !== null && vTotals?.bffCost !== "") {
+        const num = Number(vTotals.bffCost);
+        return Number.isFinite(num) ? num.toFixed(2) : String(vTotals.bffCost);
+      }
+      return "-";
+    },
+  },
+  {
+    id: "clientCost",
+    label: "Client Cost (৳/kg)",
+    getValue: (vIng, item) => {
+      const val = vIng?.clientCost ?? item?.clientCost;
+      if (val !== undefined && val !== null && val !== "") {
+        const num = Number(val);
+        return Number.isFinite(num) ? num.toFixed(2) : String(val);
+      }
+      return "-";
+    },
+    getTotal: (vTotals) => {
+      if (vTotals?.clientCost !== undefined && vTotals?.clientCost !== null && vTotals?.clientCost !== "") {
+        const num = Number(vTotals.clientCost);
+        return Number.isFinite(num) ? num.toFixed(2) : String(vTotals.clientCost);
+      }
+      return "-";
+    },
+  },
+];
 
 // ================= INGREDIENT TABLE VERSION COLUMN =================
 export default function IngredientTable({
@@ -23,16 +91,93 @@ export default function IngredientTable({
   isSelectingForCompare = false,
   isSelectedForCompare = false,
   onToggleSelectCompare,
+  selectedColumns: externalSelectedColumns,
+  onSelectedColumnsChange,
 }) {
   const navigate = useNavigate();
+
+  const versionId =
+    vItem?._id ||
+    (data?._id && versionNumStr ? `${data._id}_v${versionNumStr}` : null) ||
+    (versionNumStr ? `v_${versionNumStr}` : "default");
+
+  const storageKey = `ingredient_table_cols_${versionId}`;
+
+  // Hidden Columns State (persisted in localStorage)
+  const [internalSelectedColumns, setInternalSelectedColumns] = useState(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn("Failed to load selected columns from localStorage", e);
+    }
+    return [];
+  });
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const selectedColumns =
+    externalSelectedColumns !== undefined ? externalSelectedColumns : internalSelectedColumns;
+
+  const handleToggleColumn = (colId) => {
+    const next = selectedColumns.includes(colId)
+      ? selectedColumns.filter((id) => id !== colId)
+      : [...selectedColumns, colId];
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch (e) {
+      console.warn("Failed to save selected columns to localStorage", e);
+    }
+
+    if (onSelectedColumnsChange) {
+      onSelectedColumnsChange(next);
+    } else {
+      setInternalSelectedColumns(next);
+    }
+  };
+
+  // Close dropdown on outside click or escape
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isDropdownOpen]);
+
+  // Selected columns to display after S/L (%) in canonical order
+  const activeColumns = useMemo(
+    () => HIDDEN_COLUMNS.filter((col) => selectedColumns.includes(col.id)),
+    [selectedColumns]
+  );
+
+  const hiddenCount = HIDDEN_COLUMNS.length - activeColumns.length;
 
   const handleSampleClick = () => {
     const versionIngredients =
       Array.isArray(vItem?.ingredients) && vItem.ingredients.length > 0
         ? vItem.ingredients
         : Array.isArray(data?.ingredients) && data.ingredients.length > 0
-        ? data.ingredients
-        : [];
+          ? data.ingredients
+          : [];
 
     const enrichedVItem = {
       ...vItem,
@@ -49,6 +194,7 @@ export default function IngredientTable({
       });
     }
   };
+
   return (
     <div className="flex flex-col border-b border-[#EEEBF4] dark:border-primary/40">
       {/* Version Header Card (Image 4 & Compare Selection) */}
@@ -135,19 +281,41 @@ export default function IngredientTable({
         </div>
       </div>
 
-      {/* Version Table Columns Header (Image 4) */}
-      <div className="flex items-center h-11 border-b border-[#EEEBF4] dark:border-primary/40 text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#0D0B14]">
-        <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
+      {/* Version Table Columns Header */}
+      <div className="flex items-center h-11 border-b border-[#EEEBF4] dark:border-primary/40 text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#0D0B14]">
+        <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30 whitespace-nowrap px-1">
           Qty (g)
         </div>
-        <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
+        <div
+          className={cn(
+            "flex-1 h-full flex items-center justify-center whitespace-nowrap px-1",
+            (showSolidLiquidColumn || activeColumns.length > 0) &&
+              "border-r border-[#EEEBF4] dark:border-primary/30"
+          )}
+        >
           Cmp (%)
         </div>
         {showSolidLiquidColumn && (
-          <div className="flex-1 h-full flex items-center justify-center">
+          <div
+            className={cn(
+              "flex-1 h-full flex items-center justify-center whitespace-nowrap px-1",
+              activeColumns.length > 0 && "border-r border-[#EEEBF4] dark:border-primary/30"
+            )}
+          >
             S/L (%)
           </div>
         )}
+        {activeColumns.map((col, idx) => (
+          <div
+            key={col.id}
+            className={cn(
+              "flex-1 h-full flex items-center justify-center px-1 text-center whitespace-nowrap",
+              idx < activeColumns.length - 1 && "border-r border-[#EEEBF4] dark:border-primary/30"
+            )}
+          >
+            {col.label}
+          </div>
+        ))}
       </div>
 
       {/* Version Table Data Rows */}
@@ -164,12 +332,12 @@ export default function IngredientTable({
             <div
               className={cn(
                 "flex flex-col divide-y divide-[#EEEBF4] dark:divide-primary/30",
-                showSolidLiquidColumn
+                showSolidLiquidColumn || activeColumns.length > 0
                   ? "flex-[2] border-r border-[#EEEBF4] dark:border-primary/30"
                   : "flex-1"
               )}
             >
-              {group.items.map(({ item, vIng, index }) => (
+              {group.items.map(({ vIng, index }) => (
                 <div
                   key={index}
                   className="group/row flex items-center h-12 text-xs font-medium text-gray-800 dark:text-gray-200 hover:bg-[#F7F5FA] dark:hover:bg-primary/10 transition-colors"
@@ -192,10 +360,43 @@ export default function IngredientTable({
               ))}
             </div>
 
-            {/* Right column: S/L (%) spanning the entire group with NO inner dividers */}
+            {/* Middle column: S/L (%) spanning the entire group with NO inner dividers */}
             {showSolidLiquidColumn && (
-              <div className="flex-1 flex items-center justify-center text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#0D0B14]">
+              <div
+                className={cn(
+                  "flex-1 flex items-center justify-center text-xs font-semibold text-gray-900 dark:text-white bg-white dark:bg-[#0D0B14]",
+                  activeColumns.length > 0 && "border-r border-[#EEEBF4] dark:border-primary/30"
+                )}
+              >
                 <span>{group.solidLiquidValue || ""}</span>
+              </div>
+            )}
+
+            {/* Right columns: Selected hidden columns displayed AFTER S/L (%) */}
+            {activeColumns.length > 0 && (
+              <div
+                className="flex flex-col divide-y divide-[#EEEBF4] dark:divide-primary/30"
+                style={{ flex: activeColumns.length }}
+              >
+                {group.items.map(({ item, vIng, index }) => (
+                  <div
+                    key={index}
+                    className="flex items-center h-12 text-xs font-medium text-gray-800 dark:text-gray-200 hover:bg-[#F7F5FA] dark:hover:bg-primary/10 transition-colors"
+                  >
+                    {activeColumns.map((col, colIdx) => (
+                      <div
+                        key={col.id}
+                        className={cn(
+                          "flex-1 h-full flex items-center justify-center px-1 text-center font-medium",
+                          colIdx < activeColumns.length - 1 &&
+                            "border-r border-[#EEEBF4] dark:border-primary/30"
+                        )}
+                      >
+                        {col.getValue(vIng, item)}
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -206,14 +407,36 @@ export default function IngredientTable({
           <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
             {vTotals?.quantity}
           </div>
-          <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
+          <div
+            className={cn(
+              "flex-1 h-full flex items-center justify-center",
+              (showSolidLiquidColumn || activeColumns.length > 0) &&
+                "border-r border-[#EEEBF4] dark:border-primary/30"
+            )}
+          >
             {vTotals?.composition}
           </div>
           {showSolidLiquidColumn && (
-            <div className="flex-1 h-full flex items-center justify-center">
+            <div
+              className={cn(
+                "flex-1 h-full flex items-center justify-center",
+                activeColumns.length > 0 && "border-r border-[#EEEBF4] dark:border-primary/30"
+              )}
+            >
               {vTotals?.solidLiquid}
             </div>
           )}
+          {activeColumns.map((col, idx) => (
+            <div
+              key={col.id}
+              className={cn(
+                "flex-1 h-full flex items-center justify-center px-1 text-center",
+                idx < activeColumns.length - 1 && "border-r border-[#EEEBF4] dark:border-primary/30"
+              )}
+            >
+              {col.getTotal(vTotals)}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -223,7 +446,7 @@ export default function IngredientTable({
           <button
             type="button"
             onClick={onPrepareSample}
-            className="px-2.5 py-2 rounded-xl border border-[#4B208B] text-[#4B208B] dark:text-purple-300 text-xs font-bold hover:bg-[#EFEAF9] dark:hover:bg-primary/25 flex items-center gap-1 transition-all cursor-pointer"
+            className="px-2.5 py-2 rounded-[6px] border border-[#4B208B] text-[#4B208B] dark:text-purple-300 text-xs font-semibold bg-[#F9FAFB] hover:bg-[#EFEAF9] dark:hover:bg-primary/25 flex items-center gap-1 transition-all cursor-pointer"
           >
             <ClipboardList className="w-3.5 h-3.5" />
             Prepare Sample
@@ -231,21 +454,61 @@ export default function IngredientTable({
           <button
             type="button"
             onClick={handleSampleClick}
-            className="px-2.5 py-2 rounded-xl bg-[#4B208B] text-white text-xs font-bold hover:bg-[#3E1B77] flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+            className="px-2.5 py-2 rounded-[6px] bg-primary text-white text-xs font-semibold hover:bg-[#3E1B77] flex items-center gap-1 shadow-sm transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             Sample
           </button>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end relative" ref={dropdownRef}>
           <button
             type="button"
-            className="px-2 py-2 rounded-xl border border-gray-200 dark:border-primary/30 bg-white dark:bg-[#121019] text-gray-600 dark:text-gray-300 text-xs font-medium flex items-center gap-1 cursor-pointer"
+            onClick={() => setIsDropdownOpen((prev) => !prev)}
+            className="px-2 py-2 rounded-[6px] border border-gray-200 dark:border-primary/30 bg-white dark:bg-[#121019] text-gray-600 dark:text-gray-300 text-xs font-medium flex items-center gap-1 cursor-pointer hover:bg-[#F7F5FA] dark:hover:bg-primary/20 transition-colors"
           >
             <Eye className="w-3.5 h-3.5" />
-            Hidden (4)
-            <ChevronDown className="w-3 h-3" />
+            Hidden ({hiddenCount})
+            <ChevronDown
+              className={cn(
+                "w-3 h-3 transition-transform duration-200",
+                isDropdownOpen && "rotate-180"
+              )}
+            />
           </button>
+
+          {/* Hidden Columns Dropdown */}
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1.5 w-56 rounded-xl border border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#121019] shadow-xl z-40 py-1.5 text-xs">
+              <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider border-b border-gray-100 dark:border-primary/20">
+                Hidden Columns
+              </div>
+              <div className="py-1 flex flex-col">
+                {HIDDEN_COLUMNS.map((col) => {
+                  const isSelected = selectedColumns.includes(col.id);
+                  return (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => handleToggleColumn(col.id)}
+                      className="w-full px-3 py-2 text-left flex items-center justify-between hover:bg-[#F7F5FA] dark:hover:bg-primary/15 transition-colors cursor-pointer text-gray-700 dark:text-gray-200"
+                    >
+                      <span className="font-medium text-xs">{col.label}</span>
+                      <div
+                        className={cn(
+                          "w-4 h-4 rounded-[4px] flex items-center justify-center transition-all",
+                          isSelected
+                            ? "bg-[#4B208B] text-white"
+                            : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-black/40"
+                        )}
+                      >
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -268,7 +531,7 @@ export function IngredientTableLeftHeader({
       </div>
 
       {/* Table Column Headers */}
-      <div className="flex items-center h-11 border-b border-[#EEEBF4] dark:border-primary/40 text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#0D0B14]">
+      <div className="flex items-center h-11 border-b border-[#EEEBF4] dark:border-primary/40 text-xs font-semibold text-[#0D111A] dark:text-white bg-white dark:bg-[#0D0B14]">
         <div className="w-14 text-center border-r border-[#EEEBF4] dark:border-primary/30">SL</div>
         <div className="w-20 text-center border-r border-[#EEEBF4] dark:border-primary/30">Role</div>
         <div className="flex-1 pl-4 text-left">Ingredients</div>
@@ -322,25 +585,33 @@ export function IngredientTableLeftHeader({
       </div>
 
       {/* Action Buttons Row - matches right side's 2-row layout */}
-      <div className="flex flex-col gap-2 p-4 bg-white dark:bg-[#0D0B14]">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onOpenBFFModal}
-            className="px-4 py-2 rounded-xl border border-[#4B208B] text-[#4B208B] dark:text-purple-300 font-bold text-xs hover:bg-[#EFEAF9] dark:hover:bg-primary/25 transition-all shadow-sm cursor-pointer"
-          >
-            BFF Product
-          </button>
-          <button
-            type="button"
-            onClick={onOpenStandardIngredientModal}
-            className="px-4 py-2 rounded-xl border border-[#4B208B] text-[#4B208B] dark:text-purple-300 font-bold text-xs hover:bg-[#EFEAF9] dark:hover:bg-primary/25 transition-all shadow-sm cursor-pointer"
-          >
-            Standard Ingredient
-          </button>
+      <div>
+        <div className="">
+          <h2 className="pt-2 px-4 text-[18px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
+            Add Ingredient
+          </h2>
         </div>
-        {/* Spacer row to match right side's Hidden (4) button row */}
-        <div className="h-9" />
+        <div className="flex flex-col gap-2 pt-2 px-4 bg-white dark:bg-[#0D0B14]">
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onOpenBFFModal}
+              className="px-4 py-2 rounded-[6px] border border-[#4B208B] text-primary dark:text-purple-300 font-semibold text-xs bg-[#EEEBF4] hover:bg-[#EFEAF9] dark:hover:bg-primary/25 transition-all shadow-sm cursor-pointer"
+            >
+              BFF Product
+            </button>
+            <button
+              type="button"
+              onClick={onOpenStandardIngredientModal}
+              className="px-4 py-2 rounded-[6px] border border-[#4B208B] text-primary dark:text-purple-300 font-semibold text-xs bg-[#EEEBF4] hover:bg-[#EFEAF9] dark:hover:bg-primary/25 transition-all shadow-sm cursor-pointer"
+            >
+              Standard Ingredient
+            </button>
+          </div>
+          {/* Spacer row to match right side's Hidden (4) button row */}
+          <div className="h-9" />
+        </div>
       </div>
     </div>
   );

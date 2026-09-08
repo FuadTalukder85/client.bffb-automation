@@ -21,7 +21,7 @@ const BAKERY_BENCHMARK_PARAMS = [
   { label: "Weight", unit: "g", backendKey: "weight" },
   { label: "Size", unit: "mm", backendKey: "size" },
   { label: "Aeration", unit: "", backendKey: "aeration" },
-  { label: "aw", unit: "%", backendKey: "aW" },
+  { label: "aW", unit: "%", backendKey: "aW" },
   { label: "Moisture", unit: "%", backendKey: "moisture" },
 ];
 
@@ -261,7 +261,7 @@ export function buildSOPDataFromRecipe(recipe = {}, format = "bakery") {
         { label: "Weight", value: ab.weight?.toString() || "", unit: "g" },
         { label: "Size", value: ab.size?.toString() || "", unit: "mm" },
         { label: "Aeration", value: ab.aeration?.toString() || "", unit: "" },
-        { label: "aw", value: ab.aW?.toString() || "", unit: "%" },
+        { label: "aW", value: ab.aW?.toString() || "", unit: "%" },
         { label: "Moisture", value: ab.moisture?.toString() || "", unit: "%" },
       ],
     };
@@ -422,14 +422,14 @@ export function convertSOPDataToBackendFields(sopData, format = "bakery") {
   if (isBakery && sopData.afterBake?.analyticalReport) {
     const report = sopData.afterBake.analyticalReport;
     const findVal = (label) => {
-      const item = report.find(r => r.label === label);
+      const item = report.find(r => r.label === label || r.label?.toLowerCase() === label.toLowerCase());
       return parseNum(item?.value);
     };
     const abData = {
       weight: findVal("Weight"),
       size: findVal("Size"),
       aeration: findVal("Aeration"),
-      aW: findVal("aw"),
+      aW: findVal("aW"),
       moisture: findVal("Moisture"),
     };
 

@@ -8,7 +8,7 @@ function SummaryCard({ children, isDimmed = false, className = "" }) {
   return (
     <div
       className={cn(
-        "border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-opacity duration-200",
+        "border border-[#EEEBF4] dark:border-primary/30 rounded-[8px] overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-opacity duration-200",
         isDimmed && "opacity-30 pointer-events-none select-none",
         className
       )}
@@ -35,12 +35,12 @@ function SummaryRow({
       )}
     >
       {/* Left Label Cell */}
-      <div className="px-3.5 py-2.5 bg-[#FAF9FC] dark:bg-white/[0.02] flex flex-col justify-center">
-        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-snug">
+      <div className="px-3.5 py-2.5 bg-[#F9FAFB] dark:bg-white/[0.02] flex flex-col justify-center">
+        <span className="text-[13px] font-medium text-[#757575] dark:text-gray-400 leading-snug">
           {label}
         </span>
         {subLabel && (
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 leading-snug">
+          <span className="text-[14px] font-medium text-[#757575] dark:text-gray-400 leading-snug">
             {subLabel}
           </span>
         )}
@@ -188,7 +188,7 @@ export default function BatchSummary({
       {/* ================= 1. Output Block ================= */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
+          <span className="font-semibold text-[18px] text-[#0D111A] dark:text-white">
             Output
           </span>
 
@@ -199,7 +199,7 @@ export default function BatchSummary({
                 onClick={handleSaveBatchSummary}
                 disabled={isSavingBatchSummary}
                 title="Save Batch Summary"
-                className="flex items-center justify-center w-8 h-8 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center justify-center w-6.5 h-6.5 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
               </button>
@@ -209,7 +209,7 @@ export default function BatchSummary({
                 onClick={handleCancelBatchSummary}
                 disabled={isSavingBatchSummary}
                 title="Cancel Batch Summary"
-                className="flex items-center justify-center w-8 h-8 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center justify-center w-6.5 h-6.5 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -219,9 +219,13 @@ export default function BatchSummary({
               type="button"
               onClick={() => setIsBatchSummaryEditing(true)}
               title="Edit Batch Summary"
-              className="w-8 h-8 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white flex items-center justify-center shadow-sm cursor-pointer"
+              className="w-6.5 h-6.5 rounded-full bg-[#4B208B] hover:bg-[#3E1B77] text-white flex items-center justify-center shadow-sm cursor-pointer"
             >
-              <FaEdit className="w-3.5 h-3.5" />
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.34847 0.928711H1.48022C1.18709 0.928711 0.905978 1.04516 0.69871 1.25244C0.491442 1.45972 0.375 1.74086 0.375 2.03399V9.77098C0.375 10.0641 0.491442 10.3453 0.69871 10.5525C0.905978 10.7598 1.18709 10.8763 1.48022 10.8763H9.21673C9.50985 10.8763 9.79096 10.7598 9.99823 10.5525C10.2055 10.3453 10.3219 10.0641 10.3219 9.77098V5.90249" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M8.87126 0.718368C9.0911 0.498513 9.38927 0.375 9.70017 0.375C10.0111 0.375 10.3092 0.498513 10.5291 0.718368C10.7489 0.938222 10.8724 1.23641 10.8724 1.54733C10.8724 1.85825 10.7489 2.15644 10.5291 2.37629L5.54843 7.35781C5.41721 7.48892 5.25511 7.58489 5.07705 7.63689L3.48941 8.10111C3.44186 8.11498 3.39146 8.11581 3.34347 8.10352C3.29549 8.09122 3.25169 8.06626 3.21667 8.03123C3.18165 7.9962 3.15668 7.95241 3.14439 7.90442C3.13209 7.85643 3.13293 7.80603 3.14679 7.75847L3.61098 6.17073C3.66322 5.99281 3.75938 5.83089 3.8906 5.69988L8.87126 0.718368Z" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+
             </button>
           )}
         </div>
@@ -465,7 +469,7 @@ export function BatchSummaryLeftHeader({ height }) {
       style={height ? { height: `${height}px` } : undefined}
       className="p-6 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
     >
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
         Batch Summary
       </h2>
     </div>

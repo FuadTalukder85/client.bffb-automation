@@ -49,7 +49,7 @@ const defaultAfterBake = [
   { label: "Weight", value: "", unit: "g" },
   { label: "Size", value: "", unit: "" },
   { label: "Aeration", value: "", unit: "" },
-  { label: "aw", value: "", unit: "" },
+  { label: "aW", value: "", unit: "" },
   { label: "Moisture", value: "", unit: "" },
 ];
 
@@ -73,7 +73,7 @@ const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
             tag: item.tag || null,
           }));
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 2. Try parsing single JSON object
@@ -92,7 +92,7 @@ const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
           },
         ];
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 3. Fallback: legacy plain text comment
@@ -175,8 +175,8 @@ export default function StandardOperatingProcedure({
 
   const [draftProcedure, setDraftProcedure] = useState(
     initialSOP?.procedure?.raw ||
-      (initialSOP?.procedure?.steps || []).join("\n") ||
-      ""
+    (initialSOP?.procedure?.steps || []).join("\n") ||
+    ""
   );
 
   const [draftParams, setDraftParams] = useState(
@@ -213,8 +213,8 @@ export default function StandardOperatingProcedure({
     const updatedSop = buildSOPDataFromRecipe(normalizedVItem, recipeFormat);
     setDraftProcedure(
       updatedSop?.procedure?.raw ||
-        (updatedSop?.procedure?.steps || []).join("\n") ||
-        ""
+      (updatedSop?.procedure?.steps || []).join("\n") ||
+      ""
     );
     setDraftParams(
       updatedSop?.procedureParameters?.analyticalReport?.length > 0
@@ -263,14 +263,16 @@ export default function StandardOperatingProcedure({
       };
 
       const findVal = (label) => {
-        const item = draftAfterBake.find((r) => r.label === label);
+        const item = draftAfterBake.find(
+          (r) => r.label === label || r.label?.toLowerCase() === label.toLowerCase()
+        );
         return item?.value ? Number(item.value) : undefined;
       };
       const abData = {
         weight: findVal("Weight"),
         size: findVal("Size"),
         aeration: findVal("Aeration"),
-        aW: findVal("aw"),
+        aW: findVal("aW"),
         moisture: findVal("Moisture"),
       };
 
@@ -295,10 +297,10 @@ export default function StandardOperatingProcedure({
           procedureParameters: mapUIParamsToBackend(draftParams),
           ...(shouldShowBakeSections
             ? {
-                ovenTemperatureTunnelBaking: tunnelData,
-                normalBaking: normalData,
-                afterBake: abData,
-              }
+              ovenTemperatureTunnelBaking: tunnelData,
+              normalBaking: normalData,
+              afterBake: abData,
+            }
             : {}),
           ...(updatedProcedureOthers ? { procedureOthers: updatedProcedureOthers } : {}),
         };
@@ -469,7 +471,7 @@ export default function StandardOperatingProcedure({
                 onClick={handleSaveSOP}
                 disabled={isSavingSOP}
                 title="Save Standard Operating"
-                className="flex items-center justify-center w-8 h-8 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center justify-center w-6.5 h-6.5 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
               </button>
@@ -479,7 +481,7 @@ export default function StandardOperatingProcedure({
                 onClick={handleCancelSOP}
                 disabled={isSavingSOP}
                 title="Cancel Standard Operating"
-                className="flex items-center justify-center w-8 h-8 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center justify-center w-6.5 h-6.5 hover:bg-[#3E1B77] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -489,9 +491,12 @@ export default function StandardOperatingProcedure({
               type="button"
               onClick={() => setIsSOPEditing(true)}
               title="Edit Standard Operating"
-              className="w-8 h-8 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white flex items-center justify-center shadow-sm cursor-pointer"
+              className="w-6.5 h-6.5 rounded-full bg-[#4B208B] hover:bg-[#3E1B77] text-white flex items-center justify-center shadow-sm cursor-pointer"
             >
-              <FaEdit className="w-3.5 h-3.5" />
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.34847 0.928711H1.48022C1.18709 0.928711 0.905978 1.04516 0.69871 1.25244C0.491442 1.45972 0.375 1.74086 0.375 2.03399V9.77098C0.375 10.0641 0.491442 10.3453 0.69871 10.5525C0.905978 10.7598 1.18709 10.8763 1.48022 10.8763H9.21673C9.50985 10.8763 9.79096 10.7598 9.99823 10.5525C10.2055 10.3453 10.3219 10.0641 10.3219 9.77098V5.90249" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M8.87126 0.718368C9.0911 0.498513 9.38927 0.375 9.70017 0.375C10.0111 0.375 10.3092 0.498513 10.5291 0.718368C10.7489 0.938222 10.8724 1.23641 10.8724 1.54733C10.8724 1.85825 10.7489 2.15644 10.5291 2.37629L5.54843 7.35781C5.41721 7.48892 5.25511 7.58489 5.07705 7.63689L3.48941 8.10111C3.44186 8.11498 3.39146 8.11581 3.34347 8.10352C3.29549 8.09122 3.25169 8.06626 3.21667 8.03123C3.18165 7.9962 3.15668 7.95241 3.14439 7.90442C3.13209 7.85643 3.13293 7.80603 3.14679 7.75847L3.61098 6.17073C3.66322 5.99281 3.75938 5.83089 3.8906 5.69988L8.87126 0.718368Z" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
             </button>
           )}
         </div>
@@ -501,10 +506,10 @@ export default function StandardOperatingProcedure({
             rows={6}
             value={draftProcedure}
             onChange={(e) => setDraftProcedure(e.target.value)}
-            className="w-full p-3.5 rounded-2xl border-2 border-[#4B208B] text-xs leading-relaxed bg-white dark:bg-[#151221] text-gray-900 dark:text-white resize-none focus:outline-none shadow-sm"
+            className="w-full p-3.5 rounded-[8px] border-2 border-[#4B208B] text-xs leading-relaxed bg-white dark:bg-[#151221] text-gray-900 dark:text-white resize-none focus:outline-none shadow-sm"
           />
         ) : (
-          <div className="p-3.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 text-xs leading-relaxed text-gray-800 dark:text-gray-200">
+          <div className="p-3.5 rounded-[8px] bg-[#F9FAFB] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 text-xs leading-relaxed text-gray-800 dark:text-gray-200">
             {draftProcedure || "-"}
           </div>
         )}
@@ -518,7 +523,7 @@ export default function StandardOperatingProcedure({
           </span>
         </div>
 
-        <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden divide-y divide-[#EEEBF4] dark:divide-primary/30 bg-[#FCFBFD] dark:bg-[#121019] text-xs">
+        <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-[8px] overflow-hidden divide-y divide-[#EEEBF4] dark:divide-primary/30 bg-[#F9FAFB] dark:bg-[#121019] text-xs">
           {draftParams.map((param, pIdx) => (
             <div key={pIdx} className="flex items-center divide-x divide-[#EEEBF4] dark:divide-primary/30">
               <div className="w-1/2 px-3.5 py-2.5 text-gray-500 font-medium truncate">
@@ -567,16 +572,16 @@ export default function StandardOperatingProcedure({
               Tunnel Baking
             </span>
 
-            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
-              <div className="flex items-center text-center font-bold text-gray-700 dark:text-gray-300 bg-[#F7F5FA] dark:bg-primary/15">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Zone</div>
+            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-[8px] overflow-hidden bg-[#F9FAFB] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
+              <div className="flex items-center text-center font-bold text-gray-700 dark:text-gray-300 bg-[#FCFBFD] dark:bg-primary/15">
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Zone</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30">1</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30">2</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30">3</div>
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Top Temperature</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Top Temperature</div>
                 {["zone1", "zone2", "zone3"].map((zk) => (
                   <div key={zk} className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                     {isSOPEditing ? (
@@ -599,7 +604,7 @@ export default function StandardOperatingProcedure({
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Bottom Temperature</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Bottom Temperature</div>
                 {["zone1", "zone2", "zone3"].map((zk) => (
                   <div key={zk} className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                     {isSOPEditing ? (
@@ -622,7 +627,7 @@ export default function StandardOperatingProcedure({
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Baking Time</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Baking Time</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                   {isSOPEditing ? (
                     <input
@@ -638,7 +643,7 @@ export default function StandardOperatingProcedure({
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Belt Speed</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Belt Speed</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                   {isSOPEditing ? (
                     <input
@@ -661,15 +666,15 @@ export default function StandardOperatingProcedure({
               Rotary Baking
             </span>
 
-            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden bg-[#FCFBFD] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
-              <div className="flex items-center text-center font-bold text-gray-700 dark:text-gray-300 bg-[#F7F5FA] dark:bg-primary/15">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Baking</div>
+            <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-[8px] overflow-hidden bg-[#F9FAFB] dark:bg-[#121019] text-xs divide-y divide-[#EEEBF4] dark:divide-primary/30">
+              <div className="flex items-center text-center font-bold text-gray-700 dark:text-gray-300 bg-[#FCFBFD] dark:bg-primary/15">
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Baking</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30">1st</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30">2nd</div>
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Oven Temperature</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Oven Temperature</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                   {isSOPEditing ? (
                     <input
@@ -707,7 +712,7 @@ export default function StandardOperatingProcedure({
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Oven Time</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Oven Time</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                   {isSOPEditing ? (
                     <input
@@ -745,7 +750,7 @@ export default function StandardOperatingProcedure({
               </div>
 
               <div className="flex items-center text-center">
-                <div className="w-28 text-left pl-3 py-2 font-medium text-gray-500">Steam</div>
+                <div className="w-32 text-left pl-3 py-2 font-medium text-gray-500">Steam</div>
                 <div className="flex-1 py-2 border-l border-[#EEEBF4] dark:border-primary/30 font-bold text-gray-900 dark:text-white">
                   {isSOPEditing ? (
                     <input
@@ -795,30 +800,34 @@ export default function StandardOperatingProcedure({
             </span>
           </div>
 
-          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl overflow-hidden divide-y divide-[#EEEBF4] dark:divide-primary/30 bg-[#FCFBFD] dark:bg-[#121019] text-xs">
+          <div className="border border-[#EEEBF4] dark:border-primary/30 rounded-[8px] overflow-hidden divide-y divide-[#EEEBF4] dark:divide-primary/30 bg-[#F9FAFB] dark:bg-[#121019] text-xs">
             {draftAfterBake.map((param, pIdx) => (
-              <div key={pIdx} className="flex items-center justify-between px-3.5 py-2.5">
-                <span className="text-gray-500 font-medium">{param.label}</span>
-                {isSOPEditing ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={param.value}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setDraftAfterBake((prev) =>
-                          prev.map((p) => (p.label === param.label ? { ...p, value: val } : p))
-                        );
-                      }}
-                      className="w-16 text-right px-1.5 py-0.5 rounded border-2 border-[#4B208B] text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#151221]"
-                    />
-                    {param.unit && <span className="font-bold text-gray-900 dark:text-white">{param.unit}</span>}
-                  </div>
-                ) : (
-                  <span className="font-bold text-gray-900 dark:text-white">
-                    {param.value ? `${param.value} ${param.unit || ""}`.trim() : "-"}
-                  </span>
-                )}
+              <div key={pIdx} className="flex items-center divide-x divide-[#EEEBF4] dark:divide-primary/30">
+                <div className="w-1/2 px-3.5 py-2.5 text-gray-500 font-medium truncate">
+                  {param.label}
+                </div>
+                <div className="w-1/2 px-3.5 py-2.5 bg-white dark:bg-[#151221] font-bold text-gray-900 dark:text-white">
+                  {isSOPEditing ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        value={param.value}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setDraftAfterBake((prev) =>
+                            prev.map((p) => (p.label === param.label ? { ...p, value: val } : p))
+                          );
+                        }}
+                        className="w-full text-left px-1.5 py-0.5 rounded border-2 border-[#4B208B] text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#151221]"
+                      />
+                      {param.unit && <span className="font-bold text-gray-900 dark:text-white text-xs">{param.unit}</span>}
+                    </div>
+                  ) : (
+                    <span className="">
+                      {param.value ? `${param.value} ${param.unit || ""}`.trim() : "-"}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -838,14 +847,14 @@ export default function StandardOperatingProcedure({
             effectiveActivities.map((act, actIdx) => (
               <div
                 key={actIdx}
-                className="p-3.5 rounded-2xl bg-[#FCFBFD] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 space-y-2 text-xs"
+                className="p-3.5 rounded-[8px] bg-[#F9FAFB] dark:bg-primary/10 border border-[#EEEBF4] dark:border-primary/30 space-y-2 text-xs"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[#4B208B] text-white font-bold text-[10px] flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-primary text-white font-bold text-[13px] flex items-center justify-center">
                     {(act.userName || act.user || "U").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex items-center gap-1.5 flex-1 overflow-hidden">
-                    <span className="font-bold text-gray-900 dark:text-white truncate">
+                    <span className="text-[14px] font-semibold text-[#0D111A] dark:text-white truncate">
                       {act.userName || act.user || "User"}
                     </span>
                     {act.tag && (
@@ -854,11 +863,11 @@ export default function StandardOperatingProcedure({
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                  <span className="text-[11px] text-[#757575] whitespace-nowrap">
                     {formatDate(act.createdAt) || "-"}
                   </span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-[11px]">
+                <p className="text-[#0D111A] dark:text-gray-300 leading-relaxed text-[14px] font-medium">
                   {act.text || act.comment || ""}
                 </p>
               </div>
@@ -872,13 +881,13 @@ export default function StandardOperatingProcedure({
               placeholder="Enter Comment"
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
-              className="w-full p-3 rounded-2xl border border-[#EEEBF4] dark:border-primary/30 text-xs leading-relaxed bg-[#FCFBFD] dark:bg-[#121019] text-gray-900 dark:text-white resize-none focus:outline-none shadow-sm"
+              className="w-full p-3 rounded-[8px] border border-[#EEEBF4] dark:border-primary/30 text-xs leading-relaxed bg-[#FCFBFD] dark:bg-[#121019] text-gray-900 dark:text-white resize-none focus:outline-none"
             />
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={handleSendComment}
-                className="px-4 py-1.5 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white font-bold text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
+                className="px-4 py-2 rounded-[6px] bg-primary hover:bg-[#3E1B77] text-white font-semibold text-xs flex items-center gap-1 shadow-sm transition-all cursor-pointer"
               >
                 Send
               </button>

@@ -152,10 +152,10 @@ export default function BasicInformation({
   const raisedDateValue = mergedProject?.raisedDate || mergedMasterProject?.raisedDate || recipe?.independentRecipeRaisedDate;
 
   return (
-    <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-3xl p-6 shadow-sm transition-all">
+    <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-[20px] px-6 py-4 shadow-sm transition-all">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+        <h2 className="text-[22px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
           Basic Information
         </h2>
 
