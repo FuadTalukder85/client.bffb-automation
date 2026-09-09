@@ -10,9 +10,29 @@ import BasicInformation from "./components/BasicInformation";
 import BenchmarkCard from "./components/BenchmarkCard";
 import { PrepareSampleModal } from "./components/PrepareSampleModal";
 import { useRecipeById } from "@/hooks/useRecipes";
+import { useUpdateRecipe } from "@/hooks/mutations/useRecipeMutations";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useApplicationLabProjectDetails } from "@/hooks/useMasterProject";
 import { useProjectMembers } from "@/hooks/useProjectMembers";
 import { buildIngredientsDisplayData } from "./data/ingredientsCalculations";
+import { parseStoredComments } from "./data/sopDataByFormat";
+
+const formatCommentDateTime = (dateVal) => {
+  if (!dateVal) return "-";
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return String(dateVal);
+  const datePart = d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const timePart = d.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${datePart} - ${timePart}`;
+};
 
 export default function ScaleBatchSamplePage() {
   const navigate = useNavigate();
@@ -202,54 +222,170 @@ export default function ScaleBatchSamplePage() {
     return groups;
   }, [displayIngredients]);
 
-  // Others / Comments section
-  const [comments, setComments] = useState([
-    {
-      id: "01",
-      initials: "SO",
-      name: "Syeda Oyshee",
-      role: "Application Recipe",
-      date: "02 Apr 2026 - 11:53 AM",
-      text: "Ensure precise measurement of cocoa powder to prevent moisture level fluctuation. The current target ratio is optimal for the requested mouthfeel.",
-    },
-    {
-      id: "02",
-      initials: "MA",
-      name: "Mithila Ahmed",
-      role: "Prepare Samples",
-      date: "03 Apr 2026 - 11:53 AM",
-      text: "Slight browning variation was observed on the trailing edge of the baking trays during the second batch. Suggest adjusting belt speed or repositioning trays for the next trial.",
-    },
-  ]);
-  const [newCommentText, setNewCommentText] = useState("");
+  // Resolve target version object for procedureOthers & activities
+  const targetVersionObj = useMemo(() => {
+    if (stateVItem && (stateVItem.procedureOthers || stateVItem.activities || stateVItem._id)) {
+      if (fetchedRecipe?._id === stateVItem._id) {
+        return { ...stateVItem, ...fetchedRecipe };
+      }
+      if (Array.isArray(fetchedRecipe?.versions)) {
+        const found = fetchedRecipe.versions.find(
+          (v) => (v._id && v._id === stateVItem._id) || Number(v.version) === targetVersionNum
+        );
+        if (found) return { ...stateVItem, ...found };
+      }
+      return stateVItem;
+    }
+    if (Array.isArray(fetchedRecipe?.versions)) {
+      const found = fetchedRecipe.versions.find(
+        (v) => (v._id && v._id === targetRecipeId) || Number(v.version) === targetVersionNum
+      );
+      if (found) return found;
+    }
+    if (Array.isArray(recipe?.versions)) {
+      const found = recipe.versions.find(
+        (v) => (v._id && v._id === targetRecipeId) || Number(v.version) === targetVersionNum
+      );
+      if (found) return found;
+    }
+    return fetchedRecipe || stateRecipe || recipe || {};
+  }, [stateVItem, fetchedRecipe, recipe, stateRecipe, targetRecipeId, targetVersionNum]);
 
-  const handleSendComment = (e) => {
-    e.preventDefault();
-    if (!newCommentText.trim()) return;
-    const now = new Date();
-    const formattedDate =
-      now.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }) +
-      " - " +
-      now.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
+  const { user: currentUser } = useAuthStore();
+  const currentUserName = currentUser?.name || currentUser?.fullName || currentUser?.username || "User";
+
+  const dynamicAuthor =
+    targetVersionObj?.createdBy?.name ||
+    targetVersionObj?.createdBy?.fullName ||
+    (typeof targetVersionObj?.createdBy === "string" && targetVersionObj.createdBy.length < 30
+      ? targetVersionObj.createdBy
+      : null) ||
+    recipe?.createdBy?.name ||
+    recipe?.createdBy?.fullName ||
+    recipe?.independentRecipeRaisedBy ||
+    recipe?.raisedBy ||
+    currentUserName;
+
+  // Stored comments from recipe/version procedureOthers & activities (synced with StandardOperatingProcedure)
+  const storedActivities = useMemo(() => {
+    const list = [];
+    if (Array.isArray(targetVersionObj?.activities) && targetVersionObj.activities.length > 0) {
+      list.push(...targetVersionObj.activities);
+    } else if (Array.isArray(recipe?.activities) && recipe.activities.length > 0) {
+      list.push(...recipe.activities);
+    }
+
+    const procOthers =
+      targetVersionObj?.procedureOthers ||
+      recipe?.procedureOthers ||
+      fetchedRecipe?.procedureOthers ||
+      stateRecipe?.procedureOthers;
+
+    if (procOthers && (typeof procOthers === "string" || Array.isArray(procOthers))) {
+      const parsed = parseStoredComments(
+        procOthers,
+        dynamicAuthor,
+        targetVersionObj?.updatedAt || targetVersionObj?.createdAt || recipe?.updatedAt || recipe?.createdAt
+      );
+
+      parsed.forEach((p) => {
+        const textKey = (p.text || p.comment || "").trim();
+        const dateKey = p.createdAt ? new Date(p.createdAt).getTime() : 0;
+        const exists = list.some((existing) => {
+          const eText = (existing.text || existing.comment || "").trim();
+          const eDate = existing.createdAt ? new Date(existing.createdAt).getTime() : 0;
+          return eText === textKey && (Math.abs(eDate - dateKey) < 1000 || !eDate || !dateKey);
+        });
+        if (!exists) {
+          list.push(p);
+        }
       });
+    }
 
-    const newComment = {
-      id: String(comments.length + 1).padStart(2, "0"),
-      initials: creatorName ? creatorName.slice(0, 2).toUpperCase() : "SC",
-      name: creatorName || "Sadman Chowdhury",
-      role: "Application Recipe",
-      date: formattedDate,
-      text: newCommentText.trim(),
+    return list;
+  }, [targetVersionObj, recipe, fetchedRecipe, stateRecipe, dynamicAuthor]);
+
+  const [localActivities, setLocalActivities] = useState([]);
+
+  // Consolidate stored activities and newly posted local comments
+  const effectiveActivities = useMemo(() => {
+    const list = [...storedActivities];
+    localActivities.forEach((local) => {
+      const lText = (local.text || local.comment || "").trim();
+      const lDate = local.createdAt ? new Date(local.createdAt).getTime() : 0;
+      const exists = list.some((existing) => {
+        const eText = (existing.text || existing.comment || "").trim();
+        const eDate = existing.createdAt ? new Date(existing.createdAt).getTime() : 0;
+        return eText === lText && (Math.abs(eDate - lDate) < 1000 || !eDate || !lDate);
+      });
+      if (!exists) {
+        list.push(local);
+      }
+    });
+    return list;
+  }, [storedActivities, localActivities]);
+
+  // Formatted comments for ScaleBatchSamplePage UI
+  const comments = useMemo(() => {
+    return effectiveActivities.map((act, index) => {
+      const name = act.userName || act.user || act.name || dynamicAuthor || "User";
+      const initials = name
+        ? name
+            .split(" ")
+            .map((part) => part[0])
+            .filter(Boolean)
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()
+        : "U";
+
+      return {
+        id: String(index + 1).padStart(2, "0"),
+        initials: initials || "U",
+        name,
+        role: (act.role && act.role !== "Application Recipe") ? act.role : (act.tag && act.tag !== "Application Recipe" ? act.tag : null),
+        date: formatCommentDateTime(act.createdAt),
+        text: act.text || act.comment || "",
+        raw: act,
+      };
+    });
+  }, [effectiveActivities, dynamicAuthor]);
+
+  const [newCommentText, setNewCommentText] = useState("");
+  const updateRecipeMutation = useUpdateRecipe();
+
+  const handleSendComment = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    const text = newCommentText.trim();
+    if (!text) return;
+
+    const newCommentEntry = {
+      userName: currentUserName,
+      user: currentUserName,
+      name: currentUserName,
+      text,
+      comment: text,
+      createdAt: new Date().toISOString(),
     };
-    setComments((prev) => [...prev, newComment]);
+
+    const updatedList = [...effectiveActivities, newCommentEntry];
+
+    setLocalActivities((prev) => [...prev, newCommentEntry]);
     setNewCommentText("");
+
+    const targetId = targetVersionObj?._id || targetRecipeId || recipe?._id;
+    if (targetId) {
+      try {
+        await updateRecipeMutation.mutateAsync({
+          id: targetId,
+          data: {
+            procedureOthers: JSON.stringify(updatedList),
+          },
+        });
+      } catch (err) {
+        console.error("Failed to save comment from ScaleBatchSamplePage:", err);
+      }
+    }
   };
 
   // Modals state
@@ -602,39 +738,47 @@ export default function ScaleBatchSamplePage() {
               </h3>
 
               <div className="space-y-3">
-                {comments.map((c) => (
-                  <div
-                    key={c.id}
-                    className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl p-4 bg-[#FCFBFD] dark:bg-[#121019] shadow-2xs"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-[#4B208B] text-white flex items-center justify-center font-bold text-xs uppercase">
-                          {c.initials}
-                        </div>
-                        <div>
-                          <div className="font-bold text-xs text-gray-900 dark:text-white">
-                            {c.name}
+                {comments.length > 0 ? (
+                  comments.map((c) => (
+                    <div
+                      key={c.id}
+                      className="border border-[#EEEBF4] dark:border-primary/30 rounded-2xl p-4 bg-[#FCFBFD] dark:bg-[#121019] shadow-2xs"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#4B208B] text-white flex items-center justify-center font-bold text-xs uppercase">
+                            {c.initials}
                           </div>
-                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-[#F0EBF8] dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 text-[10px] font-semibold">
-                            {c.role}
+                          <div>
+                            <div className="font-bold text-xs text-gray-900 dark:text-white">
+                              {c.name}
+                            </div>
+                            {c.role && c.role !== "Application Recipe" && (
+                              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-[#F0EBF8] dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 text-[10px] font-semibold">
+                                {c.role}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="text-[11px] text-gray-400">{c.date}</span>
+                          <span className="font-bold text-[#4B208B] dark:text-purple-300">
+                            {c.id}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs">
-                        <span className="text-[11px] text-gray-400">{c.date}</span>
-                        <span className="font-bold text-[#4B208B] dark:text-purple-300">
-                          {c.id}
-                        </span>
-                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 pl-12 whitespace-pre-wrap">
+                        {c.text}
+                      </p>
                     </div>
-
-                    <p className="text-xs text-gray-600 dark:text-gray-300 pl-12">
-                      {c.text}
-                    </p>
+                  ))
+                ) : (
+                  <div className="p-5 text-center border border-dashed border-[#EEEBF4] dark:border-primary/30 rounded-2xl text-xs text-gray-400 dark:text-gray-500">
+                    No comments or requirements recorded under Others.
                   </div>
-                ))}
+                )}
               </div>
 
               {/* Comment Input Box */}
@@ -649,9 +793,10 @@ export default function ScaleBatchSamplePage() {
                   <button
                     type="button"
                     onClick={handleSendComment}
-                    className="px-6 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+                    disabled={updateRecipeMutation.isPending || !newCommentText.trim()}
+                    className="px-6 py-2 rounded-xl bg-[#4B208B] hover:bg-[#3E1B77] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
                   >
-                    Send
+                    {updateRecipeMutation.isPending ? "Sending..." : "Send"}
                   </button>
                 </div>
               </div>

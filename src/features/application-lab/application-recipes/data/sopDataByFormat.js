@@ -458,3 +458,103 @@ export const getSOPDataByFormat = (format) => {
   // Returns empty structure — callers should use buildSOPDataFromRecipe instead
   return buildSOPDataFromRecipe({}, format);
 };
+
+export const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
+  if (!rawVal) return [];
+
+  const sanitizeRole = (val) => {
+    if (!val || typeof val !== "string") return null;
+    const trimmed = val.trim();
+    if (trimmed === "Application Recipe") return null;
+    return trimmed;
+  };
+
+  // 1. If already an array
+  if (Array.isArray(rawVal)) {
+    return rawVal
+      .filter((item) => item && (item.text || item.comment))
+      .map((item) => {
+        const author = item.userName || item.user || item.name || defaultAuthor || "User";
+        const role = sanitizeRole(item.role || item.tag);
+        return {
+          userName: author,
+          user: author,
+          name: author,
+          role,
+          tag: role,
+          text: item.text || item.comment || "",
+          comment: item.text || item.comment || "",
+          createdAt: item.createdAt || defaultDate || new Date().toISOString(),
+        };
+      });
+  }
+
+  if (typeof rawVal !== "string" || !rawVal.trim()) return [];
+  const trimmed = rawVal.trim();
+
+  // 2. Try parsing JSON array
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((item) => item && (item.text || item.comment))
+          .map((item) => {
+            const author = item.userName || item.user || item.name || defaultAuthor || "User";
+            const role = sanitizeRole(item.role || item.tag);
+            return {
+              userName: author,
+              user: author,
+              name: author,
+              role,
+              tag: role,
+              text: item.text || item.comment || "",
+              comment: item.text || item.comment || "",
+              createdAt: item.createdAt || defaultDate || new Date().toISOString(),
+            };
+          });
+      }
+    } catch {
+      // ignore parse error
+    }
+  }
+
+  // 3. Try parsing single JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const item = JSON.parse(trimmed);
+      if (item && (item.text || item.comment)) {
+        const author = item.userName || item.user || item.name || defaultAuthor || "User";
+        const role = sanitizeRole(item.role || item.tag);
+        return [
+          {
+            userName: author,
+            user: author,
+            name: author,
+            role,
+            tag: role,
+            text: item.text || item.comment || "",
+            comment: item.text || item.comment || "",
+            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
+          },
+        ];
+      }
+    } catch {
+      // ignore parse error
+    }
+  }
+
+  // 4. Fallback: legacy plain text comment
+  return [
+    {
+      userName: defaultAuthor || "User",
+      user: defaultAuthor || "User",
+      name: defaultAuthor || "User",
+      role: null,
+      tag: null,
+      text: trimmed,
+      comment: trimmed,
+      createdAt: defaultDate || new Date().toISOString(),
+    },
+  ];
+};

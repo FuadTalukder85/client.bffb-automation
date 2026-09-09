@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Save, X } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
-import { mapUIParamsToBackend, buildSOPDataFromRecipe } from "../data/sopDataByFormat";
+import { mapUIParamsToBackend, buildSOPDataFromRecipe, parseStoredComments } from "../data/sopDataByFormat";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const defaultParams = [
@@ -52,60 +52,6 @@ const defaultAfterBake = [
   { label: "aW", value: "", unit: "" },
   { label: "Moisture", value: "", unit: "" },
 ];
-
-const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
-  if (!rawVal || typeof rawVal !== "string" || !rawVal.trim()) return [];
-  const trimmed = rawVal.trim();
-
-  // 1. Try parsing JSON array
-  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) {
-        return parsed
-          .filter((item) => item && (item.text || item.comment))
-          .map((item) => ({
-            userName: item.userName || item.user || defaultAuthor || "User",
-            user: item.userName || item.user || defaultAuthor || "User",
-            text: item.text || item.comment || "",
-            comment: item.text || item.comment || "",
-            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
-            tag: item.tag || null,
-          }));
-      }
-    } catch (e) { }
-  }
-
-  // 2. Try parsing single JSON object
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      const item = JSON.parse(trimmed);
-      if (item && (item.text || item.comment)) {
-        return [
-          {
-            userName: item.userName || item.user || defaultAuthor || "User",
-            user: item.userName || item.user || defaultAuthor || "User",
-            text: item.text || item.comment || "",
-            comment: item.text || item.comment || "",
-            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
-            tag: item.tag || null,
-          },
-        ];
-      }
-    } catch (e) { }
-  }
-
-  // 3. Fallback: legacy plain text comment
-  return [
-    {
-      userName: defaultAuthor || "User",
-      user: defaultAuthor || "User",
-      text: trimmed,
-      comment: trimmed,
-      createdAt: defaultDate || new Date().toISOString(),
-    },
-  ];
-};
 
 // ================= STANDARD OPERATING PROCEDURE VERSION COLUMN =================
 export default function StandardOperatingProcedure({
@@ -283,6 +229,7 @@ export default function StandardOperatingProcedure({
         const newEntry = {
           userName: currentUserName,
           user: currentUserName,
+          name: currentUserName,
           text: newCommentText.trim(),
           comment: newCommentText.trim(),
           createdAt: new Date().toISOString(),
@@ -332,14 +279,20 @@ export default function StandardOperatingProcedure({
     const list = [];
     if (Array.isArray(vItem?.activities) && vItem.activities.length > 0) {
       list.push(...vItem.activities);
+    } else if (Array.isArray(data?.activities) && data.activities.length > 0) {
+      list.push(...data.activities);
     }
 
-    const procOthers = vItem?.procedureOthers || normalizedVItem?.procedureOthers;
-    if (procOthers && typeof procOthers === "string" && procOthers.trim()) {
+    const procOthers =
+      vItem?.procedureOthers ||
+      normalizedVItem?.procedureOthers ||
+      data?.procedureOthers;
+
+    if (procOthers && (typeof procOthers === "string" || Array.isArray(procOthers))) {
       const parsed = parseStoredComments(
         procOthers,
         dynamicAuthor,
-        vItem?.updatedAt || vItem?.createdAt
+        vItem?.updatedAt || vItem?.createdAt || data?.updatedAt || data?.createdAt
       );
 
       parsed.forEach((p) => {
@@ -357,14 +310,7 @@ export default function StandardOperatingProcedure({
     }
 
     return list;
-  }, [
-    vItem?.activities,
-    vItem?.procedureOthers,
-    normalizedVItem?.procedureOthers,
-    dynamicAuthor,
-    vItem?.updatedAt,
-    vItem?.createdAt,
-  ]);
+  }, [vItem, normalizedVItem, data, dynamicAuthor]);
 
   // Consolidate stored activities and newly posted local comments
   const effectiveActivities = useMemo(() => {
@@ -394,6 +340,7 @@ export default function StandardOperatingProcedure({
       const newEntry = {
         userName: currentUserName,
         user: currentUserName,
+        name: currentUserName,
         text,
         comment: text,
         createdAt: new Date().toISOString(),
@@ -861,20 +808,33 @@ export default function StandardOperatingProcedure({
               >
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-primary text-white font-bold text-[13px] flex items-center justify-center">
-                    {(act.userName || act.user || "U").slice(0, 2).toUpperCase()}
+                    {(act.userName || act.user || act.name || "U").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex items-center gap-1.5 flex-1 overflow-hidden">
                     <span className="text-[14px] font-semibold text-[#0D111A] dark:text-white truncate">
-                      {act.userName || act.user || "User"}
+                      {act.userName || act.user || act.name || "User"}
                     </span>
-                    {act.tag && (
+                    {act.tag && act.tag !== "Application Recipe" && (
                       <span className="px-1.5 py-0.5 rounded-md bg-[#EFEAF9] dark:bg-primary/25 text-[#4B208B] dark:text-purple-300 text-[10px] font-semibold whitespace-nowrap">
                         {act.tag}
                       </span>
                     )}
                   </div>
                   <span className="text-[11px] text-[#757575] whitespace-nowrap">
-                    {formatDate(act.createdAt) || "-"}
+                    {(() => {
+                      if (!act.createdAt) return "-";
+                      if (typeof formatDate === "function") {
+                        const res = formatDate(act.createdAt);
+                        if (res && res !== act.createdAt) return res;
+                      }
+                      const dObj = new Date(act.createdAt);
+                      if (isNaN(dObj.getTime())) return String(act.createdAt);
+                      return dObj.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      });
+                    })()}
                   </span>
                 </div>
                 <p className="text-[#0D111A] dark:text-gray-300 leading-relaxed text-[14px] font-medium">

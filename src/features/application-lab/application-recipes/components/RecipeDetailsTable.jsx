@@ -606,6 +606,133 @@ export default function RecipeDetailsTable({
   const hasHorizontalScroll = scrollWidth > clientWidth + 10;
   const leftColWidth = isConfectionary ? 420 : 340;
 
+  // Drag-to-scroll functionality
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragInfoRef = useRef({
+    startX: 0,
+    startScrollLeft: 0,
+    hasDragged: false,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  });
+  const momentumAnimIdRef = useRef(null);
+
+  const stopMomentum = useCallback(() => {
+    if (momentumAnimIdRef.current) {
+      cancelAnimationFrame(momentumAnimIdRef.current);
+      momentumAnimIdRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopMomentum();
+    };
+  }, [stopMomentum]);
+
+  const handleMouseDown = useCallback(
+    (e) => {
+      // Only primary mouse button (left click)
+      if (e.button !== 0) return;
+      const container = tableContainerRef.current;
+      if (!container) return;
+
+      stopMomentum();
+
+      // Check if clicked element is an interactive input or control where dragging is not desired
+      const target = e.target;
+      if (target.closest("input, textarea, select, [contenteditable='true']")) {
+        return;
+      }
+
+      setIsMouseDown(true);
+
+      dragInfoRef.current = {
+        startX: e.pageX,
+        startScrollLeft: container.scrollLeft,
+        hasDragged: false,
+        lastX: e.pageX,
+        lastTime: performance.now(),
+        velocity: 0,
+      };
+
+      const handleMouseMove = (moveEvent) => {
+        const dx = moveEvent.pageX - dragInfoRef.current.startX;
+        const now = performance.now();
+        const dt = now - dragInfoRef.current.lastTime;
+
+        if (!dragInfoRef.current.hasDragged && Math.abs(dx) > 4) {
+          dragInfoRef.current.hasDragged = true;
+          setIsDragging(true);
+        }
+
+        if (dragInfoRef.current.hasDragged) {
+          moveEvent.preventDefault();
+          container.scrollLeft = dragInfoRef.current.startScrollLeft - dx;
+
+          if (dt > 0) {
+            const instantVelocity = (moveEvent.pageX - dragInfoRef.current.lastX) / dt;
+            dragInfoRef.current.velocity =
+              0.8 * instantVelocity + 0.2 * (dragInfoRef.current.velocity || 0);
+            dragInfoRef.current.lastX = moveEvent.pageX;
+            dragInfoRef.current.lastTime = now;
+          }
+        }
+      };
+
+      const handleMouseUp = () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+
+        const hadDragged = dragInfoRef.current.hasDragged;
+        const timeSinceLastMove = performance.now() - dragInfoRef.current.lastTime;
+        let v = timeSinceLastMove > 80 ? 0 : dragInfoRef.current.velocity;
+
+        if (Math.abs(v) > 0.15) {
+          if (v > 2.5) v = 2.5;
+          if (v < -2.5) v = -2.5;
+
+          let currentV = v;
+          const step = () => {
+            if (Math.abs(currentV) < 0.05 || !tableContainerRef.current) {
+              momentumAnimIdRef.current = null;
+              return;
+            }
+            tableContainerRef.current.scrollLeft -= currentV * 14;
+            currentV *= 0.94;
+            momentumAnimIdRef.current = requestAnimationFrame(step);
+          };
+          momentumAnimIdRef.current = requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(() => {
+          setIsMouseDown(false);
+          setIsDragging(false);
+          if (hadDragged) {
+            setTimeout(() => {
+              dragInfoRef.current.hasDragged = false;
+            }, 60);
+          } else {
+            dragInfoRef.current.hasDragged = false;
+          }
+        });
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    },
+    [tableContainerRef, stopMomentum]
+  );
+
+  const handleClickCapture = useCallback((e) => {
+    if (dragInfoRef.current.hasDragged) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, []);
+
   // Auto-scroll selected version column smoothly into view if outside visible table area
   useEffect(() => {
     if (currentVersion === undefined || currentVersion === null) return;
@@ -673,7 +800,12 @@ export default function RecipeDetailsTable({
       <div
         ref={tableContainerRef}
         onScroll={handleTableScroll}
-        className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full border border-[#EEEBF4] dark:border-primary/40 rounded-3xl bg-white dark:bg-[#0D0B14]"
+        onMouseDown={handleMouseDown}
+        onClickCapture={handleClickCapture}
+        className={cn(
+          "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full border border-[#EEEBF4] dark:border-primary/40 rounded-3xl bg-white dark:bg-[#0D0B14]",
+          isMouseDown && "cursor-grabbing select-none [&_*]:cursor-grabbing!"
+        )}
       >
         <div className="flex min-w-max">
           {/* ================= LEFT CONTINUOUS SOLID FIXED COLUMN ================= */}
