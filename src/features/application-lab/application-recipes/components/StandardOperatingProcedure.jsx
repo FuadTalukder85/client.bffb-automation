@@ -118,6 +118,8 @@ export default function StandardOperatingProcedure({
   onSaveSpecificFields,
   isConfectionary = false,
   formatDate = (d) => d || "-",
+  vIsFinalized = false,
+  isSelectingForCompare = false,
 }) {
   const [isSOPEditing, setIsSOPEditing] = useState(false);
   const [isSavingSOP, setIsSavingSOP] = useState(false);
@@ -486,7 +488,7 @@ export default function StandardOperatingProcedure({
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
+          ) : !vIsFinalized && !isSelectingForCompare ? (
             <button
               type="button"
               onClick={() => setIsSOPEditing(true)}
@@ -498,7 +500,7 @@ export default function StandardOperatingProcedure({
                 <path d="M8.87126 0.718368C9.0911 0.498513 9.38927 0.375 9.70017 0.375C10.0111 0.375 10.3092 0.498513 10.5291 0.718368C10.7489 0.938222 10.8724 1.23641 10.8724 1.54733C10.8724 1.85825 10.7489 2.15644 10.5291 2.37629L5.54843 7.35781C5.41721 7.48892 5.25511 7.58489 5.07705 7.63689L3.48941 8.10111C3.44186 8.11498 3.39146 8.11581 3.34347 8.10352C3.29549 8.09122 3.25169 8.06626 3.21667 8.03123C3.18165 7.9962 3.15668 7.95241 3.14439 7.90442C3.13209 7.85643 3.13293 7.80603 3.14679 7.75847L3.61098 6.17073C3.66322 5.99281 3.75938 5.83089 3.8906 5.69988L8.87126 0.718368Z" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
-          )}
+          ) : null}
         </div>
 
         {isSOPEditing ? (
@@ -535,6 +537,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={param.value}
+                      placeholder={param.unit || ""}
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftParams((prev) =>
@@ -543,7 +546,6 @@ export default function StandardOperatingProcedure({
                       }}
                       className="w-full text-left px-1.5 py-0.5 rounded border-2 border-[#4B208B] text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#151221]"
                     />
-                    {param.unit && <span className="font-bold text-gray-900 dark:text-white text-xs">{param.unit}</span>}
                   </div>
                 ) : (
                   <>
@@ -588,6 +590,7 @@ export default function StandardOperatingProcedure({
                       <input
                         type="text"
                         value={topZone[zk] || ""}
+                        placeholder="°C"
                         onChange={(e) => {
                           const val = e.target.value;
                           setDraftTunnelZones((prev) =>
@@ -611,6 +614,7 @@ export default function StandardOperatingProcedure({
                       <input
                         type="text"
                         value={bottomZone[zk] || ""}
+                        placeholder="°C"
                         onChange={(e) => {
                           const val = e.target.value;
                           setDraftTunnelZones((prev) =>
@@ -633,6 +637,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={draftBakingTime}
+                      placeholder="min"
                       onChange={(e) => setDraftBakingTime(e.target.value)}
                       className="w-16 text-center text-xs font-bold bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
                     />
@@ -649,6 +654,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={draftBeltSpeed}
+                      placeholder="min"
                       onChange={(e) => setDraftBeltSpeed(e.target.value)}
                       className="w-16 text-center text-xs font-bold bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
                     />
@@ -680,6 +686,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTempRow.baking1 || ""}
+                      placeholder="°C"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -697,6 +704,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTempRow.baking2 || ""}
+                      placeholder="°C"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -718,6 +726,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTimeRow.baking1 || ""}
+                      placeholder="min"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -735,6 +744,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTimeRow.baking2 || ""}
+                      placeholder="min"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>

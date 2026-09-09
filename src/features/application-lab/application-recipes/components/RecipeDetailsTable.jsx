@@ -282,6 +282,8 @@ function VersionColumn({
         setIsBatchSummaryEditing={setIsBatchSummaryEditing}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
+        vIsFinalized={vIsFinalized}
+        isSelectingForCompare={isSelectingForCompare}
       />
 
       {/* 3. STANDARD OPERATING PROCEDURE SECTION */}
@@ -295,6 +297,8 @@ function VersionColumn({
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
         formatDate={formatDate}
+        vIsFinalized={vIsFinalized}
+        isSelectingForCompare={isSelectingForCompare}
       />
 
       {/* 4. SENSORY FEEDBACK SECTION */}
@@ -447,6 +451,29 @@ export default function RecipeDetailsTable({
     setTargetVersionForIngredient(null);
   };
 
+  const handleDeleteIngredient = async (ingredient) => {
+    if (!ingredient) return;
+    const targetRecipe = data;
+    const currentIngredients = Array.isArray(targetRecipe?.ingredients) ? [...targetRecipe.ingredients] : [];
+    const deleteIndex =
+      ingredient.originalIndex !== undefined && ingredient.originalIndex !== null
+        ? Number(ingredient.originalIndex)
+        : Number(ingredient.index);
+
+    if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
+      currentIngredients.splice(deleteIndex, 1);
+      if (ingredient._id && targetRecipe?._id) {
+        await deleteIngredientMutation.mutateAsync({
+          recipeId: targetRecipe._id,
+          ingredientId: ingredient._id,
+        });
+        onIngredientsChange?.(currentIngredients, targetRecipe?._id, { skipSave: true });
+      } else {
+        await onIngredientsChange?.(currentIngredients, targetRecipe?._id);
+      }
+    }
+  };
+
   const handleArchiveRow = (ingredient, vItem) => {
     setIngredientToArchive(ingredient);
     setTargetVersionForIngredient(vItem || data);
@@ -457,7 +484,10 @@ export default function RecipeDetailsTable({
     if (!ingredientToArchive) return;
     const targetRecipe = targetVersionForIngredient || data;
     const currentIngredients = Array.isArray(targetRecipe?.ingredients) ? [...targetRecipe.ingredients] : [];
-    const deleteIndex = Number(ingredientToArchive?.originalIndex);
+    const deleteIndex =
+      ingredientToArchive?.originalIndex !== undefined && ingredientToArchive?.originalIndex !== null
+        ? Number(ingredientToArchive.originalIndex)
+        : Number(ingredientToArchive?.index);
 
     if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
       currentIngredients.splice(deleteIndex, 1);
@@ -660,6 +690,10 @@ export default function RecipeDetailsTable({
               isConfectionary={isConfectionary}
               onOpenBFFModal={() => setIsBFFModalOpen(true)}
               onOpenStandardIngredientModal={() => setIsStandardIngredientModalOpen(true)}
+              isSelectingForCompare={isSelectingForCompare}
+              onDeleteIngredient={handleDeleteIngredient}
+              isFinalized={isFinalized}
+              isLoading={deleteIngredientMutation.isPending}
             />
 
             {/* 2. Batch Summary Left Title */}
@@ -711,11 +745,7 @@ export default function RecipeDetailsTable({
                 globalIngredients={globalIngredients}
                 showSolidLiquidColumn={showSolidLiquidColumn}
                 formatDate={formatDate}
-                onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={effectiveRecipeFormat}
                 isConfectionary={isConfectionary}
-                isFinalized={isFinalized}
-                onEditRow={handleEditRow}
               />
             )}
           </div>

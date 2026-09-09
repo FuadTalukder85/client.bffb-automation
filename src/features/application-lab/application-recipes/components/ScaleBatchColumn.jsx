@@ -2,9 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buildIngredientsDisplayData } from "../data/ingredientsCalculations";
-import BatchSummary from "./BatchSummary";
-import StandardOperatingProcedure from "./StandardOperatingProcedure";
-import SensoryFeedback from "./SensoryFeedback";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,11 +18,7 @@ export default function ScaleBatchColumn({
   globalIngredients = [],
   showSolidLiquidColumn = true,
   formatDate = (d) => d || "-",
-  onSaveSpecificFields,
-  recipeFormat = "bakery",
   isConfectionary = false,
-  isFinalized = false,
-  onEditRow,
 }) {
   const versionNumStr = String(Number(scaleBatchVersion?.version ?? 0) + 1).padStart(2, "0");
 
@@ -63,62 +56,50 @@ export default function ScaleBatchColumn({
     [data?.recipeType, effectiveVersionData, versionIngredients]
   );
 
-  const [draftYield, setDraftYield] = useState(
-    scaleBatchVersion?.yield ?? scaleBatchVersion?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
+  const vComputedData = useMemo(
+    () => buildIngredientsDisplayData(normalizedVItem),
+    [normalizedVItem]
   );
-  const [draftServingSize, setDraftServingSize] = useState(
-    scaleBatchVersion?.servingSize ?? scaleBatchVersion?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
-  );
-  const [draftPerPiece, setDraftPerPiece] = useState(
-    scaleBatchVersion?.perPiece ?? data?.perPiece ?? 12
-  );
-  const [draftPacketQuantity, setDraftPacketQuantity] = useState(
-    scaleBatchVersion?.packetQuantity ?? data?.packetQuantity ?? 4
-  );
-  const [isBatchSummaryEditing, setIsBatchSummaryEditing] = useState(false);
+
+  const { ingredients: vIngredients, totals: vTotals } = vComputedData;
+
+  // Default total quantity from the base ingredients
+  const defaultTotalQuantity = useMemo(() => {
+    const sum = vIngredients.reduce((acc, curr) => acc + (Number(curr.quantity) || 0), 0);
+    return sum > 0 ? sum : (Number(vTotals?.quantity) || 0);
+  }, [vIngredients, vTotals?.quantity]);
+
+  const [sampleBatchSize, setSampleBatchSize] = useState("");
 
   useEffect(() => {
-    setDraftYield(
-      scaleBatchVersion?.yield ?? scaleBatchVersion?.outputYield ?? data?.yield ?? data?.outputYield ?? 100
-    );
-    setDraftServingSize(
-      scaleBatchVersion?.servingSize ?? scaleBatchVersion?.outputServingSize ?? data?.servingSize ?? data?.outputServingSize ?? 100
-    );
-    setDraftPerPiece(
-      scaleBatchVersion?.perPiece ?? data?.perPiece ?? 12
-    );
-    setDraftPacketQuantity(
-      scaleBatchVersion?.packetQuantity ?? data?.packetQuantity ?? 4
-    );
-  }, [
-    scaleBatchVersion?.yield,
-    scaleBatchVersion?.outputYield,
-    data?.yield,
-    data?.outputYield,
-    scaleBatchVersion?.servingSize,
-    scaleBatchVersion?.outputServingSize,
-    data?.servingSize,
-    data?.outputServingSize,
-    scaleBatchVersion?.perPiece,
-    data?.perPiece,
-    scaleBatchVersion?.packetQuantity,
-    data?.packetQuantity,
-  ]);
+    if (defaultTotalQuantity > 0 && (!sampleBatchSize || Number(sampleBatchSize) === 0)) {
+      setSampleBatchSize(defaultTotalQuantity);
+    }
+  }, [defaultTotalQuantity]);
 
-  const vComputedData = useMemo(
-    () =>
-      buildIngredientsDisplayData(normalizedVItem, {
-        yield: draftYield,
-        outputYield: draftYield,
-        servingSize: draftServingSize,
-        outputServingSize: draftServingSize,
-        perPiece: draftPerPiece,
-        packetQuantity: draftPacketQuantity,
-      }),
-    [normalizedVItem, draftYield, draftServingSize, draftPerPiece, draftPacketQuantity]
-  );
+  // Reset batch size when version changes
+  useEffect(() => {
+    setSampleBatchSize("");
+  }, [scaleBatchVersion?._id, scaleBatchVersion?.version]);
 
-  const { ingredients: vIngredients, totals: vTotals, batchSummary: vBatchSummary } = vComputedData;
+  const currentBatchSize = Number(sampleBatchSize) || defaultTotalQuantity || 0;
+  const scaleFactor = defaultTotalQuantity > 0 && currentBatchSize > 0 ? currentBatchSize / defaultTotalQuantity : 1;
+
+  // Scale ingredient quantities
+  const displayIngredients = useMemo(() => {
+    return vIngredients.map((item) => {
+      const originalQty = Number(item.quantity) || 0;
+      const scaledQty = originalQty * scaleFactor;
+      return {
+        ...item,
+        displayQuantity: scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2),
+      };
+    });
+  }, [vIngredients, scaleFactor]);
+
+  const totalQuantityDisplay = defaultTotalQuantity > 0 && currentBatchSize > 0
+    ? (currentBatchSize % 1 === 0 ? String(currentBatchSize) : currentBatchSize.toFixed(2))
+    : (vTotals?.quantity || "0");
 
   const ingredientGroups = useMemo(() => {
     if (!globalIngredients || globalIngredients.length === 0) return [];
@@ -127,7 +108,7 @@ export default function ScaleBatchColumn({
     let currentGroup = null;
 
     globalIngredients.forEach((item, index) => {
-      const vIng = vIngredients[index] || item;
+      const vIng = displayIngredients[index] || item;
       const typeKey = String(item.typeKey || item.type || "").toLowerCase();
 
       const prevItem = index > 0 ? globalIngredients[index - 1] : null;
@@ -168,11 +149,11 @@ export default function ScaleBatchColumn({
     }
 
     return groups;
-  }, [globalIngredients, vIngredients]);
+  }, [globalIngredients, displayIngredients]);
 
   return (
     <div className="w-[400px] flex-none border-r border-[#EEEBF4] dark:border-primary/40 flex flex-col bg-white dark:bg-[#0D0B14]">
-      {/* 1. INGREDIENT TABLE SECTION WITH SCALE BATCH HEADER */}
+      {/* INGREDIENT TABLE SECTION WITH SCALE BATCH HEADER */}
       <div className="flex flex-col border-b border-[#EEEBF4] dark:border-primary/40">
         {/* Version Header Card */}
         <div className="p-3 flex flex-col gap-2 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]">
@@ -230,7 +211,7 @@ export default function ScaleBatchColumn({
             </div>
           </div>
 
-          {/* Scale Batch Section Header (Image 2) */}
+          {/* Scale Batch Section Header */}
           <div className="flex items-center h-[34px] px-1">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
               Scale Batch
@@ -243,7 +224,12 @@ export default function ScaleBatchColumn({
           <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
             Qty (g)
           </div>
-          <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
+          <div
+            className={cn(
+              "flex-1 h-full flex items-center justify-center",
+              showSolidLiquidColumn && "border-r border-[#EEEBF4] dark:border-primary/30"
+            )}
+          >
             Cmp (%)
           </div>
           {showSolidLiquidColumn && (
@@ -271,15 +257,15 @@ export default function ScaleBatchColumn({
                     : "flex-1"
                 )}
               >
-                {group.items.map(({ item, vIng, index }) => (
+                {group.items.map(({ vIng, index }) => (
                   <div
                     key={index}
-                    className="group/row flex items-center h-12 text-xs font-medium text-gray-800 dark:text-gray-200 hover:bg-[#F7F5FA] dark:hover:bg-primary/10 transition-colors"
+                    className="flex items-center h-12 text-xs font-medium text-gray-800 dark:text-gray-200 hover:bg-[#F7F5FA] dark:hover:bg-primary/10 transition-colors"
                   >
                     <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
-                      {vIng.quantity ?? "-"}
+                      {vIng.displayQuantity ?? vIng.quantity ?? "-"}
                     </div>
-                    <div className="flex-1 h-full flex items-center justify-center gap-1">
+                    <div className="flex-1 h-full flex items-center justify-center">
                       <span>{vIng.composition ?? "-"}</span>
                     </div>
                   </div>
@@ -297,9 +283,14 @@ export default function ScaleBatchColumn({
           {/* Total Row */}
           <div className="flex items-center h-12 font-bold text-xs text-[#4B208B] dark:text-purple-300 border-t-2 border-[#4B208B]/40 bg-[#FCFBFD] dark:bg-[#121019]">
             <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
-              {vTotals?.quantity}
+              {totalQuantityDisplay}
             </div>
-            <div className="flex-1 h-full flex items-center justify-center border-r border-[#EEEBF4] dark:border-primary/30">
+            <div
+              className={cn(
+                "flex-1 h-full flex items-center justify-center",
+                showSolidLiquidColumn && "border-r border-[#EEEBF4] dark:border-primary/30"
+              )}
+            >
               {vTotals?.composition}
             </div>
             {showSolidLiquidColumn && (
@@ -310,48 +301,26 @@ export default function ScaleBatchColumn({
           </div>
         </div>
 
-        {/* Action buttons spacer to align bottom with other columns */}
-        <div className="flex flex-col gap-2 p-4.5 bg-white dark:bg-[#0D0B14]">
-          <div className="h-8" />
-          <div className="h-8" />
+        {/* Sample Batch Size Input */}
+        <div className="p-4 bg-white dark:bg-[#0D0B14]">
+          <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+            Sample Batch Size
+          </h4>
+          <div className="w-full h-11 px-4 rounded-2xl bg-[#EFEAF9]/60 dark:bg-primary/10 border border-purple-200/60 dark:border-primary/30 focus-within:border-[#4B208B] flex items-center justify-between shadow-xs transition-colors">
+            <input
+              type="number"
+              value={sampleBatchSize}
+              onChange={(e) => setSampleBatchSize(e.target.value)}
+              placeholder="0"
+              className="w-full bg-transparent border-none outline-none font-bold text-sm text-gray-900 dark:text-white"
+            />
+            <span className="text-sm font-semibold text-gray-500 ml-2">g</span>
+          </div>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+            Adjust the sample batch size to preview updated quantities.
+          </p>
         </div>
       </div>
-
-      {/* 2. BATCH SUMMARY SECTION */}
-      <BatchSummary
-        vItem={scaleBatchVersion}
-        data={data}
-        vBatchSummary={vBatchSummary}
-        draftYield={draftYield}
-        setDraftYield={setDraftYield}
-        draftServingSize={draftServingSize}
-        setDraftServingSize={setDraftServingSize}
-        draftPerPiece={draftPerPiece}
-        setDraftPerPiece={setDraftPerPiece}
-        draftPacketQuantity={draftPacketQuantity}
-        setDraftPacketQuantity={setDraftPacketQuantity}
-        isBatchSummaryEditing={isBatchSummaryEditing}
-        setIsBatchSummaryEditing={setIsBatchSummaryEditing}
-        onSaveSpecificFields={onSaveSpecificFields}
-        isConfectionary={isConfectionary}
-      />
-
-      {/* 3. STANDARD OPERATING PROCEDURE SECTION */}
-      <StandardOperatingProcedure
-        vItem={scaleBatchVersion}
-        data={data}
-        normalizedVItem={normalizedVItem}
-        recipeFormat={recipeFormat}
-        onSaveSpecificFields={onSaveSpecificFields}
-        isConfectionary={isConfectionary}
-        formatDate={formatDate}
-      />
-
-      {/* 4. SENSORY FEEDBACK SECTION */}
-      <SensoryFeedback
-        vItem={scaleBatchVersion}
-        formatDate={formatDate}
-      />
     </div>
   );
 }

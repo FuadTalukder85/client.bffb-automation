@@ -123,7 +123,13 @@ export function buildIngredientsDisplayData(recipeData, overrides = {}) {
     };
   });
 
-  const totalComposition = orderedRows.reduce((sum, item) => sum + toNumber(item.composition), 0);
+  // Sum exact (unrounded) composition values to avoid rounding drift (e.g. 100.01)
+  const rawTotalComposition = ingredients.reduce((sum, item) => {
+    const qty = toNumber(item?.quantity);
+    return sum + (totalQuantity > 0 ? (qty / totalQuantity) * 100 : 0);
+  }, 0);
+  const totalComposition =
+    Math.abs(rawTotalComposition - 100) < 0.01 ? 100 : rawTotalComposition;
 
   const outputGrams = totalQuantity * (outputYield / 100);
   const outputPieces = outputServingSize > 0 ? outputGrams / outputServingSize : 0;
