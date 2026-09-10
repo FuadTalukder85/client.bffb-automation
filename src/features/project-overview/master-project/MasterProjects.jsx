@@ -36,7 +36,7 @@ export default function MasterProjects() {
     const [isExportModalOpen, setIsExportModalOpen] = React.useState(false);
     const [exportLimit, setExportLimit] = React.useState(20);
     const [exportPage, setExportPage] = React.useState(1);
-    
+
     const {
         searchTerm,
         selectedState,
@@ -119,9 +119,9 @@ export default function MasterProjects() {
                 exportLimit === "all"
                     ? Math.max(pagination?.total || 0, 1)
                     : exportLimit;
-            
+
             const resolvedExportPage = exportLimit === "all" ? 1 : exportPage;
-            
+
             await handleExportProjects(resolvedExportPage, resolvedExportLimit);
             setIsExportModalOpen(false);
         } catch (err) {
@@ -151,9 +151,9 @@ export default function MasterProjects() {
     }
 
     actionButtons.push({
-            icon: <PlusIcon className="w-4.5 lg:w-2.5 xl:w-3 2xl:w-3.5 3xl:w-4.5 h-4.5 lg:h-2.5 xl:h-3 2xl:h-3.5 3xl:h-4.5" />,
-            onClick: handleAddProject,
-            label: "Add Project",
+        icon: <PlusIcon className="w-4.5 lg:w-2.5 xl:w-3 2xl:w-3.5 3xl:w-4.5 h-4.5 lg:h-2.5 xl:h-3 2xl:h-3.5 3xl:h-4.5" />,
+        onClick: handleAddProject,
+        label: "Add Project",
     });
 
     return (
@@ -170,15 +170,22 @@ export default function MasterProjects() {
 
                 {/* <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex"> */}
                 <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+                    <div className="shrink-0 w-96">
+                        <DateRangeFilter
+                            dateFrom={dateFrom}
+                            dateTo={dateTo}
+                            onDateFromChange={handleDateFromChange}
+                            onDateToChange={handleDateToChange}
+                        />
+                    </div>
                     <SearchInput
                         placeholder="Search projects..."
                         value={searchTerm}
                         onChange={(e) => handleSearchChange(e.target.value)}
                     />
-                    <ThemeToggle />
+                    <ThemeToggle className="shrink-0" />
                 </div>
             </div>
-
             <SearchFilterBar
                 searchTerm={searchTerm}
                 onSearchChange={(e) => handleSearchChange(e.target.value)}
@@ -226,12 +233,6 @@ export default function MasterProjects() {
                             value={selectedState}
                             options={stateOptions}
                             onChange={handleStateChange}
-                        />
-                        <DateRangeFilter
-                            dateFrom={dateFrom}
-                            dateTo={dateTo}
-                            onDateFromChange={handleDateFromChange}
-                            onDateToChange={handleDateToChange}
                         />
                     </div>
 

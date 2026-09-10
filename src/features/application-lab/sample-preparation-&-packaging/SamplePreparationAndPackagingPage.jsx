@@ -80,12 +80,20 @@ const SamplePreparationAndPackagingPage = () => {
         />
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+          <div className="shrink-0 w-96">
+            <DateRangeFilter
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={handleDateFromChange}
+              onDateToChange={handleDateToChange}
+            />
+          </div>
           <SearchInput
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
-          <ThemeToggle />
+          <ThemeToggle className="shrink-0" />
         </div>
       </div>
 
@@ -141,16 +149,6 @@ const SamplePreparationAndPackagingPage = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Date Range Filter - Desktop */}
-      <div className="flex-none hidden mb-2 md:block ms-5">
-        <DateRangeFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateFromChange={handleDateFromChange}
-          onDateToChange={handleDateToChange}
-        />
       </div>
 
       {/* Content Area */}

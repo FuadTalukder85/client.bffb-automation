@@ -88,12 +88,20 @@ export default function ApplicationLab() {
         />
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+          <div className="shrink-0 w-96">
+            <DateRangeFilter
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={handleDateFromChange}
+              onDateToChange={handleDateToChange}
+            />
+          </div>
           <SearchInput
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
-          <ThemeToggle />
+          <ThemeToggle className="shrink-0" />
         </div>
       </div>
 
@@ -135,15 +143,6 @@ export default function ApplicationLab() {
           })}
 
         </div>
-      </div>
-
-      <div className="flex-none hidden mb-2 lg:mb-2 xl:mb-2.5 2xl:mb-3.5 3xl:mb-4 md:block ms-5">
-        <DateRangeFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateFromChange={handleDateFromChange}
-          onDateToChange={handleDateToChange}
-        />
       </div>
 
       <div className="flex flex-col flex-1 w-full min-h-0">

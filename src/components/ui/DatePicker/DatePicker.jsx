@@ -30,16 +30,16 @@ export const DatePicker = ({
 
   const handleChange = (e) => {
     if (!onChange) return;
-    
+
     if (!e.target.value) {
       onChange({ target: { id, value: null } });
       return;
     }
-    
+
     const [year, month, day] = e.target.value.split('-');
     const localDate = new Date(year, month - 1, day);
     const isoValue = toISODateString(localDate);
-    
+
     onChange({
       ...e,
       target: { ...e.target, id, value: isoValue },
@@ -95,11 +95,11 @@ export const DatePicker = ({
           transparent
             ? "bg-transparent border-0 text-sm md:text-body px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3"
             : cn(
-                "h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 rounded-md text-xs md:text-body border px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3",
-                disabled
-                  ? "bg-gray-100 dark:bg-gray-800/20 border-nav-highlight/10 text-gray-400"
-                  : "bg-primary-shade-2 border border-nav-highlight/30 group-hover:border-nav-highlight/50 group-focus-within:ring-2 group-focus-within:ring-primary/20"
-              ),
+              "h-8 lg:h-4.5 xl:h-5.5 2xl:h-6.5 3xl:h-8 rounded-md text-xs md:text-body border px-3 lg:px-1.5 xl:px-2 2xl:px-2.5 3xl:px-3",
+              disabled
+                ? "bg-gray-100 dark:bg-gray-800/20 border-nav-highlight/10 text-gray-400"
+                : "bg-primary-shade-2 border border-nav-highlight/30 group-hover:border-nav-highlight/50 group-focus-within:ring-2 group-focus-within:ring-primary/20"
+            ),
           !value && "text-gray-400",
           value && "text-foreground"
         )}
