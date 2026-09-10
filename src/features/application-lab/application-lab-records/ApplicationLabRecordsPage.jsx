@@ -10,6 +10,7 @@ import { ApplicationLabRecordsTableSkeleton } from "./components/ApplicationLabR
 import { buildStatusOptions, createFilterOptions } from "@/config/statusConfig";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { Pagination } from "@/components/ui/Pagination";
 import { useProjectsForApplicationLabRecords } from "@/hooks/useSamples";
@@ -50,8 +51,12 @@ export default function ApplicationLabRecordsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sorting, setSorting] = useState([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedDateFrom = useDebounce(dateFrom, 300);
+  const debouncedDateTo = useDebounce(dateTo, 300);
 
   // Fetch projects for application lab records
   const {
@@ -64,6 +69,8 @@ export default function ApplicationLabRecordsPage() {
     statusFilter: runToggle,
     isActive: runToggle === "running" ? "true" : runToggle === "previous" ? "false" : "all",
     isFeasible: "all",
+    dateFrom: debouncedDateFrom,
+    dateTo: debouncedDateTo,
     page: currentPage,
     limit: itemsPerPage,
   });
@@ -89,6 +96,16 @@ export default function ApplicationLabRecordsPage() {
 
   const handleRunToggleChange = (value) => {
     setRunToggle(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateFromChange = (value) => {
+    setDateFrom(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateToChange = (value) => {
+    setDateTo(value);
     setCurrentPage(1);
   };
 
@@ -154,6 +171,12 @@ export default function ApplicationLabRecordsPage() {
         searchPlaceholder="Search..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       {/* Filters Section */}
@@ -191,6 +214,15 @@ export default function ApplicationLabRecordsPage() {
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex-none hidden mb-2 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       {/* Table Section */}

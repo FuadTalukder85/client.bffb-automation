@@ -2,6 +2,7 @@ import React from "react";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import DesktopProductDevelopmentTable from "./components/DesktopProductDevelopmentTable";
@@ -16,6 +17,8 @@ export default function ProductDevelopment() {
     const {
         searchTerm,
         selectedStatus,
+        dateFrom,
+        dateTo,
         currentPage,
         setCurrentPage,
         itemsPerPage,
@@ -34,6 +37,8 @@ export default function ProductDevelopment() {
         error,
         handleSearchChange,
         handleStatusChange,
+        handleDateFromChange,
+        handleDateToChange,
         handleViewProjectDetails,
         filters,
     } = useProductDevelopmentLogic();
@@ -70,6 +75,12 @@ export default function ProductDevelopment() {
                 onSearchChange={(e) => handleSearchChange(e.target.value)}
                 searchPlaceholder="Search projects..."
                 filters={filters}
+                dateRange={{
+                    dateFrom,
+                    dateTo,
+                    onDateFromChange: handleDateFromChange,
+                    onDateToChange: handleDateToChange,
+                }}
                 hideOnDesktop={true}
                 defaultFilterValue="true"
             />
@@ -97,6 +108,15 @@ export default function ProductDevelopment() {
                     })}
 
                 </div>
+            </div>
+
+            <div className="flex-none hidden mb-2 lg:mb-2 xl:mb-2.5 2xl:mb-3.5 3xl:mb-4 md:block ms-5">
+                <DateRangeFilter
+                    dateFrom={dateFrom}
+                    dateTo={dateTo}
+                    onDateFromChange={handleDateFromChange}
+                    onDateToChange={handleDateToChange}
+                />
             </div>
 
             <div className="flex flex-col flex-1 w-full min-h-0">

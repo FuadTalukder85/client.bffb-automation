@@ -26,6 +26,10 @@ export default function MobileSensoryFormProjectListPage({
   handleViewProjectDetails,
   noDataMessage,
   noDataDescription,
+  dateFrom,
+  dateTo,
+  handleDateFromChange,
+  handleDateToChange,
 }) {
   const renderStatusBadge = (status) => {
     if (!status) return <span className="text-muted-foreground">—</span>;
@@ -54,6 +58,12 @@ export default function MobileSensoryFormProjectListPage({
         searchPlaceholder="Search projects..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       <div className="flex flex-col flex-1 w-full min-h-0 py-4">

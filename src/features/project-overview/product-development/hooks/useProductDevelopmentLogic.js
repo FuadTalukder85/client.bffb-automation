@@ -11,10 +11,12 @@ export const useProductDevelopmentLogic = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [sorting, setSorting] = useState([]);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
 
     useEffect(() => {
         setSelectedProjectIds([]);
-    }, [currentPage, searchTerm, selectedStatus]);
+    }, [currentPage, searchTerm, selectedStatus, dateFrom, dateTo]);
 
     const [columnVisibility, setColumnVisibility] = useState({});
     const [columnPinning, setColumnPinning] = useState({});
@@ -22,6 +24,8 @@ export const useProductDevelopmentLogic = () => {
     const [selectedProjectIds, setSelectedProjectIds] = useState([]);
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const debouncedDateFrom = useDebounce(dateFrom, 300);
+    const debouncedDateTo = useDebounce(dateTo, 300);
 
     const sortBy = sorting.length > 0 ? sorting[0].id : "";
     const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
@@ -34,6 +38,8 @@ export const useProductDevelopmentLogic = () => {
         searchTerm: debouncedSearchTerm,
         isActive: "true",
         status: selectedStatus,
+        dateFrom: debouncedDateFrom,
+        dateTo: debouncedDateTo,
         page: currentPage,
         limit: itemsPerPage,
         sortBy,
@@ -50,6 +56,16 @@ export const useProductDevelopmentLogic = () => {
 
     const handleStatusChange = (value) => {
         setSelectedStatus(value);
+        setCurrentPage(1);
+    };
+
+    const handleDateFromChange = (value) => {
+        setDateFrom(value);
+        setCurrentPage(1);
+    };
+
+    const handleDateToChange = (value) => {
+        setDateTo(value);
         setCurrentPage(1);
     };
 
@@ -74,6 +90,8 @@ export const useProductDevelopmentLogic = () => {
     return {
         searchTerm,
         selectedStatus,
+        dateFrom,
+        dateTo,
         currentPage,
         setCurrentPage,
         itemsPerPage,
@@ -92,6 +110,8 @@ export const useProductDevelopmentLogic = () => {
         error,
         handleSearchChange,
         handleStatusChange,
+        handleDateFromChange,
+        handleDateToChange,
         handleViewProjectDetails,
         filters,
     };
