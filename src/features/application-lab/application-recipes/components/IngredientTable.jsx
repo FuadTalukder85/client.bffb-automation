@@ -231,7 +231,7 @@ export default function IngredientTable({
                 {isSelectedForCompare && <Check className="w-3.5 h-3.5 stroke-[3]" />}
               </div>
             ) : vIsFinalized ? (
-              <span className="px-3 py-1 rounded-xl bg-white border border-purple-200 dark:bg-primary/30 text-[#4B208B] dark:text-purple-300 font-bold text-xs">
+              <span className="px-3 py-[3px] rounded-xl bg-white border border-purple-200 dark:bg-primary/30 text-[#4B208B] dark:text-purple-300 font-bold text-xs">
                 Approved
               </span>
             ) : (
@@ -704,7 +704,7 @@ export function IngredientTableLeftHeader({
               </button>
             </div>
             {/* Spacer row to match right side's Hidden (4) button row */}
-            <div className="h-9" />
+            <div className="h-6.5" />
           </div>
         </div>
       )}

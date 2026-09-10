@@ -85,6 +85,7 @@ export default function BatchSummary({
   data,
   isFirstVersion = false,
   batchRef,
+  minHeight,
   vBatchSummary,
   draftYield,
   setDraftYield,
@@ -170,29 +171,30 @@ export default function BatchSummary({
     setIsBatchSummaryEditing(false);
   };
 
-  const setRootRef = React.useCallback(
+  const setContentRef = React.useCallback(
     (node) => {
-      if (!isFirstVersion || !batchRef) return;
+      if (!batchRef) return;
       if (typeof batchRef === "function") {
         batchRef(node);
       } else if (batchRef && "current" in batchRef) {
         batchRef.current = node;
       }
     },
-    [isFirstVersion, batchRef]
+    [batchRef]
   );
 
   return (
     <div
-      ref={isFirstVersion ? setRootRef : undefined}
-      className="p-4 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
+      style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
+      className="p-4 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14] flex flex-col"
     >
-      {/* ================= 1. Output Block ================= */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-semibold text-[18px] text-[#0D111A] dark:text-white">
-            Output
-          </span>
+      <div ref={setContentRef} className="space-y-5">
+        {/* ================= 1. Output Block ================= */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-semibold text-[18px] text-[#0D111A] dark:text-white leading-6">
+              Output
+            </span>
 
           {isBatchSummaryEditing ? (
             <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
@@ -459,6 +461,7 @@ export default function BatchSummary({
           </SummaryCard>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -468,9 +471,9 @@ export function BatchSummaryLeftHeader({ height }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="p-6 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
+      className="px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
     >
-      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
+      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight leading-6">
         Batch Summary
       </h2>
     </div>

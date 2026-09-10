@@ -61,6 +61,7 @@ export default function StandardOperatingProcedure({
   recipeFormat = "bakery",
   isFirstVersion = false,
   sopRef,
+  minHeight,
   onSaveSpecificFields,
   isConfectionary = false,
   formatDate = (d) => d || "-",
@@ -401,17 +402,30 @@ export default function StandardOperatingProcedure({
   const ovenTimeRow = draftRotaryBakings.find((b) => b.label === "Oven Time") || { baking1: "", baking2: "" };
   const steamRow = draftRotaryBakings.find((b) => b.label === "Steam") || { baking1: "", baking2: "" };
 
+  const setContentRef = React.useCallback(
+    (node) => {
+      if (!sopRef) return;
+      if (typeof sopRef === "function") {
+        sopRef(node);
+      } else if (sopRef && "current" in sopRef) {
+        sopRef.current = node;
+      }
+    },
+    [sopRef]
+  );
+
   return (
     <div
-      ref={isFirstVersion ? sopRef : undefined}
-      className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
+      style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
+      className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14] flex flex-col"
     >
-      {/* Procedure Block (Image 2) */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">
-            Procedure
-          </span>
+      <div ref={setContentRef} className="space-y-6">
+        {/* Procedure Block (Image 2) */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-bold text-sm text-gray-900 dark:text-white leading-tight">
+              Procedure
+            </span>
 
           {isSOPEditing ? (
             <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
@@ -865,6 +879,7 @@ export default function StandardOperatingProcedure({
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -874,7 +889,7 @@ export function StandardOperatingProcedureLeftHeader({ height }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="p-6 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
+      className="px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
     >
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
         Standard Operating<br />Procedure

@@ -21,6 +21,8 @@ function VersionColumn({
   isFirstVersion = false,
   batchRef,
   sopRef,
+  batchHeight,
+  sopHeight,
   globalIngredients = [],
   showSolidLiquidColumn = true,
   formatDate,
@@ -269,6 +271,7 @@ function VersionColumn({
         data={data}
         isFirstVersion={isFirstVersion}
         batchRef={batchRef}
+        minHeight={batchHeight}
         vBatchSummary={vBatchSummary}
         draftYield={draftYield}
         setDraftYield={setDraftYield}
@@ -294,6 +297,7 @@ function VersionColumn({
         recipeFormat={recipeFormat}
         isFirstVersion={isFirstVersion}
         sopRef={sopRef}
+        minHeight={sopHeight}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
         formatDate={formatDate}
@@ -506,52 +510,121 @@ export default function RecipeDetailsTable({
     setTargetVersionForIngredient(null);
   };
 
-  // Section Height Matching for perfect horizontal alignment with left column
-  const [firstVersionBatchEl, setFirstVersionBatchEl] = useState(null);
-  const [firstVersionSopEl, setFirstVersionSopEl] = useState(null);
+  // Section Height Matching for perfect horizontal alignment with left column & across all visible versions
+  const batchElementsRef = useRef(new Map());
+  const sopElementsRef = useRef(new Map());
+  const resizeObserverRef = useRef(null);
   const [sectionHeights, setSectionHeights] = useState({ batchSummary: null, sop: null });
 
-  const firstVersionBatchRef = React.useCallback((node) => {
-    setFirstVersionBatchEl(node);
-  }, []);
+  const updateHeights = useCallback(() => {
+    let maxBS = 0;
+    batchElementsRef.current.forEach((el) => {
+      if (el) {
+        const h = el.offsetHeight + 32; // 32px accounts for p-4 (16px top + 16px bottom padding)
+        if (h > maxBS) maxBS = h;
+      }
+    });
 
-  const firstVersionSopRef = React.useCallback((node) => {
-    setFirstVersionSopEl(node);
+    let maxSOP = 0;
+    sopElementsRef.current.forEach((el) => {
+      if (el) {
+        const h = el.offsetHeight + 32; // 32px accounts for p-4 (16px top + 16px bottom padding)
+        if (h > maxSOP) maxSOP = h;
+      }
+    });
+
+    setSectionHeights((prev) => {
+      const newBS = maxBS || prev.batchSummary || null;
+      const newSOP = maxSOP || prev.sop || null;
+      if (prev.batchSummary === newBS && prev.sop === newSOP) return prev;
+      return { batchSummary: newBS, sop: newSOP };
+    });
   }, []);
 
   useEffect(() => {
-    const updateHeights = () => {
-      const bsHeight = firstVersionBatchEl?.offsetHeight;
-      const sopHeight = firstVersionSopEl?.offsetHeight;
-      setSectionHeights((prev) => {
-        const newBS = bsHeight || prev.batchSummary || null;
-        const newSOP = sopHeight || prev.sop || null;
-        if (prev.batchSummary === newBS && prev.sop === newSOP) return prev;
-        return { batchSummary: newBS, sop: newSOP };
-      });
-    };
+    resizeObserverRef.current = new ResizeObserver(() => {
+      updateHeights();
+    });
+    batchElementsRef.current.forEach((node) => {
+      if (node && resizeObserverRef.current) {
+        resizeObserverRef.current.observe(node);
+      }
+    });
+    sopElementsRef.current.forEach((node) => {
+      if (node && resizeObserverRef.current) {
+        resizeObserverRef.current.observe(node);
+      }
+    });
 
     updateHeights();
-
-    if (!firstVersionBatchEl && !firstVersionSopEl) return;
-
-    const observer = new ResizeObserver(updateHeights);
-    if (firstVersionBatchEl) observer.observe(firstVersionBatchEl);
-    if (firstVersionSopEl) observer.observe(firstVersionSopEl);
-
     const t1 = setTimeout(updateHeights, 50);
     const t2 = setTimeout(updateHeights, 150);
     const t3 = setTimeout(updateHeights, 500);
     window.addEventListener("resize", updateHeights);
 
     return () => {
-      observer.disconnect();
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       window.removeEventListener("resize", updateHeights);
     };
-  }, [firstVersionBatchEl, firstVersionSopEl, displayVersions]);
+  }, [updateHeights, visibleVersions]);
+
+  const batchRefCallbacksRef = useRef(new Map());
+  const sopRefCallbacksRef = useRef(new Map());
+
+  const getBatchRefCallback = useCallback(
+    (key) => {
+      if (!batchRefCallbacksRef.current.has(key)) {
+        batchRefCallbacksRef.current.set(key, (node) => {
+          if (node) {
+            batchElementsRef.current.set(key, node);
+            if (resizeObserverRef.current) {
+              resizeObserverRef.current.observe(node);
+            }
+            updateHeights();
+          } else {
+            const existing = batchElementsRef.current.get(key);
+            if (existing && resizeObserverRef.current) {
+              resizeObserverRef.current.unobserve(existing);
+            }
+            batchElementsRef.current.delete(key);
+            updateHeights();
+          }
+        });
+      }
+      return batchRefCallbacksRef.current.get(key);
+    },
+    [updateHeights]
+  );
+
+  const getSopRefCallback = useCallback(
+    (key) => {
+      if (!sopRefCallbacksRef.current.has(key)) {
+        sopRefCallbacksRef.current.set(key, (node) => {
+          if (node) {
+            sopElementsRef.current.set(key, node);
+            if (resizeObserverRef.current) {
+              resizeObserverRef.current.observe(node);
+            }
+            updateHeights();
+          } else {
+            const existing = sopElementsRef.current.get(key);
+            if (existing && resizeObserverRef.current) {
+              resizeObserverRef.current.unobserve(existing);
+            }
+            sopElementsRef.current.delete(key);
+            updateHeights();
+          }
+        });
+      }
+      return sopRefCallbacksRef.current.get(key);
+    },
+    [updateHeights]
+  );
 
   // Sync scroll for the static bottom scrollbar
   const localTableContainerRef = useRef(null);
@@ -840,32 +913,37 @@ export default function RecipeDetailsTable({
 
           {/* ================= RIGHT SCROLLABLE VERSION COLUMNS ================= */}
           <div className="flex items-start">
-            {visibleVersions.map((vItem, vIndex) => (
-              <VersionColumn
-                key={vItem._id || vItem.version || vIndex}
-                vItem={vItem}
-                data={data}
-                isFirstVersion={vIndex === 0}
-                batchRef={firstVersionBatchRef}
-                sopRef={firstVersionSopRef}
-                globalIngredients={globalIngredients}
-                showSolidLiquidColumn={showSolidLiquidColumn}
-                formatDate={formatDate}
-                onFinalizeVersion={onFinalizeVersion}
-                onFullDownload={onFullDownload}
-                onClientDownload={onClientDownload}
-                onPrepareSample={onPrepareSample}
-                onSample={onSample}
-                onEditRow={handleEditRow}
-                onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={effectiveRecipeFormat}
-                isConfectionary={isConfectionary}
-                isFinalized={isFinalized}
-                isSelectingForCompare={isSelectingForCompare}
-                isSelectedForCompare={selectedCompareVersionIds.includes(vItem._id ?? vItem.version)}
-                onToggleSelectCompare={() => onToggleSelectCompareVersion?.(vItem)}
-              />
-            ))}
+            {visibleVersions.map((vItem, vIndex) => {
+              const vKey = vItem._id || vItem.version || vIndex;
+              return (
+                <VersionColumn
+                  key={vKey}
+                  vItem={vItem}
+                  data={data}
+                  isFirstVersion={vIndex === 0}
+                  batchRef={getBatchRefCallback(vKey)}
+                  sopRef={getSopRefCallback(vKey)}
+                  batchHeight={sectionHeights.batchSummary}
+                  sopHeight={sectionHeights.sop}
+                  globalIngredients={globalIngredients}
+                  showSolidLiquidColumn={showSolidLiquidColumn}
+                  formatDate={formatDate}
+                  onFinalizeVersion={onFinalizeVersion}
+                  onFullDownload={onFullDownload}
+                  onClientDownload={onClientDownload}
+                  onPrepareSample={onPrepareSample}
+                  onSample={onSample}
+                  onEditRow={handleEditRow}
+                  onSaveSpecificFields={onSaveSpecificFields}
+                  recipeFormat={effectiveRecipeFormat}
+                  isConfectionary={isConfectionary}
+                  isFinalized={isFinalized}
+                  isSelectingForCompare={isSelectingForCompare}
+                  isSelectedForCompare={selectedCompareVersionIds.includes(vItem._id ?? vItem.version)}
+                  onToggleSelectCompare={() => onToggleSelectCompareVersion?.(vItem)}
+                />
+              );
+            })}
 
             {/* Far-Right Scale Batch Column in Confirmed Comparison Mode */}
             {isCompareConfirmed && scaleBatchVersion && (

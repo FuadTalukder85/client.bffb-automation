@@ -262,7 +262,7 @@ export function SensoryFeedbackLeftHeader({ height }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="p-6 flex-1 flex flex-col justify-start"
+      className="px-6 py-4 flex-1 flex flex-col justify-start"
     >
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
         Sensory Feedback
