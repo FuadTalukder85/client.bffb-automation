@@ -40,6 +40,7 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
     type: "",
     process: "",
     ingredient: "",
+    bffRate: "",
     clientRate: "",
     quantity: "",
   });
@@ -65,17 +66,19 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
   const handleSelectChange = (id, value) => {
     setFormData(prev => {
       if (id === "type") {
-        return { ...prev, type: value, ingredient: "", clientRate: "" };
+        return { ...prev, type: value, ingredient: "", bffRate: "", clientRate: "" };
       }
       if (id === "ingredient") {
         const selectedIngredient = (bffProductsData?.data || []).find((item) => item._id === value);
+        const standardPrice = selectedIngredient?.standardPrice;
+        const standardPriceStr =
+          standardPrice !== undefined && standardPrice !== null ? String(standardPrice) : "";
+
         return {
           ...prev,
           ingredient: value,
-          clientRate:
-            selectedIngredient?.standardPrice !== undefined && selectedIngredient?.standardPrice !== null
-              ? String(selectedIngredient.standardPrice)
-              : prev.clientRate,
+          bffRate: standardPriceStr !== "" ? standardPriceStr : prev.bffRate,
+          clientRate: standardPriceStr !== "" ? standardPriceStr : prev.clientRate,
         };
       }
       return { ...prev, [id]: value };
@@ -99,7 +102,7 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
         sourceId: formData.ingredient,
         sourceName: selectedIngredient?.name || "",
         sourceCode: getPreferredProductCode(selectedIngredient),
-        bffRateAtCreation: selectedIngredient?.standardPrice ?? 0,
+        bffRateAtCreation: formData.bffRate !== "" ? Number(formData.bffRate) : (selectedIngredient?.standardPrice ?? 0),
         clientRateAtCreation: Number(formData.clientRate),
       });
       handleClose();
@@ -112,6 +115,7 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
       type: "",
       process: "",
       ingredient: "",
+      bffRate: "",
       clientRate: "",
       quantity: "",
     });
@@ -125,7 +129,9 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
     (!isConfectionary || formData.process) &&
     formData.ingredient &&
     formData.quantity &&
-    formData.clientRate &&
+    formData.bffRate !== "" &&
+    !Number.isNaN(Number(formData.bffRate)) &&
+    formData.clientRate !== "" &&
     !Number.isNaN(Number(formData.clientRate));
 
   return (
@@ -203,20 +209,39 @@ export default function AddBFFProductModal({ isOpen, onClose, onConfirm, isConfe
             />
           </div>
 
-          {/* Quantity */}
-          <div className="space-y-2">
-            <label className="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs font-normal text-lighter-text">Client Rate</label>
-            <Input
-              type="number"
-              step="0.01"
-              value={formData.clientRate}
-              onChange={(e) => handleInputChange("clientRate", e.target.value)}
-              placeholder="0.00"
-              rightIcon={<span className="flex items-center text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-bold text-nav-highlight">৳</span>}
-              variant="default"
-              inputClassName="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs placeholder:text-xs lg:placeholder:text-[8px] xl:placeholder:text-[10px] 2xl:placeholder:text-xs 3xl:placeholder:text-xs"
-              className="h-8 lg:h-5.5 xl:h-5.5 2xl:h-6.5 3xl:h-8"
-            />
+          {/* Rates */}
+          <div className="grid grid-cols-2 gap-3 lg:gap-2">
+            {/* BFF Rate */}
+            <div className="space-y-2">
+              <label className="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs font-normal text-lighter-text">BFF Rate</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={formData.bffRate}
+                onChange={(e) => handleInputChange("bffRate", e.target.value)}
+                placeholder="0.00"
+                rightIcon={<span className="flex items-center text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-bold text-nav-highlight">৳</span>}
+                variant="default"
+                inputClassName="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs placeholder:text-xs lg:placeholder:text-[8px] xl:placeholder:text-[10px] 2xl:placeholder:text-xs 3xl:placeholder:text-xs"
+                className="h-8 lg:h-5.5 xl:h-5.5 2xl:h-6.5 3xl:h-8"
+              />
+            </div>
+
+            {/* Client Rate */}
+            <div className="space-y-2">
+              <label className="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs font-normal text-lighter-text">Client Rate</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={formData.clientRate}
+                onChange={(e) => handleInputChange("clientRate", e.target.value)}
+                placeholder="0.00"
+                rightIcon={<span className="flex items-center text-sm lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-sm font-bold text-nav-highlight">৳</span>}
+                variant="default"
+                inputClassName="text-xs lg:text-[8px] xl:text-[10px] 2xl:text-xs 3xl:text-xs placeholder:text-xs lg:placeholder:text-[8px] xl:placeholder:text-[10px] 2xl:placeholder:text-xs 3xl:placeholder:text-xs"
+                className="h-8 lg:h-5.5 xl:h-5.5 2xl:h-6.5 3xl:h-8"
+              />
+            </div>
           </div>
 
           {/* Quantity */}

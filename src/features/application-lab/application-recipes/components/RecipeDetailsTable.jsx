@@ -21,6 +21,8 @@ function VersionColumn({
   isFirstVersion = false,
   batchRef,
   sopRef,
+  batchHeight,
+  sopHeight,
   globalIngredients = [],
   showSolidLiquidColumn = true,
   formatDate,
@@ -269,6 +271,7 @@ function VersionColumn({
         data={data}
         isFirstVersion={isFirstVersion}
         batchRef={batchRef}
+        minHeight={batchHeight}
         vBatchSummary={vBatchSummary}
         draftYield={draftYield}
         setDraftYield={setDraftYield}
@@ -282,6 +285,8 @@ function VersionColumn({
         setIsBatchSummaryEditing={setIsBatchSummaryEditing}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
+        vIsFinalized={vIsFinalized}
+        isSelectingForCompare={isSelectingForCompare}
       />
 
       {/* 3. STANDARD OPERATING PROCEDURE SECTION */}
@@ -292,9 +297,12 @@ function VersionColumn({
         recipeFormat={recipeFormat}
         isFirstVersion={isFirstVersion}
         sopRef={sopRef}
+        minHeight={sopHeight}
         onSaveSpecificFields={onSaveSpecificFields}
         isConfectionary={isConfectionary}
         formatDate={formatDate}
+        vIsFinalized={vIsFinalized}
+        isSelectingForCompare={isSelectingForCompare}
       />
 
       {/* 4. SENSORY FEEDBACK SECTION */}
@@ -447,6 +455,29 @@ export default function RecipeDetailsTable({
     setTargetVersionForIngredient(null);
   };
 
+  const handleDeleteIngredient = async (ingredient) => {
+    if (!ingredient) return;
+    const targetRecipe = data;
+    const currentIngredients = Array.isArray(targetRecipe?.ingredients) ? [...targetRecipe.ingredients] : [];
+    const deleteIndex =
+      ingredient.originalIndex !== undefined && ingredient.originalIndex !== null
+        ? Number(ingredient.originalIndex)
+        : Number(ingredient.index);
+
+    if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
+      currentIngredients.splice(deleteIndex, 1);
+      if (ingredient._id && targetRecipe?._id) {
+        await deleteIngredientMutation.mutateAsync({
+          recipeId: targetRecipe._id,
+          ingredientId: ingredient._id,
+        });
+        onIngredientsChange?.(currentIngredients, targetRecipe?._id, { skipSave: true });
+      } else {
+        await onIngredientsChange?.(currentIngredients, targetRecipe?._id);
+      }
+    }
+  };
+
   const handleArchiveRow = (ingredient, vItem) => {
     setIngredientToArchive(ingredient);
     setTargetVersionForIngredient(vItem || data);
@@ -457,7 +488,10 @@ export default function RecipeDetailsTable({
     if (!ingredientToArchive) return;
     const targetRecipe = targetVersionForIngredient || data;
     const currentIngredients = Array.isArray(targetRecipe?.ingredients) ? [...targetRecipe.ingredients] : [];
-    const deleteIndex = Number(ingredientToArchive?.originalIndex);
+    const deleteIndex =
+      ingredientToArchive?.originalIndex !== undefined && ingredientToArchive?.originalIndex !== null
+        ? Number(ingredientToArchive.originalIndex)
+        : Number(ingredientToArchive?.index);
 
     if (Number.isInteger(deleteIndex) && deleteIndex >= 0 && deleteIndex < currentIngredients.length) {
       currentIngredients.splice(deleteIndex, 1);
@@ -476,52 +510,121 @@ export default function RecipeDetailsTable({
     setTargetVersionForIngredient(null);
   };
 
-  // Section Height Matching for perfect horizontal alignment with left column
-  const [firstVersionBatchEl, setFirstVersionBatchEl] = useState(null);
-  const [firstVersionSopEl, setFirstVersionSopEl] = useState(null);
+  // Section Height Matching for perfect horizontal alignment with left column & across all visible versions
+  const batchElementsRef = useRef(new Map());
+  const sopElementsRef = useRef(new Map());
+  const resizeObserverRef = useRef(null);
   const [sectionHeights, setSectionHeights] = useState({ batchSummary: null, sop: null });
 
-  const firstVersionBatchRef = React.useCallback((node) => {
-    setFirstVersionBatchEl(node);
-  }, []);
+  const updateHeights = useCallback(() => {
+    let maxBS = 0;
+    batchElementsRef.current.forEach((el) => {
+      if (el) {
+        const h = el.offsetHeight + 32; // 32px accounts for p-4 (16px top + 16px bottom padding)
+        if (h > maxBS) maxBS = h;
+      }
+    });
 
-  const firstVersionSopRef = React.useCallback((node) => {
-    setFirstVersionSopEl(node);
+    let maxSOP = 0;
+    sopElementsRef.current.forEach((el) => {
+      if (el) {
+        const h = el.offsetHeight + 32; // 32px accounts for p-4 (16px top + 16px bottom padding)
+        if (h > maxSOP) maxSOP = h;
+      }
+    });
+
+    setSectionHeights((prev) => {
+      const newBS = maxBS || prev.batchSummary || null;
+      const newSOP = maxSOP || prev.sop || null;
+      if (prev.batchSummary === newBS && prev.sop === newSOP) return prev;
+      return { batchSummary: newBS, sop: newSOP };
+    });
   }, []);
 
   useEffect(() => {
-    const updateHeights = () => {
-      const bsHeight = firstVersionBatchEl?.offsetHeight;
-      const sopHeight = firstVersionSopEl?.offsetHeight;
-      setSectionHeights((prev) => {
-        const newBS = bsHeight || prev.batchSummary || null;
-        const newSOP = sopHeight || prev.sop || null;
-        if (prev.batchSummary === newBS && prev.sop === newSOP) return prev;
-        return { batchSummary: newBS, sop: newSOP };
-      });
-    };
+    resizeObserverRef.current = new ResizeObserver(() => {
+      updateHeights();
+    });
+    batchElementsRef.current.forEach((node) => {
+      if (node && resizeObserverRef.current) {
+        resizeObserverRef.current.observe(node);
+      }
+    });
+    sopElementsRef.current.forEach((node) => {
+      if (node && resizeObserverRef.current) {
+        resizeObserverRef.current.observe(node);
+      }
+    });
 
     updateHeights();
-
-    if (!firstVersionBatchEl && !firstVersionSopEl) return;
-
-    const observer = new ResizeObserver(updateHeights);
-    if (firstVersionBatchEl) observer.observe(firstVersionBatchEl);
-    if (firstVersionSopEl) observer.observe(firstVersionSopEl);
-
     const t1 = setTimeout(updateHeights, 50);
     const t2 = setTimeout(updateHeights, 150);
     const t3 = setTimeout(updateHeights, 500);
     window.addEventListener("resize", updateHeights);
 
     return () => {
-      observer.disconnect();
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
       clearTimeout(t1);
       clearTimeout(t2);
       clearTimeout(t3);
       window.removeEventListener("resize", updateHeights);
     };
-  }, [firstVersionBatchEl, firstVersionSopEl, displayVersions]);
+  }, [updateHeights, visibleVersions]);
+
+  const batchRefCallbacksRef = useRef(new Map());
+  const sopRefCallbacksRef = useRef(new Map());
+
+  const getBatchRefCallback = useCallback(
+    (key) => {
+      if (!batchRefCallbacksRef.current.has(key)) {
+        batchRefCallbacksRef.current.set(key, (node) => {
+          if (node) {
+            batchElementsRef.current.set(key, node);
+            if (resizeObserverRef.current) {
+              resizeObserverRef.current.observe(node);
+            }
+            updateHeights();
+          } else {
+            const existing = batchElementsRef.current.get(key);
+            if (existing && resizeObserverRef.current) {
+              resizeObserverRef.current.unobserve(existing);
+            }
+            batchElementsRef.current.delete(key);
+            updateHeights();
+          }
+        });
+      }
+      return batchRefCallbacksRef.current.get(key);
+    },
+    [updateHeights]
+  );
+
+  const getSopRefCallback = useCallback(
+    (key) => {
+      if (!sopRefCallbacksRef.current.has(key)) {
+        sopRefCallbacksRef.current.set(key, (node) => {
+          if (node) {
+            sopElementsRef.current.set(key, node);
+            if (resizeObserverRef.current) {
+              resizeObserverRef.current.observe(node);
+            }
+            updateHeights();
+          } else {
+            const existing = sopElementsRef.current.get(key);
+            if (existing && resizeObserverRef.current) {
+              resizeObserverRef.current.unobserve(existing);
+            }
+            sopElementsRef.current.delete(key);
+            updateHeights();
+          }
+        });
+      }
+      return sopRefCallbacksRef.current.get(key);
+    },
+    [updateHeights]
+  );
 
   // Sync scroll for the static bottom scrollbar
   const localTableContainerRef = useRef(null);
@@ -575,6 +678,133 @@ export default function RecipeDetailsTable({
 
   const hasHorizontalScroll = scrollWidth > clientWidth + 10;
   const leftColWidth = isConfectionary ? 420 : 340;
+
+  // Drag-to-scroll functionality
+  const [isMouseDown, setIsMouseDown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragInfoRef = useRef({
+    startX: 0,
+    startScrollLeft: 0,
+    hasDragged: false,
+    lastX: 0,
+    lastTime: 0,
+    velocity: 0,
+  });
+  const momentumAnimIdRef = useRef(null);
+
+  const stopMomentum = useCallback(() => {
+    if (momentumAnimIdRef.current) {
+      cancelAnimationFrame(momentumAnimIdRef.current);
+      momentumAnimIdRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopMomentum();
+    };
+  }, [stopMomentum]);
+
+  const handleMouseDown = useCallback(
+    (e) => {
+      // Only primary mouse button (left click)
+      if (e.button !== 0) return;
+      const container = tableContainerRef.current;
+      if (!container) return;
+
+      stopMomentum();
+
+      // Check if clicked element is an interactive input or control where dragging is not desired
+      const target = e.target;
+      if (target.closest("input, textarea, select, [contenteditable='true']")) {
+        return;
+      }
+
+      setIsMouseDown(true);
+
+      dragInfoRef.current = {
+        startX: e.pageX,
+        startScrollLeft: container.scrollLeft,
+        hasDragged: false,
+        lastX: e.pageX,
+        lastTime: performance.now(),
+        velocity: 0,
+      };
+
+      const handleMouseMove = (moveEvent) => {
+        const dx = moveEvent.pageX - dragInfoRef.current.startX;
+        const now = performance.now();
+        const dt = now - dragInfoRef.current.lastTime;
+
+        if (!dragInfoRef.current.hasDragged && Math.abs(dx) > 4) {
+          dragInfoRef.current.hasDragged = true;
+          setIsDragging(true);
+        }
+
+        if (dragInfoRef.current.hasDragged) {
+          moveEvent.preventDefault();
+          container.scrollLeft = dragInfoRef.current.startScrollLeft - dx;
+
+          if (dt > 0) {
+            const instantVelocity = (moveEvent.pageX - dragInfoRef.current.lastX) / dt;
+            dragInfoRef.current.velocity =
+              0.8 * instantVelocity + 0.2 * (dragInfoRef.current.velocity || 0);
+            dragInfoRef.current.lastX = moveEvent.pageX;
+            dragInfoRef.current.lastTime = now;
+          }
+        }
+      };
+
+      const handleMouseUp = () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+
+        const hadDragged = dragInfoRef.current.hasDragged;
+        const timeSinceLastMove = performance.now() - dragInfoRef.current.lastTime;
+        let v = timeSinceLastMove > 80 ? 0 : dragInfoRef.current.velocity;
+
+        if (Math.abs(v) > 0.15) {
+          if (v > 2.5) v = 2.5;
+          if (v < -2.5) v = -2.5;
+
+          let currentV = v;
+          const step = () => {
+            if (Math.abs(currentV) < 0.05 || !tableContainerRef.current) {
+              momentumAnimIdRef.current = null;
+              return;
+            }
+            tableContainerRef.current.scrollLeft -= currentV * 14;
+            currentV *= 0.94;
+            momentumAnimIdRef.current = requestAnimationFrame(step);
+          };
+          momentumAnimIdRef.current = requestAnimationFrame(step);
+        }
+
+        requestAnimationFrame(() => {
+          setIsMouseDown(false);
+          setIsDragging(false);
+          if (hadDragged) {
+            setTimeout(() => {
+              dragInfoRef.current.hasDragged = false;
+            }, 60);
+          } else {
+            dragInfoRef.current.hasDragged = false;
+          }
+        });
+      };
+
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    },
+    [tableContainerRef, stopMomentum]
+  );
+
+  const handleClickCapture = useCallback((e) => {
+    if (dragInfoRef.current.hasDragged) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  }, []);
 
   // Auto-scroll selected version column smoothly into view if outside visible table area
   useEffect(() => {
@@ -643,7 +873,12 @@ export default function RecipeDetailsTable({
       <div
         ref={tableContainerRef}
         onScroll={handleTableScroll}
-        className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full border border-[#EEEBF4] dark:border-primary/40 rounded-3xl bg-white dark:bg-[#0D0B14]"
+        onMouseDown={handleMouseDown}
+        onClickCapture={handleClickCapture}
+        className={cn(
+          "overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full border border-[#EEEBF4] dark:border-primary/40 rounded-3xl bg-white dark:bg-[#0D0B14]",
+          isMouseDown && "cursor-grabbing select-none [&_*]:cursor-grabbing!"
+        )}
       >
         <div className="flex min-w-max">
           {/* ================= LEFT CONTINUOUS SOLID FIXED COLUMN ================= */}
@@ -660,6 +895,10 @@ export default function RecipeDetailsTable({
               isConfectionary={isConfectionary}
               onOpenBFFModal={() => setIsBFFModalOpen(true)}
               onOpenStandardIngredientModal={() => setIsStandardIngredientModalOpen(true)}
+              isSelectingForCompare={isSelectingForCompare}
+              onDeleteIngredient={handleDeleteIngredient}
+              isFinalized={isFinalized}
+              isLoading={deleteIngredientMutation.isPending}
             />
 
             {/* 2. Batch Summary Left Title */}
@@ -674,32 +913,37 @@ export default function RecipeDetailsTable({
 
           {/* ================= RIGHT SCROLLABLE VERSION COLUMNS ================= */}
           <div className="flex items-start">
-            {visibleVersions.map((vItem, vIndex) => (
-              <VersionColumn
-                key={vItem._id || vItem.version || vIndex}
-                vItem={vItem}
-                data={data}
-                isFirstVersion={vIndex === 0}
-                batchRef={firstVersionBatchRef}
-                sopRef={firstVersionSopRef}
-                globalIngredients={globalIngredients}
-                showSolidLiquidColumn={showSolidLiquidColumn}
-                formatDate={formatDate}
-                onFinalizeVersion={onFinalizeVersion}
-                onFullDownload={onFullDownload}
-                onClientDownload={onClientDownload}
-                onPrepareSample={onPrepareSample}
-                onSample={onSample}
-                onEditRow={handleEditRow}
-                onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={effectiveRecipeFormat}
-                isConfectionary={isConfectionary}
-                isFinalized={isFinalized}
-                isSelectingForCompare={isSelectingForCompare}
-                isSelectedForCompare={selectedCompareVersionIds.includes(vItem._id ?? vItem.version)}
-                onToggleSelectCompare={() => onToggleSelectCompareVersion?.(vItem)}
-              />
-            ))}
+            {visibleVersions.map((vItem, vIndex) => {
+              const vKey = vItem._id || vItem.version || vIndex;
+              return (
+                <VersionColumn
+                  key={vKey}
+                  vItem={vItem}
+                  data={data}
+                  isFirstVersion={vIndex === 0}
+                  batchRef={getBatchRefCallback(vKey)}
+                  sopRef={getSopRefCallback(vKey)}
+                  batchHeight={sectionHeights.batchSummary}
+                  sopHeight={sectionHeights.sop}
+                  globalIngredients={globalIngredients}
+                  showSolidLiquidColumn={showSolidLiquidColumn}
+                  formatDate={formatDate}
+                  onFinalizeVersion={onFinalizeVersion}
+                  onFullDownload={onFullDownload}
+                  onClientDownload={onClientDownload}
+                  onPrepareSample={onPrepareSample}
+                  onSample={onSample}
+                  onEditRow={handleEditRow}
+                  onSaveSpecificFields={onSaveSpecificFields}
+                  recipeFormat={effectiveRecipeFormat}
+                  isConfectionary={isConfectionary}
+                  isFinalized={isFinalized}
+                  isSelectingForCompare={isSelectingForCompare}
+                  isSelectedForCompare={selectedCompareVersionIds.includes(vItem._id ?? vItem.version)}
+                  onToggleSelectCompare={() => onToggleSelectCompareVersion?.(vItem)}
+                />
+              );
+            })}
 
             {/* Far-Right Scale Batch Column in Confirmed Comparison Mode */}
             {isCompareConfirmed && scaleBatchVersion && (
@@ -711,11 +955,7 @@ export default function RecipeDetailsTable({
                 globalIngredients={globalIngredients}
                 showSolidLiquidColumn={showSolidLiquidColumn}
                 formatDate={formatDate}
-                onSaveSpecificFields={onSaveSpecificFields}
-                recipeFormat={effectiveRecipeFormat}
                 isConfectionary={isConfectionary}
-                isFinalized={isFinalized}
-                onEditRow={handleEditRow}
               />
             )}
           </div>

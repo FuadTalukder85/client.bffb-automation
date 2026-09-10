@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Save, X } from "lucide-react";
 import { FaEdit } from "react-icons/fa";
-import { mapUIParamsToBackend, buildSOPDataFromRecipe } from "../data/sopDataByFormat";
+import { mapUIParamsToBackend, buildSOPDataFromRecipe, parseStoredComments } from "../data/sopDataByFormat";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const defaultParams = [
@@ -53,60 +53,6 @@ const defaultAfterBake = [
   { label: "Moisture", value: "", unit: "" },
 ];
 
-const parseStoredComments = (rawVal, defaultAuthor, defaultDate) => {
-  if (!rawVal || typeof rawVal !== "string" || !rawVal.trim()) return [];
-  const trimmed = rawVal.trim();
-
-  // 1. Try parsing JSON array
-  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) {
-        return parsed
-          .filter((item) => item && (item.text || item.comment))
-          .map((item) => ({
-            userName: item.userName || item.user || defaultAuthor || "User",
-            user: item.userName || item.user || defaultAuthor || "User",
-            text: item.text || item.comment || "",
-            comment: item.text || item.comment || "",
-            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
-            tag: item.tag || null,
-          }));
-      }
-    } catch (e) { }
-  }
-
-  // 2. Try parsing single JSON object
-  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    try {
-      const item = JSON.parse(trimmed);
-      if (item && (item.text || item.comment)) {
-        return [
-          {
-            userName: item.userName || item.user || defaultAuthor || "User",
-            user: item.userName || item.user || defaultAuthor || "User",
-            text: item.text || item.comment || "",
-            comment: item.text || item.comment || "",
-            createdAt: item.createdAt || defaultDate || new Date().toISOString(),
-            tag: item.tag || null,
-          },
-        ];
-      }
-    } catch (e) { }
-  }
-
-  // 3. Fallback: legacy plain text comment
-  return [
-    {
-      userName: defaultAuthor || "User",
-      user: defaultAuthor || "User",
-      text: trimmed,
-      comment: trimmed,
-      createdAt: defaultDate || new Date().toISOString(),
-    },
-  ];
-};
-
 // ================= STANDARD OPERATING PROCEDURE VERSION COLUMN =================
 export default function StandardOperatingProcedure({
   vItem,
@@ -115,9 +61,12 @@ export default function StandardOperatingProcedure({
   recipeFormat = "bakery",
   isFirstVersion = false,
   sopRef,
+  minHeight,
   onSaveSpecificFields,
   isConfectionary = false,
   formatDate = (d) => d || "-",
+  vIsFinalized = false,
+  isSelectingForCompare = false,
 }) {
   const [isSOPEditing, setIsSOPEditing] = useState(false);
   const [isSavingSOP, setIsSavingSOP] = useState(false);
@@ -281,6 +230,7 @@ export default function StandardOperatingProcedure({
         const newEntry = {
           userName: currentUserName,
           user: currentUserName,
+          name: currentUserName,
           text: newCommentText.trim(),
           comment: newCommentText.trim(),
           createdAt: new Date().toISOString(),
@@ -330,14 +280,20 @@ export default function StandardOperatingProcedure({
     const list = [];
     if (Array.isArray(vItem?.activities) && vItem.activities.length > 0) {
       list.push(...vItem.activities);
+    } else if (Array.isArray(data?.activities) && data.activities.length > 0) {
+      list.push(...data.activities);
     }
 
-    const procOthers = vItem?.procedureOthers || normalizedVItem?.procedureOthers;
-    if (procOthers && typeof procOthers === "string" && procOthers.trim()) {
+    const procOthers =
+      vItem?.procedureOthers ||
+      normalizedVItem?.procedureOthers ||
+      data?.procedureOthers;
+
+    if (procOthers && (typeof procOthers === "string" || Array.isArray(procOthers))) {
       const parsed = parseStoredComments(
         procOthers,
         dynamicAuthor,
-        vItem?.updatedAt || vItem?.createdAt
+        vItem?.updatedAt || vItem?.createdAt || data?.updatedAt || data?.createdAt
       );
 
       parsed.forEach((p) => {
@@ -355,14 +311,7 @@ export default function StandardOperatingProcedure({
     }
 
     return list;
-  }, [
-    vItem?.activities,
-    vItem?.procedureOthers,
-    normalizedVItem?.procedureOthers,
-    dynamicAuthor,
-    vItem?.updatedAt,
-    vItem?.createdAt,
-  ]);
+  }, [vItem, normalizedVItem, data, dynamicAuthor]);
 
   // Consolidate stored activities and newly posted local comments
   const effectiveActivities = useMemo(() => {
@@ -392,6 +341,7 @@ export default function StandardOperatingProcedure({
       const newEntry = {
         userName: currentUserName,
         user: currentUserName,
+        name: currentUserName,
         text,
         comment: text,
         createdAt: new Date().toISOString(),
@@ -452,17 +402,30 @@ export default function StandardOperatingProcedure({
   const ovenTimeRow = draftRotaryBakings.find((b) => b.label === "Oven Time") || { baking1: "", baking2: "" };
   const steamRow = draftRotaryBakings.find((b) => b.label === "Steam") || { baking1: "", baking2: "" };
 
+  const setContentRef = React.useCallback(
+    (node) => {
+      if (!sopRef) return;
+      if (typeof sopRef === "function") {
+        sopRef(node);
+      } else if (sopRef && "current" in sopRef) {
+        sopRef.current = node;
+      }
+    },
+    [sopRef]
+  );
+
   return (
     <div
-      ref={isFirstVersion ? sopRef : undefined}
-      className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
+      style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
+      className="p-4 space-y-6 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14] flex flex-col"
     >
-      {/* Procedure Block (Image 2) */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-bold text-sm text-gray-900 dark:text-white">
-            Procedure
-          </span>
+      <div ref={setContentRef} className="space-y-6">
+        {/* Procedure Block (Image 2) */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-bold text-sm text-gray-900 dark:text-white leading-tight">
+              Procedure
+            </span>
 
           {isSOPEditing ? (
             <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
@@ -486,7 +449,7 @@ export default function StandardOperatingProcedure({
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
+          ) : !vIsFinalized && !isSelectingForCompare ? (
             <button
               type="button"
               onClick={() => setIsSOPEditing(true)}
@@ -498,7 +461,7 @@ export default function StandardOperatingProcedure({
                 <path d="M8.87126 0.718368C9.0911 0.498513 9.38927 0.375 9.70017 0.375C10.0111 0.375 10.3092 0.498513 10.5291 0.718368C10.7489 0.938222 10.8724 1.23641 10.8724 1.54733C10.8724 1.85825 10.7489 2.15644 10.5291 2.37629L5.54843 7.35781C5.41721 7.48892 5.25511 7.58489 5.07705 7.63689L3.48941 8.10111C3.44186 8.11498 3.39146 8.11581 3.34347 8.10352C3.29549 8.09122 3.25169 8.06626 3.21667 8.03123C3.18165 7.9962 3.15668 7.95241 3.14439 7.90442C3.13209 7.85643 3.13293 7.80603 3.14679 7.75847L3.61098 6.17073C3.66322 5.99281 3.75938 5.83089 3.8906 5.69988L8.87126 0.718368Z" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
             </button>
-          )}
+          ) : null}
         </div>
 
         {isSOPEditing ? (
@@ -535,6 +498,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={param.value}
+                      placeholder={param.unit || ""}
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftParams((prev) =>
@@ -543,7 +507,6 @@ export default function StandardOperatingProcedure({
                       }}
                       className="w-full text-left px-1.5 py-0.5 rounded border-2 border-[#4B208B] text-xs font-bold text-gray-900 dark:text-white bg-white dark:bg-[#151221]"
                     />
-                    {param.unit && <span className="font-bold text-gray-900 dark:text-white text-xs">{param.unit}</span>}
                   </div>
                 ) : (
                   <>
@@ -588,6 +551,7 @@ export default function StandardOperatingProcedure({
                       <input
                         type="text"
                         value={topZone[zk] || ""}
+                        placeholder="°C"
                         onChange={(e) => {
                           const val = e.target.value;
                           setDraftTunnelZones((prev) =>
@@ -611,6 +575,7 @@ export default function StandardOperatingProcedure({
                       <input
                         type="text"
                         value={bottomZone[zk] || ""}
+                        placeholder="°C"
                         onChange={(e) => {
                           const val = e.target.value;
                           setDraftTunnelZones((prev) =>
@@ -633,6 +598,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={draftBakingTime}
+                      placeholder="min"
                       onChange={(e) => setDraftBakingTime(e.target.value)}
                       className="w-16 text-center text-xs font-bold bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
                     />
@@ -649,6 +615,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={draftBeltSpeed}
+                      placeholder="min"
                       onChange={(e) => setDraftBeltSpeed(e.target.value)}
                       className="w-16 text-center text-xs font-bold bg-transparent border-b-2 border-[#4B208B] focus:outline-none"
                     />
@@ -680,6 +647,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTempRow.baking1 || ""}
+                      placeholder="°C"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -697,6 +665,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTempRow.baking2 || ""}
+                      placeholder="°C"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -718,6 +687,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTimeRow.baking1 || ""}
+                      placeholder="min"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -735,6 +705,7 @@ export default function StandardOperatingProcedure({
                     <input
                       type="text"
                       value={ovenTimeRow.baking2 || ""}
+                      placeholder="min"
                       onChange={(e) => {
                         const val = e.target.value;
                         setDraftRotaryBakings((prev) =>
@@ -851,20 +822,33 @@ export default function StandardOperatingProcedure({
               >
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-full bg-primary text-white font-bold text-[13px] flex items-center justify-center">
-                    {(act.userName || act.user || "U").slice(0, 2).toUpperCase()}
+                    {(act.userName || act.user || act.name || "U").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex items-center gap-1.5 flex-1 overflow-hidden">
                     <span className="text-[14px] font-semibold text-[#0D111A] dark:text-white truncate">
-                      {act.userName || act.user || "User"}
+                      {act.userName || act.user || act.name || "User"}
                     </span>
-                    {act.tag && (
+                    {act.tag && act.tag !== "Application Recipe" && (
                       <span className="px-1.5 py-0.5 rounded-md bg-[#EFEAF9] dark:bg-primary/25 text-[#4B208B] dark:text-purple-300 text-[10px] font-semibold whitespace-nowrap">
                         {act.tag}
                       </span>
                     )}
                   </div>
                   <span className="text-[11px] text-[#757575] whitespace-nowrap">
-                    {formatDate(act.createdAt) || "-"}
+                    {(() => {
+                      if (!act.createdAt) return "-";
+                      if (typeof formatDate === "function") {
+                        const res = formatDate(act.createdAt);
+                        if (res && res !== act.createdAt) return res;
+                      }
+                      const dObj = new Date(act.createdAt);
+                      if (isNaN(dObj.getTime())) return String(act.createdAt);
+                      return dObj.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      });
+                    })()}
                   </span>
                 </div>
                 <p className="text-[#0D111A] dark:text-gray-300 leading-relaxed text-[14px] font-medium">
@@ -895,6 +879,7 @@ export default function StandardOperatingProcedure({
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -904,7 +889,7 @@ export function StandardOperatingProcedureLeftHeader({ height }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="p-6 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
+      className="px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
     >
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
         Standard Operating<br />Procedure

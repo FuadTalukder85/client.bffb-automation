@@ -85,6 +85,7 @@ export default function BatchSummary({
   data,
   isFirstVersion = false,
   batchRef,
+  minHeight,
   vBatchSummary,
   draftYield,
   setDraftYield,
@@ -98,6 +99,8 @@ export default function BatchSummary({
   setIsBatchSummaryEditing,
   onSaveSpecificFields,
   isConfectionary = false,
+  vIsFinalized = false,
+  isSelectingForCompare = false,
 }) {
   const [isSavingBatchSummary, setIsSavingBatchSummary] = useState(false);
 
@@ -168,29 +171,30 @@ export default function BatchSummary({
     setIsBatchSummaryEditing(false);
   };
 
-  const setRootRef = React.useCallback(
+  const setContentRef = React.useCallback(
     (node) => {
-      if (!isFirstVersion || !batchRef) return;
+      if (!batchRef) return;
       if (typeof batchRef === "function") {
         batchRef(node);
       } else if (batchRef && "current" in batchRef) {
         batchRef.current = node;
       }
     },
-    [isFirstVersion, batchRef]
+    [batchRef]
   );
 
   return (
     <div
-      ref={isFirstVersion ? setRootRef : undefined}
-      className="p-4 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14]"
+      style={minHeight ? { minHeight: `${minHeight}px` } : undefined}
+      className="p-4 border-b border-[#EEEBF4] dark:border-primary/40 bg-white dark:bg-[#0D0B14] flex flex-col"
     >
-      {/* ================= 1. Output Block ================= */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-semibold text-[18px] text-[#0D111A] dark:text-white">
-            Output
-          </span>
+      <div ref={setContentRef} className="space-y-5">
+        {/* ================= 1. Output Block ================= */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-semibold text-[18px] text-[#0D111A] dark:text-white leading-6">
+              Output
+            </span>
 
           {isBatchSummaryEditing ? (
             <div className="flex items-center overflow-hidden rounded-xl bg-[#4B208B] text-white shadow-sm">
@@ -214,7 +218,7 @@ export default function BatchSummary({
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
-          ) : (
+          ) : !vIsFinalized && !isSelectingForCompare ? (
             <button
               type="button"
               onClick={() => setIsBatchSummaryEditing(true)}
@@ -225,9 +229,8 @@ export default function BatchSummary({
                 <path d="M5.34847 0.928711H1.48022C1.18709 0.928711 0.905978 1.04516 0.69871 1.25244C0.491442 1.45972 0.375 1.74086 0.375 2.03399V9.77098C0.375 10.0641 0.491442 10.3453 0.69871 10.5525C0.905978 10.7598 1.18709 10.8763 1.48022 10.8763H9.21673C9.50985 10.8763 9.79096 10.7598 9.99823 10.5525C10.2055 10.3453 10.3219 10.0641 10.3219 9.77098V5.90249" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
                 <path d="M8.87126 0.718368C9.0911 0.498513 9.38927 0.375 9.70017 0.375C10.0111 0.375 10.3092 0.498513 10.5291 0.718368C10.7489 0.938222 10.8724 1.23641 10.8724 1.54733C10.8724 1.85825 10.7489 2.15644 10.5291 2.37629L5.54843 7.35781C5.41721 7.48892 5.25511 7.58489 5.07705 7.63689L3.48941 8.10111C3.44186 8.11498 3.39146 8.11581 3.34347 8.10352C3.29549 8.09122 3.25169 8.06626 3.21667 8.03123C3.18165 7.9962 3.15668 7.95241 3.14439 7.90442C3.13209 7.85643 3.13293 7.80603 3.14679 7.75847L3.61098 6.17073C3.66322 5.99281 3.75938 5.83089 3.8906 5.69988L8.87126 0.718368Z" stroke="white" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-
             </button>
-          )}
+          ) : null}
         </div>
 
         {/* Output Cards (Card 1: Yield & Serving Size, Card 2: Output Pieces & Output) */}
@@ -458,6 +461,7 @@ export default function BatchSummary({
           </SummaryCard>
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -467,9 +471,9 @@ export function BatchSummaryLeftHeader({ height }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="p-6 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
+      className="px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
     >
-      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
+      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight leading-6">
         Batch Summary
       </h2>
     </div>

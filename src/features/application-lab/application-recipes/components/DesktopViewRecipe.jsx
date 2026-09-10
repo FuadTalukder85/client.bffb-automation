@@ -50,6 +50,7 @@ export default function DesktopViewRecipe({
   const [isCompareConfirmed, setIsCompareConfirmed] = useState(false);
   const [selectedCompareVersionIds, setSelectedCompareVersionIds] = useState([]);
   const [selectedScaleBatchVersionId, setSelectedScaleBatchVersionId] = useState(null);
+  const [isAccordionExpanded, setIsAccordionExpanded] = useState(false);
 
   const toUiVersionNumber = (version) => {
     const numericVersion = Number(version);
@@ -375,7 +376,7 @@ export default function DesktopViewRecipe({
 
       <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-3xl p-6 shadow-sm">
         {/* Expandable Cards Row: Basic Information & Benchmark (Side-by-side, initially collapsed as in Image 1) */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
           <BasicInformation
             project={project}
             recipe={recipe}
@@ -383,6 +384,10 @@ export default function DesktopViewRecipe({
             onSaveSpecificFields={onSaveSpecificFields}
             handleRecipeChange={handleRecipeChange}
             isFinalized={isFinalized}
+            isExpanded={isAccordionExpanded}
+            onToggleExpand={(nextVal) =>
+              setIsAccordionExpanded((prev) => (typeof nextVal === "boolean" ? nextVal : !prev))
+            }
           />
 
           <BenchmarkCard
@@ -391,6 +396,10 @@ export default function DesktopViewRecipe({
             onSaveSpecificFields={onSaveSpecificFields}
             onChange={handleSOPChange}
             isFinalized={isFinalized}
+            isExpanded={isAccordionExpanded}
+            onToggleExpand={(nextVal) =>
+              setIsAccordionExpanded((prev) => (typeof nextVal === "boolean" ? nextVal : !prev))
+            }
           />
         </div>
 
@@ -562,7 +571,7 @@ export default function DesktopViewRecipe({
                   type="button"
                   onClick={onChangeRecipeType}
                   disabled={isEditMode || !isTypeChangeEligible}
-                  className="px-4 py-2 rounded-full border border-gray-200 dark:border-primary/30 bg-gray-100/50 dark:bg-[#121019] text-gray-400 font-bold text-xs flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="px-4 py-2 rounded-full border border-[#D8CBF2] dark:border-primary/40 bg-purple-50/50 dark:bg-primary/20 text-[#4B208B] dark:text-purple-300 font-bold text-xs flex items-center gap-1.5 hover:bg-purple-100 dark:hover:bg-primary/30 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Change Recipe Format
                 </button>

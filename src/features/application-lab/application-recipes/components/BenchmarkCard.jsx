@@ -10,9 +10,13 @@ export default function BenchmarkCard({
   onSaveSpecificFields,
   onChange,
   isFinalized = false,
+  isExpanded: controlledExpanded,
+  onToggleExpand,
 }) {
-  // Initial state is COLLAPSED (Image 1)
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isControlled = controlledExpanded !== undefined;
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const isExpanded = isControlled ? controlledExpanded : localExpanded;
+
   // Completely INDEPENDENT edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -64,17 +68,44 @@ export default function BenchmarkCard({
     setDraftAnalyticalReport(initialAnalyticalReport);
   }, [sopData, recipe]);
 
-  const handleStartEdit = () => {
+  useEffect(() => {
+    if (!isExpanded && isEditing) {
+      setIsEditing(false);
+    }
+  }, [isExpanded, isEditing]);
+
+  const handleToggle = (e) => {
+    e?.stopPropagation?.();
+    const nextState = !isExpanded;
+    if (isExpanded && isEditing) {
+      handleCancelLocal(e);
+    }
+    if (isControlled) {
+      onToggleExpand?.(nextState);
+    } else {
+      setLocalExpanded(nextState);
+    }
+  };
+
+  const handleStartEdit = (e) => {
+    e?.stopPropagation?.();
     setDraftComment(initialComment);
     setDraftRemark(initialRemark);
     setDraftOthers(initialOthers);
     setDraftPDFeedback(initialPDFeedback);
     setDraftAnalyticalReport(initialAnalyticalReport);
-    setIsExpanded(true); // Automatically expand so fields can be edited immediately
+    if (!isExpanded) {
+      if (isControlled) {
+        onToggleExpand?.(true);
+      } else {
+        setLocalExpanded(true);
+      }
+    }
     setIsEditing(true);
   };
 
-  const handleSaveLocal = async () => {
+  const handleSaveLocal = async (e) => {
+    e?.stopPropagation?.();
     try {
       setIsSaving(true);
       if (onSaveSpecificFields) {
@@ -112,7 +143,8 @@ export default function BenchmarkCard({
     }
   };
 
-  const handleCancelLocal = () => {
+  const handleCancelLocal = (e) => {
+    e?.stopPropagation?.();
     setDraftComment(initialComment);
     setDraftRemark(initialRemark);
     setDraftOthers(initialOthers);
@@ -128,14 +160,23 @@ export default function BenchmarkCard({
   };
 
   return (
-    <div className="flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-[20px] px-6 py-4 shadow-sm transition-all">
+    <div
+      onClick={!isExpanded ? handleToggle : undefined}
+      className={cn(
+        "flex flex-col bg-white dark:bg-[#0D0B14] border border-[#EEEBF4] dark:border-primary/40 rounded-[20px] px-6 py-4 shadow-sm transition-all",
+        !isExpanded && "cursor-pointer hover:border-[#4B208B]/40 dark:hover:border-[#4B208B]/60"
+      )}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-[22px] font-semibold text-[#0D111A] dark:text-white tracking-tight">
+      <div
+        onClick={handleToggle}
+        className="flex items-center justify-between cursor-pointer select-none group"
+      >
+        <h2 className="text-[22px] font-semibold text-[#0D111A] dark:text-white tracking-tight group-hover:text-[#4B208B] dark:group-hover:text-purple-400 transition-colors">
           Benchmark
         </h2>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
           {/* Edit / Save / Cancel Controls (visible only when expanded) */}
           {isExpanded && (
             isEditing ? (
@@ -176,14 +217,9 @@ export default function BenchmarkCard({
           {/* Chevron expand/collapse toggle */}
           <button
             type="button"
-            onClick={() => {
-              if (isExpanded && isEditing) {
-                handleCancelLocal();
-              }
-              setIsExpanded((prev) => !prev);
-            }}
+            onClick={handleToggle}
             title={isExpanded ? "Collapse" : "Expand"}
-            className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white transition-colors cursor-pointer"
           >
             {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
