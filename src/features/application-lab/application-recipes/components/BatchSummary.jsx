@@ -467,13 +467,13 @@ export default function BatchSummary({
 }
 
 // ================= BATCH SUMMARY LEFT COLUMN =================
-export function BatchSummaryLeftHeader({ height }) {
+export function BatchSummaryLeftHeader({ height, className }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start"
+      className={cn("px-6 py-4 border-b border-[#EEEBF4] dark:border-primary/40 flex flex-col justify-start", className)}
     >
-      <h2 className="text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight leading-6">
+      <h2 className="text-[20px] sm:text-[24px] font-semibold text-[#0D111A] dark:text-white tracking-tight leading-6">
         Batch Summary
       </h2>
     </div>

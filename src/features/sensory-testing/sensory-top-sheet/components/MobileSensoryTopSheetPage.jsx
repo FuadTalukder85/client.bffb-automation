@@ -52,6 +52,10 @@ export default function MobileSensoryTopSheetPage({
   noDataDescription,
   errorMessage,
   hasError,
+  dateFrom,
+  dateTo,
+  handleDateFromChange,
+  handleDateToChange,
 }) {
   const filters = [
     {
@@ -89,6 +93,12 @@ export default function MobileSensoryTopSheetPage({
         searchPlaceholder="Search..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       <div className="flex flex-col flex-1 w-full min-h-0 py-4 overflow-y-auto custom-scrollbar">

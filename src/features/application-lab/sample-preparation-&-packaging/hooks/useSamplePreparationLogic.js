@@ -14,16 +14,20 @@ export const useSamplePreparationLogic = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(20);
     const [sorting, setSorting] = useState([]);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, selectedStatus, selectedPeriod]);
+    }, [searchTerm, selectedStatus, selectedPeriod, dateFrom, dateTo]);
 
     const [columnVisibility, setColumnVisibility] = useState({});
     const [columnPinning, setColumnPinning] = useState({});
     const [columnSizing, setColumnSizing] = useState({});
 
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    const debouncedDateFrom = useDebounce(dateFrom, 300);
+    const debouncedDateTo = useDebounce(dateTo, 300);
 
     // Get user permissions
     const { permissions, loading: permissionsLoading } = useUserPermissions();
@@ -54,6 +58,8 @@ export const useSamplePreparationLogic = () => {
         status: selectedStatus,
         isActive: "true", // Only active projects
         isFeasible: "all",
+        dateFrom: debouncedDateFrom,
+        dateTo: debouncedDateTo,
         page: currentPage,
         limit: itemsPerPage,
         sortBy,
@@ -81,6 +87,16 @@ export const useSamplePreparationLogic = () => {
 
     const handlePeriodChange = (value) => {
         setSelectedPeriod(value);
+        setCurrentPage(1);
+    };
+
+    const handleDateFromChange = (value) => {
+        setDateFrom(value);
+        setCurrentPage(1);
+    };
+
+    const handleDateToChange = (value) => {
+        setDateTo(value);
         setCurrentPage(1);
     };
 
@@ -134,6 +150,12 @@ export const useSamplePreparationLogic = () => {
         handleSearchChange,
         handleStatusChange,
         handlePeriodChange,
+        handleDateFromChange,
+        handleDateToChange,
+        dateFrom,
+        dateTo,
+        setDateFrom,
+        setDateTo,
         handleViewProjectDetails,
         filters,
         filteredPeriodOptions,

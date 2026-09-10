@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -59,6 +60,8 @@ export default function FinalRecipes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRecipeType, setSelectedRecipeType] = useState("all");
   const [selectedState, setSelectedState] = useState("true");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
@@ -68,7 +71,7 @@ export default function FinalRecipes() {
 
   React.useEffect(() => {
     setSelectedRowIds([]);
-  }, [currentPage, searchTerm, selectedRecipeType, selectedState]);
+  }, [currentPage, searchTerm, selectedRecipeType, selectedState, dateFrom, dateTo]);
 
   const [sorting, setSorting] = useState([]);
   const [isCreateRecipeModalOpen, setIsCreateRecipeModalOpen] = useState(false);
@@ -88,6 +91,8 @@ export default function FinalRecipes() {
   });
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedDateFrom = useDebounce(dateFrom, 300);
+  const debouncedDateTo = useDebounce(dateTo, 300);
 
   // Persistence effects
   React.useEffect(() => {
@@ -131,6 +136,8 @@ export default function FinalRecipes() {
     searchTerm: debouncedSearchTerm,
     recipeType: selectedRecipeType,
     isActive: selectedState,
+    dateFrom: debouncedDateFrom,
+    dateTo: debouncedDateTo,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
@@ -158,6 +165,16 @@ export default function FinalRecipes() {
 
   const handleStateChange = useCallback((value) => {
     setSelectedState(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleDateFromChange = useCallback((value) => {
+    setDateFrom(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleDateToChange = useCallback((value) => {
+    setDateTo(value);
     setCurrentPage(1);
   }, []);
 
@@ -355,6 +372,12 @@ export default function FinalRecipes() {
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
         className="flex-none"
       />
 
@@ -405,6 +428,16 @@ export default function FinalRecipes() {
             onChange={handleStateChange}
           />
         </div>
+      </div>
+
+      {/* Date Range Filter - Desktop */}
+      <div className="flex-none hidden mb-2 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       <div className="flex flex-col flex-1 w-full min-h-0">

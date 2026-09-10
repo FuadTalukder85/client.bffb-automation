@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { useSamplePreparationLogic } from "./hooks/useSamplePreparationLogic";
@@ -35,6 +36,10 @@ const SamplePreparationAndPackagingPage = () => {
     totalPages,
     filters,
     filteredPeriodOptions,
+    dateFrom,
+    dateTo,
+    handleDateFromChange,
+    handleDateToChange,
   } = useSamplePreparationLogic();
 
   const getErrorMessage = (error) =>
@@ -75,12 +80,20 @@ const SamplePreparationAndPackagingPage = () => {
         />
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+          <div className="shrink-0 w-96">
+            <DateRangeFilter
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={handleDateFromChange}
+              onDateToChange={handleDateToChange}
+            />
+          </div>
           <SearchInput
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
-          <ThemeToggle />
+          <ThemeToggle className="shrink-0" />
         </div>
       </div>
 
@@ -91,6 +104,12 @@ const SamplePreparationAndPackagingPage = () => {
         searchPlaceholder="Search projects..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       {/* Status Filter Tabs - Desktop */}

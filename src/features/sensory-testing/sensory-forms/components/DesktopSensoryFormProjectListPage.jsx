@@ -3,6 +3,7 @@ import PageHeader from "@/components/common/page-header";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import SensoryFormsTable from "./SensoryFormsTable";
 import { SensoryFormsSkeleton } from "./SensoryFormsSkeleton";
 import { AlertCircle } from "lucide-react";
@@ -37,6 +38,10 @@ export default function DesktopSensoryFormProjectListPage({
   handleViewProjectDetails,
   noDataMessage,
   noDataDescription,
+  dateFrom,
+  dateTo,
+  handleDateFromChange,
+  handleDateToChange,
 }) {
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
@@ -48,12 +53,20 @@ export default function DesktopSensoryFormProjectListPage({
         />
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+          <div className="shrink-0 w-96">
+            <DateRangeFilter
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={handleDateFromChange}
+              onDateToChange={handleDateToChange}
+            />
+          </div>
           <SearchInput
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
-          <ThemeToggle />
+          <ThemeToggle className="shrink-0" />
         </div>
       </div>
 

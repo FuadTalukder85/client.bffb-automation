@@ -5,6 +5,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import DesktopApplicationLabTable from "./components/DesktopApplicationLabTable";
@@ -25,6 +26,8 @@ export default function ApplicationLab() {
   const {
     searchTerm,
     selectedStatus,
+    dateFrom,
+    dateTo,
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -43,6 +46,8 @@ export default function ApplicationLab() {
     error,
     handleSearchChange,
     handleStatusChange,
+    handleDateFromChange,
+    handleDateToChange,
     handleViewProjectDetails,
     filters,
   } = useApplicationLabLogic();
@@ -83,12 +88,20 @@ export default function ApplicationLab() {
         />
 
         <div className="items-center hidden gap-4 lg:gap-2 xl:gap-2.5 2xl:gap-3 3xl:gap-4 md:flex">
+          <div className="shrink-0 w-96">
+            <DateRangeFilter
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={handleDateFromChange}
+              onDateToChange={handleDateToChange}
+            />
+          </div>
           <SearchInput
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
-          <ThemeToggle />
+          <ThemeToggle className="shrink-0" />
         </div>
       </div>
 
@@ -97,6 +110,12 @@ export default function ApplicationLab() {
         onSearchChange={(e) => handleSearchChange(e.target.value)}
         searchPlaceholder="Search projects..."
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
         hideOnDesktop={true}
         defaultFilterValue="true"
       />

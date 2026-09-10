@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import { useProjectsForSensoryForm } from "@/hooks/useSensoryForm";
+import { useDebounce } from "@/hooks/useDebounce";
 import DesktopSensoryFormProjectListPage from "./components/DesktopSensoryFormProjectListPage";
 import MobileSensoryFormProjectListPage from "./components/MobileSensoryFormProjectListPage";
 
@@ -45,9 +46,14 @@ export default function SensoryFormProjectListPage() {
   const [columnVisibility, setColumnVisibility] = useState({});
   const [columnPinning, setColumnPinning] = useState({});
   const [columnSizing, setColumnSizing] = useState({});
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
   const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
+
+  const debouncedDateFrom = useDebounce(dateFrom, 300);
+  const debouncedDateTo = useDebounce(dateTo, 300);
 
   const {
     data: projectsResponse,
@@ -59,6 +65,8 @@ export default function SensoryFormProjectListPage() {
     status: selectedStatus,
     isActive: "true",
     isFeasible: "all",
+    dateFrom: debouncedDateFrom,
+    dateTo: debouncedDateTo,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
@@ -95,6 +103,16 @@ export default function SensoryFormProjectListPage() {
 
   const handlePeriodChange = (periodKey) => {
     setSelectedPeriod(periodKey);
+    setCurrentPage(1);
+  };
+
+  const handleDateFromChange = (value) => {
+    setDateFrom(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateToChange = (value) => {
+    setDateTo(value);
     setCurrentPage(1);
   };
 
@@ -170,6 +188,10 @@ export default function SensoryFormProjectListPage() {
     noDataDescription: searchTerm
       ? `No projects match "${searchTerm}". Try adjusting your search.`
       : "No projects available yet.",
+    dateFrom,
+    dateTo,
+    handleDateFromChange,
+    handleDateToChange,
   };
 
   if (isMobile) {

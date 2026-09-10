@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FilterInput } from "@/components/ui/FilterInput/FilterInput";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { cn } from "@/lib/utils";
 
 export const SearchFilterBar = ({
@@ -14,6 +15,8 @@ export const SearchFilterBar = ({
   filterPlaceholder = "Select filter...",
   // Multiple filters prop (new)
   filters,
+  // Date range filter (from/to on createdAt)
+  dateRange,
   hideOnDesktop = false,
   className,
   // Width customization
@@ -140,6 +143,15 @@ export const SearchFilterBar = ({
               </>
             )}
           </div>
+        )}
+
+        {dateRange && (
+          <DateRangeFilter
+            dateFrom={dateRange.dateFrom}
+            dateTo={dateRange.dateTo}
+            onDateFromChange={dateRange.onDateFromChange}
+            onDateToChange={dateRange.onDateToChange}
+          />
         )}
       </div>
     </>

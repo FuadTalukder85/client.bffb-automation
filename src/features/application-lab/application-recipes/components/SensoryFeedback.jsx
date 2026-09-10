@@ -258,13 +258,13 @@ export default function SensoryFeedback({
 }
 
 // ================= SENSORY FEEDBACK LEFT COLUMN =================
-export function SensoryFeedbackLeftHeader({ height }) {
+export function SensoryFeedbackLeftHeader({ height, className }) {
   return (
     <div
       style={height ? { height: `${height}px` } : undefined}
-      className="px-6 py-4 flex-1 flex flex-col justify-start"
+      className={cn("px-6 py-4 flex-1 flex flex-col justify-start", className)}
     >
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight leading-tight">
         Sensory Feedback
       </h2>
     </div>
