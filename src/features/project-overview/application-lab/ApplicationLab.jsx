@@ -5,6 +5,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Pagination } from "@/components/ui/Pagination";
 import DesktopApplicationLabTable from "./components/DesktopApplicationLabTable";
@@ -25,6 +26,8 @@ export default function ApplicationLab() {
   const {
     searchTerm,
     selectedStatus,
+    dateFrom,
+    dateTo,
     currentPage,
     setCurrentPage,
     itemsPerPage,
@@ -43,6 +46,8 @@ export default function ApplicationLab() {
     error,
     handleSearchChange,
     handleStatusChange,
+    handleDateFromChange,
+    handleDateToChange,
     handleViewProjectDetails,
     filters,
   } = useApplicationLabLogic();
@@ -97,6 +102,12 @@ export default function ApplicationLab() {
         onSearchChange={(e) => handleSearchChange(e.target.value)}
         searchPlaceholder="Search projects..."
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
         hideOnDesktop={true}
         defaultFilterValue="true"
       />
@@ -124,6 +135,15 @@ export default function ApplicationLab() {
           })}
 
         </div>
+      </div>
+
+      <div className="flex-none hidden mb-2 lg:mb-2 xl:mb-2.5 2xl:mb-3.5 3xl:mb-4 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       <div className="flex flex-col flex-1 w-full min-h-0">

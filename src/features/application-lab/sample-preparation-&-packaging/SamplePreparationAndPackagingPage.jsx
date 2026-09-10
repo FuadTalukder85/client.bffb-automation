@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import PageHeader from "@/components/common/page-header";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
 import { useSamplePreparationLogic } from "./hooks/useSamplePreparationLogic";
@@ -35,6 +36,10 @@ const SamplePreparationAndPackagingPage = () => {
     totalPages,
     filters,
     filteredPeriodOptions,
+    dateFrom,
+    dateTo,
+    handleDateFromChange,
+    handleDateToChange,
   } = useSamplePreparationLogic();
 
   const getErrorMessage = (error) =>
@@ -91,6 +96,12 @@ const SamplePreparationAndPackagingPage = () => {
         searchPlaceholder="Search projects..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       {/* Status Filter Tabs - Desktop */}
@@ -130,6 +141,16 @@ const SamplePreparationAndPackagingPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Date Range Filter - Desktop */}
+      <div className="flex-none hidden mb-2 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       {/* Content Area */}

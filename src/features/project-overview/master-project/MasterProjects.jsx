@@ -3,6 +3,7 @@ import PageHeader from "@/components/common/page-header";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { ActionButtonsGroup } from "@/components/ui/ActionButtonsGroup";
@@ -40,6 +41,8 @@ export default function MasterProjects() {
         searchTerm,
         selectedState,
         selectedStatus,
+        dateFrom,
+        dateTo,
         currentPage,
         setCurrentPage,
         itemsPerPage,
@@ -74,6 +77,8 @@ export default function MasterProjects() {
         handleSearchChange,
         handleStateChange,
         handleStatusChange,
+        handleDateFromChange,
+        handleDateToChange,
         handleAddProject,
         handleEditProject,
         handleArchiveProject,
@@ -179,6 +184,12 @@ export default function MasterProjects() {
                 onSearchChange={(e) => handleSearchChange(e.target.value)}
                 searchPlaceholder="Search projects..."
                 filters={filters}
+                dateRange={{
+                    dateFrom,
+                    dateTo,
+                    onDateFromChange: handleDateFromChange,
+                    onDateToChange: handleDateToChange,
+                }}
                 hideOnDesktop={true}
                 defaultFilterValue="true"
             />
@@ -215,6 +226,12 @@ export default function MasterProjects() {
                             value={selectedState}
                             options={stateOptions}
                             onChange={handleStateChange}
+                        />
+                        <DateRangeFilter
+                            dateFrom={dateFrom}
+                            dateTo={dateTo}
+                            onDateFromChange={handleDateFromChange}
+                            onDateToChange={handleDateToChange}
                         />
                     </div>
 

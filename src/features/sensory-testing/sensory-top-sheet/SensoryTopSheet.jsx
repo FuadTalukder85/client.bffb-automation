@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { PERMISSIONS } from "@/constants/permissions";
 import { useProjectsForSensoryTopSheet } from "@/hooks/useSensoryForm";
+import { useDebounce } from "@/hooks/useDebounce";
 import DesktopSensoryTopSheetPage from "./components/DesktopSensoryTopSheetPage";
 import MobileSensoryTopSheetPage from "./components/MobileSensoryTopSheetPage";
 
@@ -46,6 +47,12 @@ export default function SensoryTopSheet() {
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
   const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
 
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const debouncedDateFrom = useDebounce(dateFrom, 300);
+  const debouncedDateTo = useDebounce(dateTo, 300);
+
   const {
     data: projectsResponse,
     isLoading,
@@ -56,6 +63,8 @@ export default function SensoryTopSheet() {
     status: selectedStatus,
     isActive: "true",
     isFeasible: "all",
+    dateFrom: debouncedDateFrom,
+    dateTo: debouncedDateTo,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
@@ -96,6 +105,16 @@ export default function SensoryTopSheet() {
 
   const handleTypeChange = (type) => {
     setSelectedType(type);
+    setCurrentPage(1);
+  };
+
+  const handleDateFromChange = (value) => {
+    setDateFrom(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateToChange = (value) => {
+    setDateTo(value);
     setCurrentPage(1);
   };
 
@@ -188,6 +207,10 @@ export default function SensoryTopSheet() {
     filters,
     sorting,
     setSorting,
+    dateFrom,
+    dateTo,
+    handleDateFromChange,
+    handleDateToChange,
   };
 
   if (isMobile) {

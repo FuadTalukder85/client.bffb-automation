@@ -7,6 +7,7 @@ import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInp
 import { buildStatusOptions, createFilterOptions } from "@/config/statusConfig";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { SearchFilterBar } from "@/components/common/SearchFilterBar";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import { useProjectsForShelfLifeTestRecords } from "@/hooks/useSamples";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -50,8 +51,12 @@ export default function ProjectListForShelfLifeTestRecords() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sorting, setSorting] = useState([]);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedDateFrom = useDebounce(dateFrom, 300);
+  const debouncedDateTo = useDebounce(dateTo, 300);
 
   const sortBy = sorting.length > 0 ? sorting[0].id : "";
   const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "";
@@ -65,6 +70,8 @@ export default function ProjectListForShelfLifeTestRecords() {
     statusFilter: runToggle,
     isActive: runToggle === "running" ? "true" : runToggle === "previous" ? "false" : "all",
     isFeasible: "all",
+    dateFrom: debouncedDateFrom,
+    dateTo: debouncedDateTo,
     page: currentPage,
     limit: itemsPerPage,
     sortBy,
@@ -91,6 +98,16 @@ export default function ProjectListForShelfLifeTestRecords() {
 
   const handleRunToggleChange = (value) => {
     setRunToggle(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateFromChange = (value) => {
+    setDateFrom(value);
+    setCurrentPage(1);
+  };
+
+  const handleDateToChange = (value) => {
+    setDateTo(value);
     setCurrentPage(1);
   };
 
@@ -148,6 +165,12 @@ export default function ProjectListForShelfLifeTestRecords() {
         searchPlaceholder="Search..."
         hideOnDesktop={true}
         filters={filters}
+        dateRange={{
+          dateFrom,
+          dateTo,
+          onDateFromChange: handleDateFromChange,
+          onDateToChange: handleDateToChange,
+        }}
       />
 
       <div className="flex-none hidden my-1 lg:my-1.5 xl:my-2 2xl:my-3 3xl:my-4 md:block ms-5">
@@ -184,6 +207,15 @@ export default function ProjectListForShelfLifeTestRecords() {
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex-none hidden mb-2 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       <div className="flex flex-col flex-1 w-full min-h-0">

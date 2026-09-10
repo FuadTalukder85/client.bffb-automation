@@ -3,6 +3,7 @@ import PageHeader from "@/components/common/page-header";
 import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { DesktopFilterPills } from "@/components/ui/FilterInput/DesktopFilterInput";
+import { DateRangeFilter } from "@/components/common/DateRangeFilter";
 import SensoryFormsTable from "./SensoryFormsTable";
 import { SensoryFormsSkeleton } from "./SensoryFormsSkeleton";
 import { AlertCircle } from "lucide-react";
@@ -37,6 +38,10 @@ export default function DesktopSensoryFormProjectListPage({
   handleViewProjectDetails,
   noDataMessage,
   noDataDescription,
+  dateFrom,
+  dateTo,
+  handleDateFromChange,
+  handleDateToChange,
 }) {
   return (
     <section className="flex flex-col px-0 page-section-spacing md:flex-1 md:min-h-0 min-h-[calc(100vh-6rem)]">
@@ -94,6 +99,16 @@ export default function DesktopSensoryFormProjectListPage({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="flex-none hidden mb-2 md:block ms-5">
+        <DateRangeFilter
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onDateFromChange={handleDateFromChange}
+          onDateToChange={handleDateToChange}
+        />
       </div>
 
       {/* Content Area */}
