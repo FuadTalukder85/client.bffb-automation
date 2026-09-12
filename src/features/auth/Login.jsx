@@ -57,8 +57,15 @@ function Login() {
           </h3>
 
           {/* 3. Use the new Form component. Pass the schema and onSubmit. */}
-          {/* All react-hook-form logic is now handled by this component. */}
-          <Form schema={loginSchema} onSubmit={onSubmit} className="space-y-4">
+          <Form
+            schema={loginSchema}
+            defaultValues={{
+              email: "fuadtalukder25@gmail.com",
+              password: "Aa@11111111",
+            }}
+            onSubmit={onSubmit}
+            className="space-y-4"
+          >
             {/* 4. This is a complete, validated form field. */}
             <FormField name="email">
               <FormItem>
